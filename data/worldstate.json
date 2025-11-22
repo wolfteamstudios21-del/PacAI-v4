@@ -1,0 +1,14 @@
+{
+  "health": 100,
+  "energy": 50,
+  "position": {
+    "x": 0,
+    "y": 0,
+    "z": 0
+  },
+  "inventory": [
+    "sword",
+    "shield"
+  ],
+  "score": 100
+}

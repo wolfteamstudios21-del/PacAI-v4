@@ -1,0 +1,17 @@
+{
+  "name": "AI Brain App",
+  "short_name": "AI Brain",
+  "description": "Testing companion for AI Brain Core (Godot addon)",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "icons": [
+    {
+      "src": "/favicon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
