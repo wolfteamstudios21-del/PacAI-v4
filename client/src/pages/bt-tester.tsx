@@ -32,16 +32,21 @@ export default function BTTester() {
   const [executionLogs, setExecutionLogs] = useState<string[]>([]);
   const [btNodes, setBtNodes] = useState<BTNode[]>([]);
   const [executedNodes, setExecutedNodes] = useState<string[]>([]);
+  const [executionTime, setExecutionTime] = useState<number | null>(null);
   const { toast } = useToast();
 
   const executeMutation = useMutation({
     mutationFn: async (data: { bt_string: string; context: any }) => {
-      return apiRequest<BTExecutionResult>("POST", "/api/bt/run", data);
+      const startTime = performance.now();
+      const result = await apiRequest<BTExecutionResult>("POST", "/api/bt/run", data);
+      const elapsed = Math.round(performance.now() - startTime);
+      setExecutionTime(elapsed);
+      return result;
     },
     onSuccess: (data) => {
       const logs = [
-        `[${new Date().toLocaleTimeString()}] Execution Status: ${data.tick_output.status.toUpperCase()}`,
-        `Executed Nodes: ${data.tick_output.executedNodes.join(' → ')}`,
+        `[${new Date().toLocaleTimeString()}] Status: ${data.tick_output.status.toUpperCase()} (${executionTime}ms)`,
+        `Nodes: ${data.tick_output.executedNodes.join(' → ')}`,
         ...data.tick_output.logs,
       ];
       setExecutionLogs((prev) => [...logs, ...prev]);
