@@ -1,0 +1,390 @@
+AI Brain Core App – Version 1.1 Specification
+
+Product Document | For Developers, Studios, and Technical Partners
+
+
+---
+
+1. Overview
+
+The AI Brain Core is a modular, cloud-hosted intelligence engine designed to power games, simulations, virtual worlds, and adaptive NPC systems. Developers lease the AI Brain Core and use the AI Brain Mobile App (or desktop app) to configure, modify, and control how the AI behaves inside their project.
+
+The mobile app acts as the command console for the AI system. It gives developers access to behavior trees, model settings, difficulty curves, agent logic, world-state rules, and runtime diagnostics — all without rebuilding their game.
+
+This document describes the structure, architecture, feature set, and demo workflow of AI Brain Core App V1.1.
+
+
+---
+
+2. Product Goal
+
+Enable developers to control, adjust, or rewrite the version of the AI Brain Core they lease, allowing them to modify:
+
+NPC behavior patterns
+
+Enemy and ally AI logic
+
+Faction strategies
+
+Difficulty scaling
+
+World rules and environmental logic
+
+Narrative AI prompts and generative behaviors
+
+Reinforcement learning parameters
+
+ONNX prediction models
+
+Runtime variables and AI tuning values
+
+Performance limits and safety constraints
+
+
+All in real time, through a cross-platform mobile or desktop interface.
+
+
+---
+
+3. Demo Purpose (V1)
+
+The V1 demo proves these core concepts:
+
+1. Godot frontend → AI backend communication loop
+
+
+2. Behavior Tree (BT) evaluation using the AI Brain Core structure
+
+
+3. ONNX prediction (player style or NPC trait inference)
+
+
+4. Prompt-based LLM logic (mocked or powered through DBos)
+
+
+5. Mobile UI elements making real-time API calls
+
+
+6. Configurable settings that change AI behavior on the fly
+
+
+
+The demo represents the minimum viable example of how a leasing studio would interact with your AI Core system.
+
+
+---
+
+4. System Architecture (High-Level)
+
+┌───────────────────────────────┐
+          │       Developer Device        │
+          │  (AI Brain Mobile App / Web)  │
+          └───────────────┬──────────────┘
+                          API Calls
+          ┌───────────────▼────────────────┐
+          │         AI Brain Gateway        │
+          │     (DBos / Flask Backend)      │
+          └───────────────┬────────────────┘
+             Model Calls  │  BT Updates
+          ┌───────────────▼────────────────┐
+          │        AI Brain Core            │
+          │ Behavior Trees / World Logic     │
+          │ ONNX Models / Prompt Engine      │
+          └───────────────┬────────────────┘
+                          Sync
+          ┌───────────────▼────────────────┐
+          │          Game Engine            │
+          │     (Godot Frontend Client)     │
+          └─────────────────────────────────┘
+
+
+---
+
+5. AI Brain Core Components
+
+5.1 Behavior Tree System
+
+Defines how NPCs think, choose actions, escalate threats, retreat, interact with players, and adapt.
+
+The mobile app can:
+
+Enable/disable BT nodes
+
+Modify decision thresholds
+
+Rewrite leaf-node logic
+
+Save and publish new BT versions to the game
+
+Roll back to previous BT profiles
+
+
+
+---
+
+5.2 ONNX Inference Layer
+
+Used for:
+
+Player style prediction
+
+NPC personality inference
+
+Difficulty estimation
+
+Risk scoring
+
+Pathfinding weight modeling
+
+
+The mobile app can:
+
+Swap ONNX models
+
+Change input weights
+
+Set performance limits and frequency
+
+
+
+---
+
+5.3 Prompt Engine (LLM Logic)
+
+Controls:
+
+Narrative responses
+
+NPC dialogue
+
+Adaptive storytelling
+
+World event triggers
+
+
+The mobile app can:
+
+Edit prompts
+
+Switch models (local or cloud)
+
+Define guardrails
+
+Override outputs manually
+
+
+
+---
+
+5.4 World State & Telemetry
+
+Tracks:
+
+NPC emotions, stats, goals
+
+Faction relationships
+
+Crime rates, economy values
+
+Environmental threats
+
+Player reputation and impact
+
+
+The mobile app provides:
+
+Live dashboards
+
+Event controls
+
+World-state edits
+
+Reset/rewind functions
+
+
+
+---
+
+6. Mobile App – Feature Specification
+
+The mobile app is the control interface for all leased AI Brain Cores.
+
+6.1 Core Pages
+
+Dashboard
+
+Live AI activity
+
+Behavior tree ticks
+
+Model load
+
+Error logs
+
+
+Behavior Editor
+
+Toggle BT nodes
+
+Modify thresholds
+
+Upload new BT profiles
+
+Save/rollback changes
+
+
+NPC Logic Panel
+
+Set aggression
+
+Change perception radius
+
+Edit personalities
+
+Override roles (leader, follower, neutral, rogue)
+
+
+LLM Prompt Editor
+
+Open prompt templates
+
+Modify instructions
+
+Add world-specific context
+
+Bind responses to events
+
+
+Model Manager
+
+Swap ONNX models
+
+Update inputs
+
+Change sampling rates
+
+
+Runtime Tools
+
+Event triggers
+
+Difficulty sliders
+
+Spawn/debug NPCs
+
+Stress-test AI intelligence
+
+
+Performance & Safety
+
+Max CPU/GPU usage
+
+Model limits
+
+Safe-mode switches
+
+
+
+---
+
+7. Demo Implementation (V1)
+
+Your current V1 includes:
+
+Godot (Frontend)
+
+Simple UI
+
+Action buttons
+
+HTTP requests to backend
+
+Display area for results
+
+
+Backend
+
+Python/Flask (or DBos)
+
+/bt_tick endpoint
+
+/predict_style endpoint
+
+/generate_action endpoint
+
+Mocked LLM response
+
+ONNX model execution
+
+
+Files
+
+ai_bt.py — Behavior Tree
+
+ai_model.py — ONNX inference
+
+ai_prompt.py — LLM logic
+
+server.py — HTTP interface
+
+index.html — Web export container
+
+
+
+---
+
+8. Roadmap (V1 → V3)
+
+V1 – Foundation (Current Demo)
+
+BT ticks
+
+ONNX prediction
+
+Prompt stubs
+
+Godot web demo
+
+Mobile control prototype
+
+
+V2 – Intelligent Runtime
+
+Full DBos integration
+
+Real LLM outputs
+
+Persistent world-state memory
+
+Multi-agent simulation
+
+Editable AI personality cards
+
+Exportable AI profiles
+
+
+V3 – Studio-Ready AI Platform
+
+Cloud dashboard
+
+Billing and leasing API
+
+Multi-developer team access
+
+Version control and rollback
+
+Multi-game AI slot system
+
+Adjustable compute tiers (AMD leasing)
+
+Real-time event streaming
+
+
+
+---
+
+9. Goal of the System
+
+Deliver a fully configurable, enterprise-ready AI system that developers, studios, and teams can lease, control, modify, and integrate into their games — without building their own AI stack from scratch.
+
+The AI Brain Core App becomes the interface through which every AI decision in their game can be monitored, rewritten, or tuned on demand.
