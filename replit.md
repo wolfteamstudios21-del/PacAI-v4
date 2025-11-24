@@ -81,13 +81,39 @@ npm start
 5. **Settings** - OpenAI API key, Ollama endpoint configuration
 6. **Dashboard** - Feature overview, API integration examples
 
-## Next Phase Features (Optional)
-- Advanced BT debugging (breakpoints, variable inspection)
-- Batch testing capabilities
-- Execution history & replay
-- PostgreSQL database migration
-- Collaborative team workspace
-- Analytics dashboard
+## v3 Implementation Status (In Progress)
+✅ **Week 1 Complete (Option 1: Core Endpoints)**
+- FastAPI gateway (port 5001) with SQLAlchemy ORM
+- Project CRUD: create, list, get, update, delete
+- Zone generation with SSE streaming (`generate-zone?stream=true`)
+- Animation job queueing with background tasks
+- Export bundle creation with async job processing
+- Snapshot save/list/restore (full version history)
+- Webhook registration and async delivery
+- PostgreSQL tables: projects, exports, animations, snapshots, webhooks
+- Express proxy middleware forwards `/v3/*` to FastAPI gateway
+
+**Deployed Architecture:**
+```
+Express (port 5000) ←→ FastAPI v3 Gateway (port 5001)
+├── v2: Auth, Credits, Rate-limit, BT/ONNX/Narrative
+└── v3: Projects, Exports, Streaming, Webhooks, Snapshots
+```
+
+**How to run v3:**
+1. `cd gateway && python3 main.py` (starts port 5001)
+2. Main app `npm run dev` stays on port 5000
+3. Test with: `bash test-v3-endpoints.sh`
+
+## Remaining v3 Features (Option 2 & 3)
+- [ ] Mobile Creation Suite (Police/CQB/Film templates)
+- [ ] Project-level ONNX model binding
+- [ ] Persistent LLM prompt templates per project
+- [ ] S3 asset storage & signed URLs
+- [ ] Advanced webhook signing (HMAC)
+- [ ] Admin audit endpoints
+- [ ] Per-project rate limiting
+- [ ] Export to Blender/Godot adapters
 
 ## Design Principles
 - **Technical Focus**: Developer-tool aesthetic inspired by VS Code, Linear, GitHub
