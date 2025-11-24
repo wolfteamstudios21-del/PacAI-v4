@@ -1,4 +1,4 @@
-import { type User, type InsertUser, type WorldState, type BTExecution, type NarrativeGeneration } from "@shared/schema";
+import { type User, type InsertUser, type WorldState, type BTExecution, type NarrativeGeneration, type UserWithCredits, type CreditUsage } from "@shared/schema";
 import { randomUUID } from "crypto";
 import fs from "fs/promises";
 import path from "path";
@@ -16,6 +16,7 @@ async function ensureDataDir() {
 export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
+  getUserWithCredits(id: string): Promise<UserWithCredits | undefined>;
   createUser(user: InsertUser): Promise<User>;
   
   getWorldState(): Promise<WorldState>;
@@ -24,20 +25,43 @@ export interface IStorage {
   saveBTExecution(execution: Omit<BTExecution, 'id' | 'timestamp'>): Promise<BTExecution>;
   
   saveNarrativeGeneration(generation: Omit<NarrativeGeneration, 'id' | 'timestamp'>): Promise<NarrativeGeneration>;
+
+  deductCredits(userId: string, amount: number): Promise<void>;
+  getUserUsage(userId: string): Promise<CreditUsage[]>;
 }
 
 export class MemStorage implements IStorage {
-  private users: Map<string, User>;
+  private users: Map<string, UserWithCredits>;
   private worldState: WorldState;
   private btExecutions: BTExecution[];
   private narrativeGenerations: NarrativeGeneration[];
+  private creditUsage: CreditUsage[];
 
   constructor() {
     this.users = new Map();
     this.worldState = {};
     this.btExecutions = [];
     this.narrativeGenerations = [];
+    this.creditUsage = [];
+    this.initializeDefaultUsers();
     this.loadData();
+  }
+
+  private initializeDefaultUsers() {
+    this.users.set('user-001', {
+      id: 'user-001',
+      username: 'demo-user',
+      password: 'hashed-demo-password',
+      credits: 1000,
+      apiKey: 'sk_demo_1234567890abcdef',
+    });
+    this.users.set('admin', {
+      id: 'admin',
+      username: 'admin',
+      password: 'hashed-admin-password',
+      credits: 999999,
+      apiKey: 'sk_admin_master_key_2025',
+    });
   }
 
   private async loadData() {
@@ -64,20 +88,47 @@ export class MemStorage implements IStorage {
   }
 
   async getUser(id: string): Promise<User | undefined> {
-    return this.users.get(id);
+    const user = this.users.get(id);
+    return user ? { id: user.id, username: user.username, password: user.password } : undefined;
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
+    return Array.from(this.users.values())
+      .find((user) => user.username === username)
+      ?.let((user) => ({ id: user.id, username: user.username, password: user.password }));
+  }
+
+  async getUserWithCredits(id: string): Promise<UserWithCredits | undefined> {
+    return this.users.get(id);
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = randomUUID();
-    const user: User = { ...insertUser, id };
+    const user: UserWithCredits = { 
+      ...insertUser, 
+      id,
+      credits: 1000,
+      apiKey: `sk_${id.substring(0, 20)}`,
+    };
     this.users.set(id, user);
-    return user;
+    return { id: user.id, username: user.username, password: user.password };
+  }
+
+  async deductCredits(userId: string, amount: number): Promise<void> {
+    const user = this.users.get(userId);
+    if (user) {
+      user.credits = Math.max(0, user.credits - amount);
+      this.creditUsage.push({
+        userId,
+        operation: 'bt_execute',
+        cost: amount,
+        timestamp: new Date().toISOString(),
+      });
+    }
+  }
+
+  async getUserUsage(userId: string): Promise<CreditUsage[]> {
+    return this.creditUsage.filter((usage) => usage.userId === userId);
   }
 
   async getWorldState(): Promise<WorldState> {
