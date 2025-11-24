@@ -8,6 +8,7 @@ import express, {
 } from "express";
 
 import { registerRoutes } from "./routes";
+import { v3Proxy } from "./middleware/v3-proxy";
 
 export function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
@@ -33,6 +34,9 @@ app.use(express.json({
   }
 }));
 app.use(express.urlencoded({ extended: false }));
+
+// v3 Gateway proxy (before other routes so /v3/* are intercepted)
+app.use(v3Proxy);
 
 app.use((req, res, next) => {
   const start = Date.now();

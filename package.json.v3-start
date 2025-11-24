@@ -1,0 +1,5 @@
+# To start v3 gateway alongside main app:
+# 1. Install Python: python -m pip install -r gateway/requirements.txt
+# 2. In separate terminal: cd gateway && python main.py
+# This will start FastAPI on port 5001
+# Express (port 5000) will proxy /v3/* requests to it
