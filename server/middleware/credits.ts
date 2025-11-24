@@ -14,7 +14,7 @@ const OPERATION_COSTS: Record<string, number> = {
   worldstate_push: 15,
 };
 
-export async function requireCredits(operation: string) {
+export function requireCredits(operation: string) {
   return async (req: CreditsRequest, res: Response, next: NextFunction) => {
     if (!req.userId) {
       return res.status(401).json({ error: 'User not authenticated' });
