@@ -105,15 +105,48 @@ Express (port 5000) ←→ FastAPI v3 Gateway (port 5001)
 2. Main app `npm run dev` stays on port 5000
 3. Test with: `bash test-v3-endpoints.sh`
 
-## Remaining v3 Features (Option 2 & 3)
-- [ ] Mobile Creation Suite (Police/CQB/Film templates)
-- [ ] Project-level ONNX model binding
-- [ ] Persistent LLM prompt templates per project
-- [ ] S3 asset storage & signed URLs
-- [ ] Advanced webhook signing (HMAC)
-- [ ] Admin audit endpoints
-- [ ] Per-project rate limiting
-- [ ] Export to Blender/Godot adapters
+## v4 Specification & Monorepo Bootstrap (In Progress)
+
+**v4 Vision**: Offline-first, air-gapped defense simulation platform with hardware-root licensing, SSO + X.509 auth, tamper-proof audit logs, and multi-engine exporters (UE5/Unity/Godot/VBS4/OneTESS).
+
+**Spec Documents Created**:
+- `V4_SPECIFICATION.md` - Complete 10-week sprint plan, architecture, API contracts, security model
+- `V4_API_CONTRACT.json` - Frozen JSON schema v1.2 for all endpoints
+- `V4_RBAC_POLICY.json` - Role matrix (admin, instructor, operator, auditor, integrator) + per-tenant overrides
+- `V4_MODEL_VAULT.json` - Offline model registry with per-project KMS encryption
+
+**Monorepo Structure Created**:
+```
+/gateway        - Rust HTTP/WebSocket gateway, RBAC, audit hooks
+/bridge         - Python model orchestration (Ollama/ONNX)
+/admin          - Tauri desktop GUI (config, licensing, audit replay)
+/exporters      - Unity/UE5/Godot template engines + defense adapters
+/infra          - Helm/Docker Compose, HSM provisioning
+/tests          - Integration & security test harness
+/docs           - Operator manual, security dossier, integration guides
+```
+
+**Test Harness Skeleton**: `tests/integration/offline_test_harness.rs` with 12 test cases:
+- Offline mode (zero outbound)
+- Tenant isolation
+- License state machine
+- Deterministic generation
+- Audit chain hash integrity
+- RBAC enforcement
+- Encryption at rest
+- Update rollback
+- SSO + X.509 auth
+- Cluster failover
+- Export multi-engine
+- Audit replay + performance (10k NPCs)
+
+**Next Steps (Week 1 Build)**:
+- [ ] Gateway skeleton (Rust + Axum, RBAC middleware)
+- [ ] HSM client (YubiHSM/Nitrokey license check)
+- [ ] Auth flow (SSO + X.509 + offline tokens)
+- [ ] Deterministic /generate endpoint
+- [ ] Audit event stream (WebSocket, hash chain)
+- [ ] Export /build endpoint (sign with Ed25519)
 
 ## Design Principles
 - **Technical Focus**: Developer-tool aesthetic inspired by VS Code, Linear, GitHub

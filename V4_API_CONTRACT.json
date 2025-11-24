@@ -1,0 +1,356 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AI Brain v4 API Contract Schema v1.2",
+  "version": "1.2.0",
+  "description": "Frozen API specification for offline-first defense simulation platform",
+  "definitions": {
+    "UUID": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+    },
+    "Role": {
+      "type": "string",
+      "enum": ["admin", "instructor", "operator", "auditor", "integrator"]
+    },
+    "Entity": {
+      "type": "object",
+      "required": ["id", "type", "position"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^(npc|prop|hazard)_[0-9]{3}$" },
+        "type": { "enum": ["civilian", "officer", "suspect", "prop", "hazard"] },
+        "role": { "type": "string", "examples": ["drunk", "armed", "agitated"] },
+        "position": {
+          "type": "array",
+          "items": { "type": "number" },
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "behavior_tree": { "type": "string" },
+        "initial_state": { "type": "object" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "Zone": {
+      "type": "object",
+      "required": ["id", "entities", "environment"],
+      "properties": {
+        "id": { "$ref": "#/definitions/UUID" },
+        "entities": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/Entity" }
+        },
+        "environment": {
+          "type": "object",
+          "properties": {
+            "time_of_day": { "type": "string", "pattern": "^[0-2][0-9]:[0-5][0-9]$" },
+            "weather": { "enum": ["clear", "rainy", "overcast", "snowy"] },
+            "lighting": { "type": "string" },
+            "temperature": { "type": "number" }
+          }
+        }
+      }
+    },
+    "AuditEvent": {
+      "type": "object",
+      "required": ["event_id", "timestamp", "actor", "action", "subject"],
+      "properties": {
+        "event_id": { "$ref": "#/definitions/UUID" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "actor": { "$ref": "#/definitions/UUID" },
+        "action": { "enum": ["generate", "control", "export", "auth", "key_rotate", "license_check", "update_import"] },
+        "subject": { "type": "string" },
+        "details": { "type": "object" },
+        "hash_chain": { "type": "string", "pattern": "^[0-9a-f]{64}→[0-9a-f]{64}$" },
+        "signature": { "type": "string" },
+        "hsm_notarized": { "type": "boolean" }
+      }
+    }
+  },
+  "paths": {
+    "/auth/handshake": {
+      "post": {
+        "summary": "Validate identity, issue session token",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["identity_method", "credential"],
+                "properties": {
+                  "identity_method": { "enum": ["sso", "x509", "api_key"] },
+                  "credential": { "type": "string" },
+                  "offline_mode": { "type": "boolean", "default": false },
+                  "client_id": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Session established",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "session_token": { "type": "string" },
+                    "user": {
+                      "type": "object",
+                      "properties": {
+                        "id": { "$ref": "#/definitions/UUID" },
+                        "roles": {
+                          "type": "array",
+                          "items": { "$ref": "#/definitions/Role" }
+                        },
+                        "projects": {
+                          "type": "array",
+                          "items": { "$ref": "#/definitions/UUID" }
+                        }
+                      }
+                    },
+                    "license_status": {
+                      "type": "object",
+                      "properties": {
+                        "seats_used": { "type": "integer" },
+                        "seats_max": { "type": "integer" },
+                        "expiry": { "type": "string", "format": "date" },
+                        "capabilities": { "type": "array", "items": { "type": "string" } }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "description": "Authentication failed" },
+          "423": { "description": "License expired or seats exhausted" }
+        }
+      }
+    },
+    "/generate": {
+      "post": {
+        "summary": "Deterministic procedural generation",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["project_id", "prompt", "policy_id"],
+                "properties": {
+                  "project_id": { "$ref": "#/definitions/UUID" },
+                  "prompt": { "type": "string", "maxLength": 10000 },
+                  "policy_id": { "$ref": "#/definitions/UUID" },
+                  "seed": { "type": "integer", "minimum": 0 },
+                  "deterministic_mode": { "type": "boolean", "default": true },
+                  "cost_limit": { "type": "integer", "default": 10 }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Scenario generated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "scenario_id": { "$ref": "#/definitions/UUID" },
+                    "zone": { "$ref": "#/definitions/Zone" },
+                    "checksum": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+                    "generation_metadata": {
+                      "type": "object",
+                      "properties": {
+                        "model_id": { "type": "string" },
+                        "seed_used": { "type": "integer" },
+                        "policy_applied": { "$ref": "#/definitions/UUID" },
+                        "deterministic_signature": { "type": "string" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "Invalid prompt or policy" },
+          "429": { "description": "Cost limit exceeded" }
+        }
+      }
+    },
+    "/control": {
+      "post": {
+        "summary": "Apply live scenario overrides",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["scenario_id", "overrides"],
+                "properties": {
+                  "scenario_id": { "$ref": "#/definitions/UUID" },
+                  "overrides": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": ["entity_id", "property", "value"],
+                      "properties": {
+                        "entity_id": { "type": "string" },
+                        "property": { "type": "string" },
+                        "value": { "type": ["number", "string", "boolean"] },
+                        "trigger": { "type": "string" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Overrides applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "enum": ["applied", "partial", "rejected"] },
+                    "audit_event_id": { "$ref": "#/definitions/UUID" },
+                    "entities_affected": { "type": "array", "items": { "type": "string" } }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/audit/stream": {
+      "get": {
+        "summary": "Real-time append-only event stream (WebSocket)",
+        "parameters": [
+          { "name": "filter", "in": "query", "schema": { "type": "string" } },
+          { "name": "role", "in": "query", "schema": { "$ref": "#/definitions/Role" } },
+          { "name": "tail", "in": "query", "schema": { "type": "integer", "default": 100 } }
+        ],
+        "responses": {
+          "101": { "description": "WebSocket upgrade" },
+          "401": { "description": "Unauthorized" },
+          "403": { "description": "Role cannot access audit stream" }
+        }
+      }
+    },
+    "/export/build": {
+      "post": {
+        "summary": "Build and sign export package",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["scenario_id", "engine"],
+                "properties": {
+                  "scenario_id": { "$ref": "#/definitions/UUID" },
+                  "engine": { "enum": ["ue5", "unity", "godot", "vbs4", "onetess"] },
+                  "version": { "type": "string" },
+                  "include_metadata": { "type": "boolean", "default": true },
+                  "sign_with_hsm": { "type": "boolean", "default": true }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Export job queued",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "export_job_id": { "$ref": "#/definitions/UUID" },
+                    "status": { "enum": ["queued", "processing", "complete", "failed"] },
+                    "manifest": {
+                      "type": "object",
+                      "properties": {
+                        "engine": { "type": "string" },
+                        "schema": { "const": "v1.2" },
+                        "hash": { "type": "string" },
+                        "signature": { "type": "string" },
+                        "contents": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "path": { "type": "string" },
+                              "type": { "enum": ["data", "template", "metadata"] }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/license": {
+      "get": {
+        "summary": "Check license status and capabilities",
+        "responses": {
+          "200": {
+            "description": "License info",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "hardware_id": { "type": "string" },
+                    "seats_used": { "type": "integer" },
+                    "seats_max": { "type": "integer" },
+                    "expiry": { "type": "string", "format": "date" },
+                    "capabilities": {
+                      "type": "object",
+                      "properties": {
+                        "generate": { "type": "boolean" },
+                        "export_ue5": { "type": "boolean" },
+                        "export_unity": { "type": "boolean" },
+                        "export_godot": { "type": "boolean" },
+                        "export_vbs4": { "type": "boolean" },
+                        "cluster_mode": { "type": "boolean" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Import signed USB dongle renewal package (offline)",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/octet-stream": {
+              "schema": { "type": "string", "format": "binary" }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "License renewed" },
+          "400": { "description": "Invalid or expired renewal package" }
+        }
+      }
+    }
+  }
+}

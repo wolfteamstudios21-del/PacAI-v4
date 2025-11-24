@@ -1,0 +1,209 @@
+{
+  "version": "1.0",
+  "title": "v4 Model Vault Registry",
+  "description": "Offline model store with per-project KMS keys; supports customer-supplied ONNX/LLM",
+  "model_manifest": {
+    "registry_path": "/var/lib/v4/models",
+    "index_file": "models.json",
+    "encryption": "AES-256-GCM per-project KMS key"
+  },
+  "default_models": {
+    "ollama_7b": {
+      "id": "ollama_7b_default",
+      "provider": "ollama",
+      "model_name": "mistral:7b",
+      "size_mb": 3900,
+      "quantization": "Q4_K_M",
+      "capabilities": ["generate", "control_reason"],
+      "performance": {
+        "inference_ms_per_token": 45,
+        "memory_mb": 6000,
+        "max_context_tokens": 32000
+      },
+      "validation": {
+        "checksum_sha256": "abc123def456...",
+        "last_verified": "2026-02-01T00:00:00Z"
+      },
+      "offline_ready": true
+    },
+    "onnx_npc_controller": {
+      "id": "onnx_npc_controller_v1",
+      "provider": "onnx_runtime",
+      "model_file": "npc_controller.onnx",
+      "size_mb": 45,
+      "quantization": "int8",
+      "capabilities": ["control:npc_behavior", "control:emotion"],
+      "inputs": [
+        {
+          "name": "context_vector",
+          "shape": [1, 128],
+          "dtype": "float32"
+        },
+        {
+          "name": "emotion_state",
+          "shape": [1, 8],
+          "dtype": "float32"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "action_logits",
+          "shape": [1, 50],
+          "dtype": "float32"
+        },
+        {
+          "name": "confidence",
+          "shape": [1],
+          "dtype": "float32"
+        }
+      ],
+      "performance": {
+        "inference_ms": 5,
+        "memory_mb": 120,
+        "ops_per_inference": 5000000
+      },
+      "validation": {
+        "checksum_sha256": "def456ghi789...",
+        "last_verified": "2026-02-01T00:00:00Z"
+      },
+      "offline_ready": true
+    }
+  },
+  "customer_supplied_schema": {
+    "submission_template": {
+      "model_name": "string (e.g., 'police_de-escalation_expert')",
+      "provider": "ollama | onnx_runtime | custom",
+      "model_file_or_url": "string or binary upload",
+      "size_mb": "integer, max 2000",
+      "quantization": "string (e.g., 'Q4_K_M', 'int8', 'fp16')",
+      "capabilities": [
+        "generate | control_reason | control_emotion | behavior_tree_reasoning"
+      ],
+      "performance_profile": {
+        "inference_ms": "integer",
+        "memory_mb": "integer",
+        "ops_per_inference": "integer (optional)"
+      },
+      "validation_requirements": {
+        "test_inputs": "array of test vectors",
+        "expected_outputs": "array of expected outputs",
+        "tolerance_pct": "float (e.g., 2.5 for 2.5% tolerance)"
+      },
+      "metadata": {
+        "author": "string",
+        "version": "semver",
+        "license": "string",
+        "description": "string",
+        "training_date": "ISO8601",
+        "certifications": [
+          "string (e.g., 'ISO-26262-ASIL-D', 'DO-178C')"
+        ]
+      }
+    }
+  },
+  "import_flow": {
+    "step_1_validate": [
+      "Check file signature (ed25519)",
+      "Verify size < 2000MB",
+      "Validate model format (ONNX/Ollama compatible)",
+      "Check quantization supported"
+    ],
+    "step_2_encrypt": [
+      "Create per-project KMS key (if not exists)",
+      "Derive encryption context from project_id + user_id",
+      "Encrypt model file with AES-256-GCM",
+      "Store in blob store (Ceph/NetApp)"
+    ],
+    "step_3_test_inference": [
+      "Spin up sandbox",
+      "Load encrypted model",
+      "Run test vectors from submission",
+      "Verify outputs within tolerance_pct",
+      "Log performance metrics"
+    ],
+    "step_4_register": [
+      "Write to models.json index",
+      "Record checksum, encryption_key_id, import_timestamp",
+      "Emit audit event (model:import)",
+      "Notify integrator of success/failure"
+    ]
+  },
+  "customer_model_policy": {
+    "minimum_guarantees": {
+      "inference_latency_ms": 1000,
+      "memory_footprint_mb": 8000,
+      "quantization_supported": ["Q4_K_M", "Q5_K_M", "int8", "int16", "fp16", "fp32"],
+      "model_size_mb_max": 2000
+    },
+    "customer_responsibilities": [
+      "Provide valid ONNX or Ollama-compatible model file",
+      "Certify model is not compromised (chain-of-custody)",
+      "Document any external API calls (for air-gapped compliance check)",
+      "Provide test vectors for validation",
+      "Accept liability for model behavior in simulations",
+      "Sign attestation: 'This model contains no backdoors or network calls'"
+    ],
+    "v4_rejection_criteria": [
+      "Model exceeds 2000 MB",
+      "Model requires internet access or external APIs",
+      "Model training data violates customer's IP policy",
+      "Model inference latency > 1000ms (except batch processing)",
+      "Model quantization not in approved list",
+      "Signature verification fails"
+    ]
+  },
+  "per_project_encryption": {
+    "key_derivation": "PBKDF2(project_id || user_id || salt, iterations=100000, hash=SHA-256) -> 256-bit key",
+    "encryption_algorithm": "AES-256-GCM with 12-byte nonce + 16-byte auth tag",
+    "key_rotation": "Monthly; old keys kept in KMS for decryption of historical scenarios",
+    "key_storage": "HSM (YubiHSM/Nitrokey) or customer-supplied KMS backend"
+  },
+  "checksum_verification": {
+    "algorithm": "SHA-256",
+    "computed_on": "original model file (before encryption)",
+    "stored_in": "models.json index + audit log",
+    "verification_frequency": "on every load; if mismatch detected, quarantine model and alert admin",
+    "bit_rot_detection": "Periodic rehash every 30 days; compare with stored checksum"
+  },
+  "example_customer_import": {
+    "model_name": "Police De-Escalation Reasoning v2.0",
+    "provider": "ollama",
+    "model_file": "de_escalation_reasoning.gguf",
+    "size_mb": 650,
+    "quantization": "Q4_K_M",
+    "capabilities": ["generate", "control_reason"],
+    "performance_profile": {
+      "inference_ms": 120,
+      "memory_mb": 1200,
+      "ops_per_inference": 50000000
+    },
+    "validation_requirements": {
+      "test_inputs": [
+        {
+          "prompt": "Officer encounters armed suspect refusing to comply. Recommend de-escalation approach.",
+          "context": {
+            "suspect_mood": "aggressive",
+            "environment": "alley",
+            "backup_available": false
+          }
+        }
+      ],
+      "expected_outputs": [
+        {
+          "recommendation": "Maintain distance, use soft voice, offer exit path",
+          "confidence": 0.92,
+          "reasoning": "Space + calm tone reduce threat perception"
+        }
+      ],
+      "tolerance_pct": 5.0
+    },
+    "metadata": {
+      "author": "Police Research Institute",
+      "version": "2.0.0",
+      "license": "Customer-exclusive (gov only)",
+      "description": "Fine-tuned reasoning model for police de-escalation tactics",
+      "training_date": "2025-08-15",
+      "certifications": ["ISO-26262-ASIL-B", "Customer-reviewed"]
+    }
+  }
+}

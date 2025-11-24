@@ -1,0 +1,174 @@
+{
+  "version": "1.0",
+  "title": "v4 RBAC Policy Matrix",
+  "description": "Roles: admin, instructor, operator, auditor, integrator",
+  "roles": {
+    "admin": {
+      "description": "Full system access; license, key, and user management",
+      "capabilities": [
+        "auth:*",
+        "generate:*",
+        "control:*",
+        "export:*",
+        "audit:read",
+        "audit:admin",
+        "license:*",
+        "keys:rotate",
+        "keys:create",
+        "keys:delete",
+        "users:create",
+        "users:delete",
+        "users:modify",
+        "roles:assign",
+        "models:import",
+        "models:delete",
+        "updates:import",
+        "updates:rollback",
+        "webhooks:*"
+      ],
+      "resource_limits": {
+        "scenarios_per_day": null,
+        "seats_reserved": 1,
+        "export_formats": ["ue5", "unity", "godot", "vbs4", "onetess"]
+      }
+    },
+    "instructor": {
+      "description": "Create and manage projects; create student scenarios; review execution logs",
+      "capabilities": [
+        "auth:sso",
+        "projects:create",
+        "projects:read",
+        "projects:update",
+        "scenarios:read",
+        "scenarios:create",
+        "generate:*",
+        "control:*",
+        "export:ue5",
+        "export:unity",
+        "export:godot",
+        "audit:read",
+        "models:list",
+        "users:list"
+      ],
+      "resource_limits": {
+        "scenarios_per_day": 100,
+        "seats_reserved": 5,
+        "export_formats": ["ue5", "unity", "godot"],
+        "max_npc_per_scenario": 500
+      },
+      "constraints": {
+        "can_delete_projects": false,
+        "can_manage_admin_users": false,
+        "can_rotate_keys": false
+      }
+    },
+    "operator": {
+      "description": "Execute scenarios; apply live overrides; run simulations",
+      "capabilities": [
+        "auth:sso",
+        "scenarios:read",
+        "scenarios:execute",
+        "control:apply",
+        "control:read",
+        "audit:read",
+        "models:list"
+      ],
+      "resource_limits": {
+        "concurrent_scenarios": 5,
+        "scenarios_per_day": 50,
+        "max_npc_per_scenario": 300
+      },
+      "constraints": {
+        "can_generate": false,
+        "can_export": false,
+        "can_modify_scenarios": false,
+        "read_only_audit": true
+      }
+    },
+    "auditor": {
+      "description": "Read-only access to audit log; replay engine; no scenario modification",
+      "capabilities": [
+        "auth:sso",
+        "audit:read",
+        "audit:subscribe",
+        "audit:replay",
+        "audit:export",
+        "scenarios:read",
+        "users:list"
+      ],
+      "resource_limits": {
+        "concurrent_replays": 2,
+        "audit_retention_days": 2555
+      },
+      "constraints": {
+        "read_only": true,
+        "cannot_generate": true,
+        "cannot_modify_any": true,
+        "cannot_view_encryption_keys": true
+      }
+    },
+    "integrator": {
+      "description": "Deploy custom exporters; manage model imports; CI/CD integration",
+      "capabilities": [
+        "auth:api_key",
+        "models:import",
+        "models:list",
+        "exporters:deploy",
+        "exporters:test",
+        "scenarios:read",
+        "export:build",
+        "audit:read"
+      ],
+      "resource_limits": {
+        "models_per_month": 20,
+        "export_jobs_per_day": 100,
+        "max_model_size_mb": 2000
+      ],
+      "constraints": {
+        "can_delete_models": false,
+        "can_modify_existing_exporters": false,
+        "api_key_only": true,
+        "ip_allowlist_required": true
+      }
+    }
+  },
+  "per_tenant_overrides": {
+    "police_dept_training": {
+      "roles_enabled": ["instructor", "operator", "auditor"],
+      "export_formats_allowed": ["ue5", "unity"],
+      "max_concurrent_users": 20,
+      "audit_retention_years": 5,
+      "encryption_policy": "AES-256-GCM mandatory",
+      "sso_provider": "okta",
+      "require_x509_cert": false
+    },
+    "military_sim": {
+      "roles_enabled": ["admin", "instructor", "operator", "auditor"],
+      "export_formats_allowed": ["ue5", "vbs4", "onetess"],
+      "max_concurrent_users": 100,
+      "audit_retention_years": 10,
+      "encryption_policy": "AES-256-GCM + HSM notarization mandatory",
+      "sso_provider": "custom_saml",
+      "require_x509_cert": true,
+      "require_offline_mode": true
+    },
+    "studio_vfx": {
+      "roles_enabled": ["instructor", "operator"],
+      "export_formats_allowed": ["ue5", "unity", "godot"],
+      "max_concurrent_users": 50,
+      "audit_retention_years": 1,
+      "encryption_policy": "optional",
+      "sso_provider": "azure_ad",
+      "require_x509_cert": false
+    }
+  },
+  "validation_rules": {
+    "policy_linter": {
+      "must_define_all_core_roles": true,
+      "must_have_deny_by_default": true,
+      "must_include_resource_limits": true,
+      "must_document_constraints": true,
+      "max_capabilities_per_role": 50
+    }
+  }
+}
