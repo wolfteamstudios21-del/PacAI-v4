@@ -1,0 +1,27 @@
+[package]
+name = "pacai-v4-gateway"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+axum = "0.7"
+tokio = { version = "1", features = ["full"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+ed25519-dalek = "2"
+sha2 = "0.10"
+hmac = "0.12"
+uuid = { version = "1", features = ["v4", "serde"] }
+chrono = { version = "0.4", features = ["serde"] }
+jsonwebtoken = "9"
+regex = "1"
+anyhow = "1"
+tracing = "0.1"
+tracing-subscriber = "0.3"
+tower = "0.4"
+tower-http = { version = "0.5", features = ["cors", "trace"] }
+clap = { version = "4", features = ["derive"] }
+
+[profile.release]
+opt-level = 3
+lto = true

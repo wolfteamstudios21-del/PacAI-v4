@@ -1,0 +1,16 @@
+target/
+Cargo.lock
+node_modules/
+dist/
+.env
+.env.local
+*.pem
+*.key
+*.crt
+.DS_Store
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+postgres_data/

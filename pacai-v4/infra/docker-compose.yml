@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: pacai_v4
+      POSTGRES_USER: pacai
+      POSTGRES_PASSWORD: changeme
+    volumes:
+      - ./schema.sql:/docker-entrypoint-initdb.d/schema.sql
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  gateway:
+    build:
+      context: ../gateway
+      dockerfile: Dockerfile
+    environment:
+      DATABASE_URL: postgresql://pacai:changeme@postgres:5432/pacai_v4
+      OFFLINE_MODE: "false"
+      LOG_LEVEL: info
+    ports:
+      - "3000:3000"
+    depends_on:
+      - postgres
+
+  bridge:
+    image: python:3.11-slim
+    working_dir: /app
+    volumes:
+      - ../bridge:/app
+    command: python main.py
+    ports:
+      - "5001:5001"
+
+volumes:
+  postgres_data:
