@@ -1,0 +1,31 @@
+syntax = "proto3";
+package pacai;
+
+service AiBridge {
+  rpc GenerateZone (GenerateRequest) returns (GenerateResponse);
+  rpc OverrideSession (OverrideRequest) returns (OverrideResponse);
+}
+
+message GenerateRequest {
+  string prompt = 1;
+  string seed = 2;
+  bool stream = 3;
+}
+
+message GenerateResponse {
+  string zone_id = 1;
+  bytes json_chunk = 2;
+}
+
+message OverrideRequest {
+  string project_id = 1;
+  string target = 2;
+  string event = 3;
+  int32 count = 4;
+  repeated float position = 5;
+}
+
+message OverrideResponse {
+  bool success = 1;
+  int32 new_entities = 2;
+}
