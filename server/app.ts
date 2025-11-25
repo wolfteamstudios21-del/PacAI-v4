@@ -1,4 +1,5 @@
 import { type Server } from "node:http";
+import { createServer } from "node:http";
 
 import express, {
   type Express,
@@ -7,7 +8,7 @@ import express, {
   NextFunction,
 } from "express";
 
-import { registerRoutes } from "./routes";
+import v4Routes from "./routes/v4";
 import { v3Proxy } from "./middleware/v3-proxy";
 
 export function log(message: string, source = "express") {
@@ -71,7 +72,11 @@ app.use((req, res, next) => {
 export default async function runApp(
   setup: (app: Express, server: Server) => Promise<void>,
 ) {
-  const server = await registerRoutes(app);
+  // ===== Register v4 Routes (only v4, no legacy) =====
+  app.use(v4Routes);
+
+  // Create HTTP server
+  const server = createServer(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
