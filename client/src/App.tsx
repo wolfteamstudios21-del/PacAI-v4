@@ -7,6 +7,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import Home from "@/pages/home";
 import Pricing from "@/pages/pricing";
+import PacAIV5Dashboard from "@/components/PacAIV5Dashboard";
 import BTTester from "@/pages/bt-tester";
 import OnnxTester from "@/pages/onnx-tester";
 import NarrativeLab from "@/pages/narrative-lab";
@@ -18,6 +19,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
+      <Route path="/v5" component={PacAIV5Dashboard} />
       <Route path="/pricing" component={Pricing} />
       <Route path="/bt-tester" component={BTTester} />
       <Route path="/onnx-tester" component={OnnxTester} />
