@@ -203,6 +203,56 @@ export default function Home() {
             </p>
           </CardContent>
         </Card>
+
+        {/* Community & Support Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <Card className="lg:col-span-3">
+            <CardHeader>
+              <CardTitle className="text-lg">Community & Support</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <a href="https://discord.gg/TtfHgfCQMY" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline font-medium">
+                  Discord – 300+ members (live help)
+                </a>
+              </div>
+              <div>
+                <a href="mailto:wolfteamstudios21@gmail.com" className="text-blue-500 hover:underline font-medium">
+                  Email: wolfteamstudios21@gmail.com
+                </a>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="lg:col-span-3">
+            <CardHeader className="cursor-pointer" data-testid="details-quickstart">
+              <CardTitle className="text-lg">5-Minute Quickstart Guide</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm text-muted-foreground">
+              <p>1. <strong>New Project</strong> → Name it</p>
+              <p>2. <strong>Narrative Lab</strong> → Paste prompt → Generate (≤9 sec)</p>
+              <p>3. <strong>Live Controls</strong> → Tweak sliders → Inject Override</p>
+              <p>4. <strong>Export Bundle</strong> → Choose engine → Download ZIP</p>
+              <p>5. <strong>Import in UE5/Unity/Godot</strong> – one click</p>
+              <p className="pt-2">Stuck? Jump in Discord #support</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Pricing CTA */}
+        <Card className="border-blue-500/50 bg-gradient-to-r from-blue-900/10 to-purple-900/10">
+          <CardHeader>
+            <CardTitle>Ready to go pro?</CardTitle>
+            <CardDescription>Unlock unlimited projects, 4K exports, and all future updates.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Link href="/pricing">
+              <Button className="bg-blue-600 hover:bg-blue-700" data-testid="button-view-pricing">
+                View Pricing Plans
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
