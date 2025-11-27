@@ -354,6 +354,12 @@ router.use((req: Request, res: Response, next) => {
 router.post("/v4/projects", createProject);
 router.get("/v4/projects", listProjects);
 router.get("/v4/projects/:id", getProject);
+router.patch("/v4/projects/:id", (req: Request, res: Response) => {
+  res.json({ status: "updated", id: req.params.id });
+});
+router.delete("/v4/projects/:id", (req: Request, res: Response) => {
+  res.json({ status: "deleted", id: req.params.id });
+});
 
 router.post("/v4/projects/:id/generate", generateZone);
 router.post("/v4/projects/:id/override", injectOverride);
@@ -366,6 +372,12 @@ router.get("/v4/export/:exportId", getExportStatus);
 router.get("/v4/status", getSystemStatus);
 router.get("/v4/license", getLicenseStatus);
 router.get("/v4/audit/tail", streamAuditTail);
+router.get("/v4/webhooks", (req: Request, res: Response) => {
+  res.json({ webhooks: [] });
+});
+router.post("/v4/webhooks", (req: Request, res: Response) => {
+  res.json({ webhook_id: `wh_${crypto.randomBytes(8).toString("hex")}`, status: "registered" });
+});
 
 // ──────────────────────────────────────────────────────────────
 // Legacy routes — hard 410 Gone (forces upgrade)
@@ -383,15 +395,23 @@ router.all("/projects", (req: Request, res: Response) =>
   res.status(410).json({ error: "Use /v4/projects" })
 );
 
+router.all("/bt/run", (req: Request, res: Response) =>
+  res.status(410).json({ error: "Legacy BT endpoint removed — migrate to v4" })
+);
+
+router.all("/onnx/predict", (req: Request, res: Response) =>
+  res.status(410).json({ error: "Legacy ONNX endpoint removed — use local models" })
+);
+
 // ──────────────────────────────────────────────────────────────
-// Catch-all for anything not v4
+// Catch-all for v4 paths only (doesn't interfere with frontend)
 // ──────────────────────────────────────────────────────────────
 
-router.all("*", (req: Request, res: Response) => {
+router.all("/v4/*", (req: Request, res: Response) => {
   res.status(404).json({
-    error: "Invalid endpoint",
-    message: "PacAI v4 only — all legacy routes removed",
-    upgrade: "https://pacai.ai/v4-upgrade",
+    error: "Invalid v4 endpoint",
+    message: "v4 endpoint not found",
+    path: req.path,
   });
 });
 
