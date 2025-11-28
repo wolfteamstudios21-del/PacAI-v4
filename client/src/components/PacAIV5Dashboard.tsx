@@ -68,27 +68,43 @@ export default function PacAIV5Dashboard() {
           </div>
         </section>
 
-        {/* Right: How-To + Community */}
+        {/* Right: Community Hub + How-To + Pricing */}
         <section className="lg:col-span-3 space-y-6">
+          {/* Community Hub */}
           <div className="bg-[#141517] rounded-2xl p-6 border border-[#2a2d33]">
-            <h3 className="text-xl font-bold mb-4">5-Second Start</h3>
-            <ol className="text-sm space-y-2 text-[#9aa0a6]">
-              <li>1. New Project</li>
-              <li>2. Paste prompt → Generate</li>
-              <li>3. Tweak → Inject Override</li>
-              <li>4. Click engine → Download</li>
-              <li>5. Import – done</li>
-            </ol>
-            <a href="https://discord.gg/TtfHgfCQMY" target="_blank" rel="noopener noreferrer" className="block mt-6 text-[#5865F2] font-bold hover:underline">
-              → Full guide in Discord #how-to
-            </a>
+            <h3 className="text-xl font-bold mb-4">Community Hub</h3>
+            <div className="space-y-3">
+              <a href="https://discord.gg/TtfHgfCQMY" target="_blank" rel="noopener noreferrer" className="block text-[#5865F2] hover:underline font-semibold">
+                Join Discord (300+ members)
+              </a>
+              <a href="mailto:wolfteamstudios21@gmail.com" className="block text-[#3e73ff] hover:underline">
+                Email: wolfteamstudios21@gmail.com
+              </a>
+            </div>
           </div>
 
+          {/* How-To Guide (Collapsible) */}
+          <div className="bg-[#141517] rounded-2xl p-6 border border-[#2a2d33]">
+            <details className="cursor-pointer">
+              <summary className="text-xl font-bold text-[#e0e0e0] hover:text-[#3e73ff] transition">
+                ▶ How-To Guide (Click to Expand)
+              </summary>
+              <div className="mt-4 space-y-2 text-sm text-[#9aa0a6]">
+                <p>• <strong>Login</strong> with API key → New Project</p>
+                <p>• <strong>Paste prompt</strong> in Narrative Lab → Generate</p>
+                <p>• <strong>Overrides</strong> in Live Controls → Inject</p>
+                <p>• <strong>Export Bundle</strong> → Download ZIP → Import to UE5/Blender</p>
+                <p>• <strong>Help:</strong> Discord #support or email above</p>
+              </div>
+            </details>
+          </div>
+
+          {/* Lifetime Pricing */}
           <div className="bg-gradient-to-br from-purple-900 to-blue-900 rounded-2xl p-6 text-center">
             <p className="text-3xl font-black">$2,997</p>
             <p className="text-sm opacity-90">Lifetime Indie</p>
             <p className="text-xs mt-2">Only 247 slots left</p>
-            <a href="mailto:wolfteamstudios21@gmail.com?subject=v5%20Lifetime" className="block mt-4 bg-white text-black py-3 rounded-xl font-bold">
+            <a href="mailto:wolfteamstudios21@gmail.com?subject=v5%20Lifetime" className="block mt-4 bg-white text-black py-3 rounded-xl font-bold hover:opacity-90">
               Claim Before Gone
             </a>
           </div>
