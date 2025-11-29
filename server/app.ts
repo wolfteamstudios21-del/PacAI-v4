@@ -8,6 +8,7 @@ import express, {
   NextFunction,
 } from "express";
 
+import authRoutes from "./auth";
 import v4Routes from "./routes/v4";
 import { v3Proxy } from "./middleware/v3-proxy";
 
@@ -72,6 +73,9 @@ app.use((req, res, next) => {
 export default async function runApp(
   setup: (app: Express, server: Server) => Promise<void>,
 ) {
+  // ===== Register Auth Routes (before v4) =====
+  app.use(authRoutes);
+
   // ===== Register v4 Routes (only v4, no legacy) =====
   app.use(v4Routes);
 
