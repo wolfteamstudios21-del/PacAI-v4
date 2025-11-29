@@ -1,5 +1,7 @@
 import { type Server } from "node:http";
 import { createServer } from "node:http";
+import path from "path";
+import { fileURLToPath } from "url";
 
 import express, {
   type Express,
@@ -11,6 +13,10 @@ import express, {
 import authRoutes from "./auth";
 import v4Routes from "./routes/v4";
 import { v3Proxy } from "./middleware/v3-proxy";
+
+// Fix __dirname for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
@@ -36,6 +42,19 @@ app.use(express.json({
   }
 }));
 app.use(express.urlencoded({ extended: false }));
+
+// Serve static files (login.html, dashboard.html, etc.)
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Dashboard route
+app.get('/dashboard', (req: Request, res: Response) => {
+  res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
+});
+
+// Root route
+app.get('/', (req: Request, res: Response) => {
+  res.sendFile(path.join(__dirname, 'public', 'login.html'));
+});
 
 // v3 Gateway proxy (before other routes so /v3/* are intercepted)
 app.use(v3Proxy);
