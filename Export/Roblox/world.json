@@ -1,0 +1,32 @@
+{
+  "version": "5.0.0",
+  "format": "pacai_roblox_v5",
+  "engine": "Roblox",
+  "engine_version": "2024",
+  "generated_at": "2024-11-30T00:00:00Z",
+  "project": {
+    "name": "PacAI Generated World",
+    "description": "Procedurally generated world from PacAI v5"
+  },
+  "world": {
+    "id": "placeholder",
+    "name": "Generated Zone",
+    "seed": 0,
+    "biome": "urban_ruins"
+  },
+  "scripts": {
+    "npc_ai": "scripts/npc_ai.lua",
+    "patrol_system": "scripts/patrol_system.lua",
+    "world_loader": "scripts/world_loader.lua"
+  },
+  "models": {
+    "npc_base": "models/npc_base.rbxm",
+    "terrain": "models/terrain.rbxm"
+  },
+  "entities": [],
+  "metadata": {
+    "generator": "PacAI v5 Gateway",
+    "deterministic": true,
+    "checksum": ""
+  }
+}

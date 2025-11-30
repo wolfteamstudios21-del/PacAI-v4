@@ -1,0 +1,40 @@
+{
+  "version": "5.0.0",
+  "format": "pacai_unity_v5",
+  "engine": "Unity",
+  "engine_version": "2023.2",
+  "generated_at": "2024-11-30T00:00:00Z",
+  "project": {
+    "name": "PacAI Generated World",
+    "description": "Procedurally generated world from PacAI v5"
+  },
+  "world": {
+    "id": "placeholder",
+    "name": "Generated Zone",
+    "seed": 0,
+    "biome": "urban_ruins",
+    "bounds": {
+      "center": [0, 0, 0],
+      "size": [1000, 500, 1000]
+    }
+  },
+  "scene": {
+    "path": "Assets/Scenes/GeneratedScene.unity",
+    "lighting": "mixed",
+    "nav_mesh": true
+  },
+  "entities": [],
+  "prefabs": {
+    "npc_base": "Assets/Prefabs/NPC_Base.prefab",
+    "poi_base": "Assets/Prefabs/POI_Base.prefab"
+  },
+  "scripts": {
+    "ai_controller": "Assets/Scripts/AI/NPCController.cs",
+    "behavior_tree": "Assets/Scripts/AI/BehaviorTree.cs"
+  },
+  "metadata": {
+    "generator": "PacAI v5 Gateway",
+    "deterministic": true,
+    "checksum": ""
+  }
+}

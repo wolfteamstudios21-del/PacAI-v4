@@ -1,0 +1,82 @@
+license_tiers:
+  - name: free
+    display_name: "Free Forever"
+    price_monthly: 0
+    price_yearly: 0
+    limits:
+      generations_per_week: 2
+      exports_per_day: 1
+      max_projects: 3
+      max_seats: 1
+    features:
+      - basic_generation
+    restrictions:
+      - watermarked_exports
+      - no_priority_queue
+    
+  - name: creator
+    display_name: "Creator"
+    price_monthly: 49
+    price_yearly: 470
+    limits:
+      generations_per_week: 100
+      exports_per_day: 50
+      max_projects: 25
+      max_seats: 1
+    features:
+      - unlimited_engines
+      - priority_queue
+      - 4k_exports
+      - custom_behaviors
+    restrictions: []
+    
+  - name: lifetime
+    display_name: "Lifetime Indie"
+    price_onetime: 2997
+    limits:
+      generations_per_week: unlimited
+      exports_per_day: unlimited
+      max_projects: unlimited
+      max_seats: 1
+    features:
+      - unlimited_engines
+      - priority_queue
+      - 8k_exports
+      - custom_behaviors
+      - source_code_access
+      - priority_support
+      - early_access
+    restrictions: []
+    slots_remaining: 247
+
+hardware_root:
+  primary_device: YubiHSM2
+  fallback_device: Nitrokey3
+  offline_grace_days: 30
+  key_rotation_days: 90
+  supported_devices:
+    - name: YubiHSM2
+      vendor_id: "0x1050"
+      product_id: "0x0030"
+      operation_time_ms: 50
+      
+    - name: Nitrokey3
+      vendor_id: "0x20A0"
+      product_id: "0x42B2"
+      operation_time_ms: 100
+
+license_validation:
+  check_interval_hours: 24
+  grace_period_days: 30
+  renewal_warning_days: 14
+  hardware_binding: true
+  signature_algorithm: Ed25519
+  hash_algorithm: SHA256
+
+enterprise:
+  custom_domains: true
+  sso_integration: true
+  x509_authentication: true
+  audit_retention_days: 365
+  custom_branding: true
+  dedicated_support: true

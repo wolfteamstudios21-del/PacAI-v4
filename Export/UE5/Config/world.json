@@ -1,0 +1,36 @@
+{
+  "version": "5.0.0",
+  "format": "pacai_ue5_v5",
+  "engine": "Unreal Engine 5",
+  "engine_version": "5.3",
+  "generated_at": "2024-11-30T00:00:00Z",
+  "project": {
+    "name": "PacAI Generated World",
+    "description": "Procedurally generated world from PacAI v5"
+  },
+  "world": {
+    "id": "placeholder",
+    "name": "Generated Zone",
+    "seed": 0,
+    "biome": "urban_ruins",
+    "size": {
+      "width": 1000,
+      "height": 1000,
+      "depth": 500
+    }
+  },
+  "entities": [],
+  "terrain": {
+    "heightmap": "Content/Textures/Heightmap.png",
+    "materials": ["Content/Materials/M_Terrain_Base.uasset"]
+  },
+  "blueprints": {
+    "npc_base": "Content/Blueprints/NPCs/BP_NPC_Base.uasset",
+    "ai_controller": "Content/Blueprints/AI/BP_AIController.uasset"
+  },
+  "metadata": {
+    "generator": "PacAI v5 Gateway",
+    "deterministic": true,
+    "checksum": ""
+  }
+}

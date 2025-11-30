@@ -1,0 +1,112 @@
+roles:
+  - name: admin
+    description: Full system access with all permissions
+    permissions:
+      - generate
+      - override
+      - export
+      - audit
+      - license
+      - users:manage
+      - projects:create
+      - projects:read
+      - projects:update
+      - projects:delete
+      - system:configure
+    limits:
+      generations_per_week: unlimited
+      exports_per_day: unlimited
+      max_projects: unlimited
+    
+  - name: lifetime
+    description: Lifetime Indie tier - unlimited everything
+    permissions:
+      - generate
+      - override
+      - export
+      - audit
+      - projects:create
+      - projects:read
+      - projects:update
+    limits:
+      generations_per_week: unlimited
+      exports_per_day: unlimited
+      max_projects: unlimited
+    features:
+      - priority_queue
+      - no_watermark
+      - all_engines
+      - custom_behaviors
+    
+  - name: creator
+    description: Creator tier - professional usage limits
+    permissions:
+      - generate
+      - override
+      - export
+      - projects:create
+      - projects:read
+      - projects:update
+    limits:
+      generations_per_week: 100
+      exports_per_day: 50
+      max_projects: 25
+    features:
+      - priority_queue
+      - no_watermark
+      - all_engines
+    
+  - name: demo
+    description: Free tier - limited access for evaluation
+    permissions:
+      - generate
+      - projects:read
+    limits:
+      generations_per_week: 2
+      exports_per_day: 1
+      max_projects: 3
+    features:
+      - watermarked_exports
+    
+  - name: guest
+    description: Unauthenticated access - view only
+    permissions:
+      - projects:read
+    limits:
+      generations_per_week: 0
+      exports_per_day: 0
+      max_projects: 0
+
+permissions:
+  - name: generate
+    description: Create new worlds and narratives
+    
+  - name: override
+    description: Apply live behavior overrides
+    
+  - name: export
+    description: Export to game engines
+    
+  - name: audit
+    description: View audit logs
+    
+  - name: license
+    description: Manage license and seats
+    
+  - name: users:manage
+    description: Create, update, delete users
+    
+  - name: projects:create
+    description: Create new projects
+    
+  - name: projects:read
+    description: View project details
+    
+  - name: projects:update
+    description: Modify project settings
+    
+  - name: projects:delete
+    description: Delete projects
+    
+  - name: system:configure
+    description: System-level configuration

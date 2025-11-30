@@ -1,0 +1,33 @@
+{
+  "version": "5.0.0",
+  "format": "pacai_godot_v5",
+  "engine": "Godot",
+  "engine_version": "4.2",
+  "generated_at": "2024-11-30T00:00:00Z",
+  "project": {
+    "name": "PacAI Generated World",
+    "description": "Procedurally generated world from PacAI v5"
+  },
+  "world": {
+    "id": "placeholder",
+    "name": "Generated Zone",
+    "seed": 0,
+    "biome": "urban_ruins"
+  },
+  "scenes": {
+    "main": "res://scenes/main.tscn",
+    "npc": "res://scenes/npc.tscn",
+    "poi": "res://scenes/poi.tscn"
+  },
+  "scripts": {
+    "ai": "res://scripts/ai.gd",
+    "npc_controller": "res://scripts/npc_controller.gd",
+    "world_manager": "res://scripts/world_manager.gd"
+  },
+  "entities": [],
+  "metadata": {
+    "generator": "PacAI v5 Gateway",
+    "deterministic": true,
+    "checksum": ""
+  }
+}

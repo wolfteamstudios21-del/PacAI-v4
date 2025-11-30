@@ -1,0 +1,31 @@
+[package]
+name = "pacai-gateway"
+version = "5.0.0"
+edition = "2021"
+authors = ["Wolf Team Studios <wolfteamstudios21@gmail.com>"]
+description = "PacAI v5 Enterprise Defense Simulation Gateway - Production Rust Backend"
+license = "Proprietary"
+
+[dependencies]
+axum = { version = "0.7", features = ["macros"] }
+tower-http = { version = "0.5", features = ["cors", "trace"] }
+tokio = { version = "1", features = ["full"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+serde_yaml = "0.9"
+rand = "0.8"
+ed25519-dalek = { version = "2", features = ["rand_core"] }
+uuid = { version = "1", features = ["v4", "serde"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+chrono = { version = "0.4", features = ["serde"] }
+sha2 = "0.10"
+hex = "0.4"
+thiserror = "1"
+async-trait = "0.1"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+strip = true

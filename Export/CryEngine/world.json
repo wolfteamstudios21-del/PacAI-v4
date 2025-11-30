@@ -1,0 +1,35 @@
+{
+  "version": "5.0.0",
+  "format": "pacai_cryengine_v5",
+  "engine": "CryEngine",
+  "engine_version": "5.7",
+  "generated_at": "2024-11-30T00:00:00Z",
+  "project": {
+    "name": "PacAI Generated World",
+    "description": "Procedurally generated world from PacAI v5"
+  },
+  "world": {
+    "id": "placeholder",
+    "name": "Generated Zone",
+    "seed": 0,
+    "biome": "urban_ruins"
+  },
+  "level": {
+    "path": "Levels/GeneratedLevel/level.cry",
+    "data": "Levels/GeneratedLevel/leveldata.xml"
+  },
+  "assets": {
+    "objects": "Assets/Objects/",
+    "materials": "Assets/Materials/",
+    "textures": "Assets/Textures/"
+  },
+  "scripts": {
+    "npc_behavior": "Scripts/AI/npc_behavior.lua"
+  },
+  "entities": [],
+  "metadata": {
+    "generator": "PacAI v5 Gateway",
+    "deterministic": true,
+    "checksum": ""
+  }
+}

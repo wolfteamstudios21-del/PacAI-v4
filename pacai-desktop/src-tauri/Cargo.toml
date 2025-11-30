@@ -1,0 +1,21 @@
+[package]
+name = "pacai-desktop"
+version = "5.0.0"
+description = "PacAI v5 Desktop Admin Console - Offline Operator Interface"
+authors = ["Wolf Team Studios <wolfteamstudios21@gmail.com>"]
+license = "Proprietary"
+edition = "2021"
+
+[build-dependencies]
+tauri-build = { version = "1.5", features = [] }
+
+[dependencies]
+tauri = { version = "1.5", features = ["shell-open", "window-all"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tokio = { version = "1", features = ["full"] }
+reqwest = { version = "0.11", features = ["json"] }
+
+[features]
+default = ["custom-protocol"]
+custom-protocol = ["tauri/custom-protocol"]

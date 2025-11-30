@@ -1,0 +1,40 @@
+{
+  "version": "5.0.0",
+  "format": "pacai_blender_v5",
+  "engine": "Blender",
+  "engine_version": "4.0",
+  "generated_at": "2024-11-30T00:00:00Z",
+  "project": {
+    "name": "PacAI Generated World",
+    "description": "Procedurally generated world from PacAI v5"
+  },
+  "world": {
+    "id": "placeholder",
+    "name": "Generated Zone",
+    "seed": 0,
+    "biome": "urban_ruins"
+  },
+  "scene": {
+    "main": "scene.blend",
+    "units": "METERS",
+    "frame_rate": 30
+  },
+  "textures": {
+    "terrain_diffuse": "textures/terrain_diffuse.png",
+    "terrain_normal": "textures/terrain_normal.png"
+  },
+  "rigs": {
+    "npc_rig": "rigs/npc_rig.blend"
+  },
+  "animations": {
+    "walk": "animations/walk.blend",
+    "idle": "animations/idle.blend",
+    "run": "animations/run.blend"
+  },
+  "entities": [],
+  "metadata": {
+    "generator": "PacAI v5 Gateway",
+    "deterministic": true,
+    "checksum": ""
+  }
+}
