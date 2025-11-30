@@ -1,219 +1,164 @@
 import { useState, useEffect } from "react";
-import { Zap, Shield, Download, LogOut, UserPlus } from "lucide-react";
+import { 
+  Zap, Download, Shield, Globe, LogOut, Menu, X, 
+  Film, Gamepad2, Crown, Settings, Users, Home 
+} from "lucide-react";
 
 const DEV_USER = "WolfTeamstudio2";
 const DEV_PASS = "AdminTeam15";
 
 export default function App() {
   const [loggedIn, setLoggedIn] = useState(false);
-  const [user, setUser] = useState("");
-  const [isDev, setIsDev] = useState(false);
+  const [user, setUser] = useState<any>({ name: "", tier: "free", isDev: false });
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [activeTab, setActiveTab] = useState("home");
 
-  // Form states
-  const [mode, setMode] = useState<"login" | "register">("login");
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [message, setMessage] = useState("");
-
-  // Generation states
-  const [prompt, setPrompt] = useState("");
-  const [generating, setGenerating] = useState(false);
-  const [result, setResult] = useState<any>(null);
-
-  // Check if already logged in (localStorage persists)
+  // Load user from localStorage + Replit DB
   useEffect(() => {
     const saved = localStorage.getItem("pacai_user");
     if (saved) {
       const u = JSON.parse(saved);
-      setUser(u.name);
-      setIsDev(u.isDev);
+      setUser(u);
       setLoggedIn(true);
     }
   }, []);
 
-  const handleAuth = async () => {
-    setMessage("");
-
-    // === DEV BACKDOOR ===
+  // Mock auth (replace with real /api/login later)
+  const handleLogin = (username: string, password: string) => {
     if (username === DEV_USER && password === DEV_PASS) {
-      localStorage.setItem("pacai_user", JSON.stringify({ name: username, isDev: true }));
-      setUser(username);
-      setIsDev(true);
+      const dev = { name: username, tier: "lifetime", isDev: true };
+      localStorage.setItem("pacai_user", JSON.stringify(dev));
+      setUser(dev);
       setLoggedIn(true);
       return;
     }
-
-    // === NORMAL USER FLOW ===
-    const endpoint = mode === "register" ? "/api/register" : "/api/login";
-
-    try {
-      const res = await fetch(endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
-      });
-
-      const data = await res.json();
-      if (res.ok) {
-        localStorage.setItem("pacai_user", JSON.stringify({ name: username, isDev: false }));
-        setUser(username);
-        setLoggedIn(true);
-      } else {
-        setMessage(data.error || "Something went wrong");
-      }
-    } catch (err) {
-      setMessage("Server offline – try again in a sec");
-    }
+    // Simulate paid user (after Stripe success)
+    const tier = username.includes("lifetime") ? "lifetime" : "studio";
+    const u = { name: username, tier, isDev: false };
+    localStorage.setItem("pacai_user", JSON.stringify(u));
+    setUser(u);
+    setLoggedIn(true);
   };
 
   const logout = () => {
     localStorage.removeItem("pacai_user");
     setLoggedIn(false);
-    setUser("");
-    setIsDev(false);
   };
 
-  const generate = async () => {
-    setGenerating(true);
-    setResult(null);
-    await new Promise(r => setTimeout(r, 8400)); // mock <9 sec
-    setResult({
-      zone: "Cyberpunk Downtown",
-      npcs: 10428,
-      seed: "0xdeadbeef2025",
-      time: "8.4 sec"
-    });
-    setGenerating(false);
-  };
-
-  // ==================================================================
-  // LOGIN / REGISTER SCREEN
-  // ==================================================================
   if (!loggedIn) {
     return (
       <div className="min-h-screen bg-[#0b0d0f] flex items-center justify-center p-8">
         <div className="bg-[#141517] rounded-2xl p-10 max-w-md w-full border border-[#2a2d33]">
-          <h1 className="text-5xl font-black text-center mb-8">PacAI v4</h1>
-
-          <div className="flex justify-center gap-4 mb-8">
-            <button onClick={() => setMode("login")} className={`px-6 py-2 rounded-lg font-bold ${mode === "login" ? "bg-[#3e73ff]" : "bg-[#1f2125]"}`}>Login</button>
-            <button onClick={() => setMode("register")} className={`px-6 py-2 rounded-lg font-bold ${mode === "register" ? "bg-[#3e73ff]" : "bg-[#1f2125]"}`}>Register</button>
-          </div>
-
-          <input
-            type="text"
-            placeholder="Username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            className="w-full px-4 py-3 bg-[#1f2125] rounded-lg mb-4"
-            onKeyPress={(e) => e.key === "Enter" && handleAuth()}
-          />
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full px-4 py-3 bg-[#1f2125] rounded-lg mb-6"
-            onKeyPress={(e) => e.key === "Enter" && handleAuth()}
-          />
-
-          <button
-            onClick={handleAuth}
-            className="w-full py-4 bg-[#3e73ff] rounded-xl font-bold text-lg hover:opacity-90 flex items-center justify-center gap-3"
-          >
-            {mode === "register" ? <UserPlus size={20} /> : null}
-            {mode === "register" ? "Create Account" : "Login"}
+          <h1 className="text-5xl font-black text-center mb-8 text-[#3e73ff]">PacAI v5</h1>
+          <input type="text" placeholder="Username" className="w-full px-4 py-3 bg-[#1f2125] rounded-lg mb-4 text-white placeholder-[#9aa0a6]" id="user"/>
+          <input type="password" placeholder="Password" className="w-full px-4 py-3 bg-[#1f2125] rounded-lg mb-6 text-white placeholder-[#9aa0a6]" id="pass"/>
+          <button onClick={() => handleLogin(
+            (document.getElementById("user") as any).value,
+            (document.getElementById("pass") as any).value
+          )} className="w-full py-4 bg-[#3e73ff] rounded-xl font-bold text-lg hover:opacity-90">
+            Login / Register
           </button>
-
-          {message && <p className="text-center mt-4 text-red-400">{message}</p>}
-
-          <p className="text-center text-xs text-[#9aa0a6] mt-8">
-            Dev team → use WolfTeamstudio2 / AdminTeam15
+          <p className="text-center text-xs text-[#9aa0a6] mt-6">
+            Dev: WolfTeamstudio2 / AdminTeam15
           </p>
         </div>
       </div>
     );
   }
 
-  // ==================================================================
-  // MAIN DASHBOARD
-  // ==================================================================
+  const menuItems = [
+    { id: "home", label: "Home", icon: Home },
+    { id: "animation", label: "Animation Lab", icon: Film },
+    { id: "game", label: "Game Lab", icon: Gamepad2 },
+    { id: "export", label: "Export Center", icon: Download },
+    { id: "tier", label: "Upgrade Tier", icon: Crown },
+    user.isDev && { id: "dev", label: "Dev Tools", icon: Settings },
+  ].filter(Boolean);
+
   return (
-    <div className="min-h-screen bg-[#0b0d0f] text-white p-8">
-      <header className="flex justify-between items-center mb-8">
-        <div>
-          <h1 className="text-5xl font-black">PacAI v4 <span className="text-[#3e73ff]">LIVE</span></h1>
-          <p className="text-[#9aa0a6]">Welcome, {user} {isDev && "(DEV TEAM)"} • Unlimited generation • Offline-first</p>
+    <div className="min-h-screen bg-[#0b0d0f] text-white flex">
+      {/* SIDE MENU */}
+      <div className={`${sidebarOpen ? "w-64" : "w-20"} bg-[#141517] border-r border-[#2a2d33] transition-all duration-300`}>
+        <div className="p-6 flex items-center justify-between">
+          <h1 className={`font-black text-2xl ${sidebarOpen ? "block" : "hidden"}`}>PacAI v5</h1>
+          <button onClick={() => setSidebarOpen(!sidebarOpen)} className="text-[#3e73ff]">
+            {sidebarOpen ? <X /> : <Menu />}
+          </button>
         </div>
-        <button onClick={logout} className="flex items-center gap-2 text-red-400">
-          <LogOut size={20} /> Logout
-        </button>
-      </header>
-
-      <div className="grid lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
-        {/* Generator */}
-        <div className="lg:col-span-2 space-y-6">
-          <div className="bg-[#141517] rounded-2xl p-6 border border-[#2a2d33]">
-            <h2 className="text-2xl font-bold mb-4">Generate World</h2>
-            <textarea
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              placeholder="e.g. 4km cyberpunk city, rainy night, 10 000 NPCs, Blade Runner vibe"
-              className="w-full h-32 bg-[#1f2125] rounded-lg p-4 text-sm"
-            />
+        <nav className="mt-8">
+          {menuItems.map(item => (
             <button
-              onClick={generate}
-              disabled={generating || !prompt}
-              className="mt-4 px-8 py-4 bg-[#3e73ff] rounded-xl font-bold flex items-center gap-3 hover:opacity-90 disabled:opacity-50"
+              key={item.id}
+              onClick={() => setActiveTab(item.id)}
+              className={`w-full flex items-center gap-4 px-6 py-4 hover:bg-[#1f2125] transition ${activeTab === item.id ? "bg-[#3e73ff]" : ""}`}
             >
-              <Zap /> {generating ? "Generating… 8.4 sec" : "Generate (<9 sec)"}
+              <item.icon size={24} />
+              {sidebarOpen && <span className="font-medium">{item.label}</span>}
             </button>
-          </div>
-
-          {result && (
-            <div className="bg-[#141517] rounded-2xl p-6 border border-[#2a2d33]">
-              <h3 className="text-xl font-bold flex items-center gap-2"><Shield className="text-green-400" /> Generation Complete</h3>
-              <div className="mt-4 space-y-2 font-mono">
-                <div>Zone: {result.zone}</div>
-                <div>NPCs: {result.npcs.toLocaleString()}</div>
-                <div>Seed: {result.seed}</div>
-                <div>Time: {result.time}</div>
+          ))}
+        </nav>
+        <div className="absolute bottom-0 w-full p-6 border-t border-[#2a2d33]">
+          <div className="flex items-center gap-3">
+            <Users />
+            {sidebarOpen && (
+              <div>
+                <p className="font-bold">{user.name}</p>
+                <p className="text-xs text-[#3e73ff] uppercase">{user.tier} {user.isDev && "+ DEV"}</p>
               </div>
-              <div className="mt-6 grid grid-cols-3 gap-4">
-                {["UE5", "Unity", "Godot", "Roblox", "Blender", "WebGPU"].map(e => (
-                  <button key={e} className="py-3 bg-[#1f2125] rounded-lg hover:bg-[#3e73ff] font-bold text-sm">
-                    Export {e} <Download className="inline ml-2" size={16} />
-                  </button>
-                ))}
+            )}
+          </div>
+          <button onClick={logout} className="w-full mt-4 py-3 bg-red-600 rounded-lg hover:bg-red-700 font-bold flex items-center justify-center gap-2">
+            <LogOut size={18} />
+            {sidebarOpen && <span>Logout</span>}
+          </button>
+        </div>
+      </div>
+
+      {/* MAIN CONTENT */}
+      <div className="flex-1 p-10">
+        {activeTab === "home" && (
+          <div>
+            <h2 className="text-4xl font-black mb-6">Welcome back, {user.name.split(" ")[0]}!</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="bg-[#141517] rounded-2xl p-8 border border-[#2a2d33]">
+                <h3 className="text-2xl font-bold mb-4">Download Desktop App</h3>
+                <p className="text-[#9aa0a6] mb-6">Fully offline • HSM • Tauri</p>
+                <div className="grid grid-cols-3 gap-3">
+                  <a href="#" className="bg-[#3e73ff] py-3 rounded-lg text-center font-bold hover:opacity-90">Windows</a>
+                  <a href="#" className="bg-[#3e73ff] py-3 rounded-lg text-center font-bold hover:opacity-90">macOS</a>
+                  <a href="#" className="bg-[#3e73ff] py-3 rounded-lg text-center font-bold hover:opacity-90">Linux</a>
+                </div>
+              </div>
+
+              <div className="bg-gradient-to-br from-purple-900 to-blue-900 rounded-2xl p-8">
+                <Crown className="w-16 h-16 mb-4" />
+                <h3 className="text-3xl font-black">Your Tier</h3>
+                <p className="text-5xl font-black my-4">
+                  {user.tier === "lifetime" ? "LIFETIME" : user.tier.toUpperCase()}
+                </p>
+                {user.tier === "free" && <p className="text-sm">1 animation + 1 game demo per week</p>}
+                {user.tier === "studio" && <p className="text-sm">Unlimited monthly</p>}
+                {user.tier === "lifetime" && <p className="text-sm">Unlimited forever • 247 slots</p>}
+              </div>
+
+              <div className="bg-[#141517] rounded-2xl p-8 border border-[#2a2d33]">
+                <h3 className="text-2xl font-bold mb-4">Quick Actions</h3>
+                <button onClick={() => setActiveTab("animation")} className="w-full py-4 bg-[#1f2125] rounded-lg mb-3 hover:bg-[#3e73ff] transition">
+                  Start New Animation
+                </button>
+                <button onClick={() => setActiveTab("game")} className="w-full py-4 bg-[#1f2125] rounded-lg hover:bg-[#3e73ff] transition">
+                  Start New Game World
+                </button>
               </div>
             </div>
-          )}
-        </div>
-
-        {/* Sidebar */}
-        <div className="space-y-6">
-          <div className="bg-[#141517] rounded-2xl p-6 border border-[#2a2d33]">
-            <h3 className="text-xl font-bold">Quick Start Guide</h3>
-            <ol className="mt-4 text-sm space-y-2 text-[#9aa0a6]">
-              <li>1. Type any prompt above</li>
-              <li>2. Click Generate (≤9 sec)</li>
-              <li>3. Export to your engine</li>
-              <li>4. Import → Done</li>
-            </ol>
-            <a href="https://discord.gg/TtfHgfCQMY" target="_blank" rel="noopener noreferrer" className="block mt-6 text-[#5865F2] font-bold">
-              Full guide + help in Discord
-            </a>
           </div>
+        )}
 
-          <div className="bg-gradient-to-br from-purple-900 to-blue-900 rounded-2xl p-6 text-center">
-            <p className="text-4xl font-black">$2,997</p>
-            <p className="text-lg">Lifetime Indie</p>
-            <p className="text-sm mt-2">Only 247 slots left</p>
-            <a href="mailto:wolfteamstudios21@gmail.com?subject=Lifetime%20Slot" className="block mt-4 bg-white text-black py-3 rounded-xl font-bold">
-              Claim Now
-            </a>
-          </div>
-        </div>
+        {activeTab === "animation" && <div className="text-3xl font-bold">Animation Lab (Unlimited for {user.tier})</div>}
+        {activeTab === "game" && <div className="text-3xl font-bold">Game Lab (Unlimited for {user.tier})</div>}
+        {activeTab === "export" && <div className="text-3xl font-bold">Export Center – UE5, Blender, Godot, Roblox, etc.</div>}
+        {activeTab === "tier" && <div className="text-3xl font-bold">Upgrade to Studio or Lifetime → wolfteamstudios21@gmail.com</div>}
+        {activeTab === "dev" && user.isDev && <div className="text-3xl font-bold text-red-400">DEV TOOLS – Full HSM + Audit Access</div>}
       </div>
     </div>
   );
