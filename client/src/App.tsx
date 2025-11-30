@@ -21,6 +21,7 @@ export default function App() {
   const [prompt, setPrompt] = useState("");
   const [generationStatus, setGenerationStatus] = useState("");
   const [overrideCmd, setOverrideCmd] = useState("");
+  const [lastOverride, setLastOverride] = useState<any>(null);
   const [auditLog, setAuditLog] = useState<any[]>([]);
   const [verifyUser, setVerifyUser] = useState("");
   const [verifyResult, setVerifyResult] = useState<any>(null);
@@ -111,16 +112,21 @@ export default function App() {
   };
 
   const sendOverride = async () => {
-    if (!selectedProject) return;
-    const res = await fetch(`/v5/projects/${selectedProject.id}/override`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ command: overrideCmd, user: user.name })
-    });
-    const updated = await res.json();
-    setSelectedProject(updated);
-    setOverrideCmd("");
-    loadProjects();
+    if (!selectedProject || !overrideCmd.trim()) return;
+    try {
+      const res = await fetch(`/v5/projects/${selectedProject.id}/override`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ command: overrideCmd, user: user.name })
+      });
+      const updated = await res.json();
+      setLastOverride({ cmd: overrideCmd, ts: Date.now() });
+      setSelectedProject(updated);
+      setOverrideCmd("");
+      loadProjects();
+    } catch (e) {
+      alert("Override failed");
+    }
   };
 
   const loadAudit = async () => {
@@ -246,10 +252,68 @@ export default function App() {
         )}
 
         {activeTab === "override" && (
-          <div className="max-w-4xl">
-            <h2 className="text-4xl font-black mb-8">Server Override</h2>
-            <input value={overrideCmd} onChange={e => setOverrideCmd(e.target.value)} placeholder="e.g. spawn 500 agents, arctic biome" className="w-full px-6 py-4 bg-[#1f2125] rounded-xl text-white placeholder-[#9aa0a6] mb-4" />
-            <button onClick={sendOverride} className="px-10 py-4 bg-red-600 rounded-xl font-bold hover:opacity-90">SEND</button>
+          <div className="max-w-5xl">
+            <h2 className="text-4xl font-black mb-8">Live Server Override</h2>
+            
+            {/* Project Selector */}
+            <div className="bg-[#141517] rounded-2xl p-6 border border-[#2a2d33] mb-8">
+              <h3 className="text-xl font-bold mb-4">Select Target Project / Server</h3>
+              <select 
+                className="w-full px-6 py-4 bg-[#1f2125] rounded-xl text-lg text-white"
+                value={selectedProject?.id || ""}
+                onChange={(e) => setSelectedProject(projects.find(p => p.id === e.target.value))}
+              >
+                <option value="">– Choose Project –</option>
+                {projects.map(p => (
+                  <option key={p.id} value={p.id}>
+                    {p.id.slice(0,8)} – {new Date(p.created_at).toLocaleString()}
+                  </option>
+                ))}
+              </select>
+              {!selectedProject && <p className="text-yellow-400 mt-3">↑ Select a project to enable override</p>}
+            </div>
+
+            {/* Override Input */}
+            {selectedProject && (
+              <div className="bg-[#141517] rounded-2xl p-6 border border-[#2a2d33]">
+                <h3 className="text-xl font-bold mb-4">
+                  Injecting into: <span className="text-[#3e73ff]">{selectedProject.id.slice(0,8)}</span>
+                </h3>
+                <input
+                  value={overrideCmd}
+                  onChange={(e) => setOverrideCmd(e.target.value)}
+                  onKeyPress={(e) => e.key === "Enter" && sendOverride()}
+                  placeholder="e.g. spawn 200 rioters, arctic biome, aggression +15, night cycle"
+                  className="w-full px-6 py-5 bg-[#1f2125] rounded-xl text-lg mb-4 text-white placeholder-[#9aa0a6]"
+                />
+                <div className="flex gap-4 flex-wrap">
+                  <button 
+                    onClick={sendOverride}
+                    disabled={!overrideCmd.trim()}
+                    className="px-10 py-4 bg-red-600 hover:bg-red-700 rounded-xl font-bold text-xl disabled:opacity-50 transition"
+                  >
+                    SEND LIVE OVERRIDE
+                  </button>
+                  <button 
+                    onClick={() => setOverrideCmd("spawn 500 rioters at downtown")}
+                    className="px-6 py-4 bg-[#1f2125] hover:bg-[#2a2d33] rounded-xl font-bold transition"
+                  >
+                    Quick Riot
+                  </button>
+                  <button 
+                    onClick={() => setOverrideCmd("biome arctic, weather snowstorm")}
+                    className="px-6 py-4 bg-[#1f2125] hover:bg-[#2a2d33] rounded-xl font-bold transition"
+                  >
+                    Arctic Shift
+                  </button>
+                </div>
+                {lastOverride && (
+                  <p className="mt-6 text-green-400 font-mono text-sm">
+                    Last override sent {new Date(lastOverride.ts).toLocaleTimeString()}: "{lastOverride.cmd}"
+                  </p>
+                )}
+              </div>
+            )}
           </div>
         )}
 
