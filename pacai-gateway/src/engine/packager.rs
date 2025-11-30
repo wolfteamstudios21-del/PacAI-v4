@@ -1,5 +1,26 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::fs::File;
+use std::io::{Read, Write};
+use std::path::Path;
+use walkdir::WalkDir;
+use sha2::{Sha384, Digest};
+use zip::{ZipWriter, write::SimpleFileOptions};
+use ed25519_dalek::{SigningKey, Signature, Signer, VerifyingKey};
+use rand::rngs::OsRng;
+use anyhow::{Result, Context};
+use chrono::Utc;
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExportManifest {
+    pub pacai: String,
+    pub generated: String,
+    pub seed: String,
+    pub checksums: HashMap<String, String>,
+    pub exports: Vec<String>,
+    pub signature_algorithm: String,
+    pub public_key: Option<String>,
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EngineBundle {
@@ -15,6 +36,140 @@ pub struct FolderStructure {
     pub root: String,
     pub folders: Vec<String>,
     pub required_files: Vec<String>,
+}
+
+pub fn sign_with_keypair(manifest_bytes: &[u8], signing_key: &SigningKey) -> Signature {
+    signing_key.sign(manifest_bytes)
+}
+
+pub fn verify_signature(manifest_bytes: &[u8], signature: &Signature, verifying_key: &VerifyingKey) -> bool {
+    verifying_key.verify_strict(manifest_bytes, signature).is_ok()
+}
+
+pub fn create_dev_keypair() -> SigningKey {
+    SigningKey::generate(&mut OsRng)
+}
+
+pub fn build_export_zone(
+    zone_dir: &Path,
+    output_zip: &Path,
+    seed: &str,
+    exports: &[&str],
+    signing_key: &SigningKey,
+) -> Result<ExportManifest> {
+    let mut checksums = HashMap::new();
+
+    for entry in WalkDir::new(zone_dir).into_iter().filter_map(|e| e.ok()) {
+        if entry.file_type().is_file() {
+            let p = entry.path();
+            let rel = p.strip_prefix(zone_dir)
+                .context("Failed to strip prefix")?
+                .to_string_lossy()
+                .to_string();
+            let mut f = File::open(p)?;
+            let mut buf = Vec::new();
+            f.read_to_end(&mut buf)?;
+            let mut hasher = Sha384::new();
+            hasher.update(&buf);
+            let digest = hasher.finalize();
+            checksums.insert(rel, hex::encode(digest));
+        }
+    }
+
+    let verifying_key = signing_key.verifying_key();
+    let public_key_hex = hex::encode(verifying_key.to_bytes());
+
+    let manifest = ExportManifest {
+        pacai: "v5.0.0".to_string(),
+        generated: Utc::now().to_rfc3339(),
+        seed: seed.to_string(),
+        checksums: checksums.clone(),
+        exports: exports.iter().map(|s| s.to_string()).collect(),
+        signature_algorithm: "Ed25519".to_string(),
+        public_key: Some(public_key_hex),
+    };
+    let manifest_bytes = serde_json::to_vec_pretty(&manifest)?;
+
+    let sig = sign_with_keypair(&manifest_bytes, signing_key);
+    let sig_hex = hex::encode(sig.to_bytes());
+
+    let file = File::create(output_zip)?;
+    let mut zip = ZipWriter::new(file);
+    let options = SimpleFileOptions::default()
+        .compression_method(zip::CompressionMethod::Deflated);
+
+    for entry in WalkDir::new(zone_dir).into_iter().filter_map(|e| e.ok()) {
+        if entry.file_type().is_file() {
+            let p = entry.path();
+            let rel = p.strip_prefix(zone_dir)
+                .context("Failed to strip prefix")?
+                .to_string_lossy()
+                .to_string();
+            let mut f = File::open(p)?;
+            let mut buf = Vec::new();
+            f.read_to_end(&mut buf)?;
+            zip.start_file(&rel, options)?;
+            zip.write_all(&buf)?;
+        }
+    }
+
+    zip.start_file("manifest.json", options)?;
+    zip.write_all(&manifest_bytes)?;
+
+    zip.start_file("manifest.sig", options)?;
+    zip.write_all(sig_hex.as_bytes())?;
+
+    zip.finish()?;
+    
+    Ok(manifest)
+}
+
+pub fn verify_export_bundle(zip_path: &Path, public_key_bytes: &[u8; 32]) -> Result<bool> {
+    let file = File::open(zip_path)?;
+    let mut archive = zip::ZipArchive::new(file)?;
+    
+    let mut manifest_bytes = Vec::new();
+    {
+        let mut manifest_file = archive.by_name("manifest.json")?;
+        manifest_file.read_to_end(&mut manifest_bytes)?;
+    }
+    
+    let mut sig_hex = String::new();
+    {
+        let mut sig_file = archive.by_name("manifest.sig")?;
+        sig_file.read_to_string(&mut sig_hex)?;
+    }
+    
+    let sig_bytes = hex::decode(&sig_hex)?;
+    let sig_array: [u8; 64] = sig_bytes.try_into()
+        .map_err(|_| anyhow::anyhow!("Invalid signature length"))?;
+    let signature = Signature::from_bytes(&sig_array);
+    
+    let verifying_key = VerifyingKey::from_bytes(public_key_bytes)?;
+    
+    if !verify_signature(&manifest_bytes, &signature, &verifying_key) {
+        return Ok(false);
+    }
+    
+    let manifest: ExportManifest = serde_json::from_slice(&manifest_bytes)?;
+    
+    for (rel_path, expected_hash) in &manifest.checksums {
+        let mut file_bytes = Vec::new();
+        {
+            let mut file = archive.by_name(rel_path)?;
+            file.read_to_end(&mut file_bytes)?;
+        }
+        
+        let mut hasher = Sha384::new();
+        hasher.update(&file_bytes);
+        let actual_hash = hex::encode(hasher.finalize());
+        
+        if &actual_hash != expected_hash {
+            return Ok(false);
+        }
+    }
+    
+    Ok(true)
 }
 
 pub fn get_engine_bundle(engine: &str) -> EngineBundle {
@@ -322,4 +477,27 @@ pub fn estimate_export_time(engines: &[String], quality: &str) -> u32 {
     };
     
     (engines.len() as u32) * base_time
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs;
+    use tempfile::tempdir;
+
+    #[test]
+    fn test_create_dev_keypair() {
+        let key = create_dev_keypair();
+        let verifying_key = key.verifying_key();
+        assert_eq!(verifying_key.to_bytes().len(), 32);
+    }
+
+    #[test]
+    fn test_sign_and_verify() {
+        let key = create_dev_keypair();
+        let message = b"test manifest content";
+        let signature = sign_with_keypair(message, &key);
+        let verifying_key = key.verifying_key();
+        assert!(verify_signature(message, &signature, &verifying_key));
+    }
 }
