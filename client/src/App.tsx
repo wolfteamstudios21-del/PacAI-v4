@@ -78,7 +78,7 @@ export default function App() {
           <input placeholder="Username" className="w-full px-4 py-3 bg-[#1f2125] rounded-lg mb-4 text-white placeholder-[#9aa0a6]" value={loginUser} onChange={e => setLoginUser(e.target.value)} />
           <input type="password" placeholder="Password" className="w-full px-4 py-3 bg-[#1f2125] rounded-lg mb-6 text-white placeholder-[#9aa0a6]" value={loginPass} onChange={e => setLoginPass(e.target.value)} />
           <button onClick={login} className="w-full py-4 bg-[#3e73ff] rounded-xl font-bold text-lg hover:opacity-90">Login / Register</button>
-          <p className="text-center text-xs text-[#9aa0a6] mt-6">Dev: WolfTeamstudio2 / AdminTeam15 • New users = Free tier</p>
+          <p className="text-center text-xs text-[#9aa0a6] mt-6">New users start on Free tier</p>
         </div>
       </div>
     );
