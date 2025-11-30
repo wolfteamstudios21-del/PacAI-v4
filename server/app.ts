@@ -46,12 +46,12 @@ app.use(express.urlencoded({ extended: false }));
 // Serve static files (login.html, dashboard.html, etc.)
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Serve React build (client/dist)
-app.use(express.static(path.join(__dirname, '../client/dist')));
+// Serve React build (dist/public)
+app.use(express.static(path.join(__dirname, '../dist/public')));
 
 // Root route (landing page - React app)
 app.get('/', (req: Request, res: Response) => {
-  res.sendFile(path.join(__dirname, '../client/dist/index.html'));
+  res.sendFile(path.join(__dirname, '../dist/public/index.html'));
 });
 
 // Login route
