@@ -3,7 +3,7 @@
 ## Project Goal
 Build PacAI (AI Brain v4) - an enterprise offline-first defense simulation platform for air-gapped environments (SCIFs, submarines, forward operating bases). Features hardware-root licensing (YubiHSM2/Nitrokey3), SSO + X.509 authentication, tamper-proof hash-chained audit logs, deterministic procedural generation, and multi-engine exports (UE5/Unity/Godot/Roblox/visionOS/Blender/WebGPU). Target ship date: April 2026.
 
-## Current Status - GA: v4 + HTML Dashboard (100% Complete)
+## Current Status - GA: v4 + Landing Page + Dashboard (100% Complete)
 
 ### ✅ v4 Production Deployment + HTML Dashboard
 - **v4 Spec Frozen**: V4_SPECIFICATION.md (immutable, fundraising document)
@@ -158,9 +158,10 @@ pacai-v4/
 
 ## Important Files
 - `V4_SPECIFICATION.md` - Frozen spec (fundraising document - DO NOT MODIFY)
+- `server/public/index.html` - Landing page (hero, testimonials, pricing, footer)
 - `server/public/login.html` - Authentication UI (dev backdoor + register tab)
 - `server/public/dashboard.html` - Main dashboard (generation + 7-engine export + how-to guide)
-- `server/app.ts` - Express app setup (auth routes + v4routes + static files)
+- `server/app.ts` - Express app setup (routes: /, /login, /dashboard + v4routes)
 - `server/auth.ts` - Login/register endpoints
 - `server/routes/v4.ts` - All 13 v4 endpoints
 - `server/middleware/v4.ts` - HSM validation, audit logging, offline grace

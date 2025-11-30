@@ -46,14 +46,19 @@ app.use(express.urlencoded({ extended: false }));
 // Serve static files (login.html, dashboard.html, etc.)
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Root route (landing page)
+app.get('/', (req: Request, res: Response) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// Login route
+app.get('/login', (req: Request, res: Response) => {
+  res.sendFile(path.join(__dirname, 'public', 'login.html'));
+});
+
 // Dashboard route
 app.get('/dashboard', (req: Request, res: Response) => {
   res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
-});
-
-// Root route
-app.get('/', (req: Request, res: Response) => {
-  res.sendFile(path.join(__dirname, 'public', 'login.html'));
 });
 
 // v3 Gateway proxy (before other routes so /v3/* are intercepted)
