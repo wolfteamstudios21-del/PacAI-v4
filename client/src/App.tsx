@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
-import { 
+import {
   Zap, Shield, Download, LogOut, Menu, X, Crown, Search, UserCheck,
-  Brain, Gamepad2, Package, Smartphone, Monitor, Sparkles, Send, BookOpen
+  Brain, Sparkles, Send, Package, Smartphone, Monitor, BookOpen, BarChart3
 } from "lucide-react";
 
 const DEV_USER = "WolfTeamstudio2";
@@ -13,17 +13,28 @@ export default function App() {
   const [activeTab, setActiveTab] = useState("home");
   const [loginUser, setLoginUser] = useState("");
   const [loginPass, setLoginPass] = useState("");
-  const [prompt, setPrompt] = useState("");
+
+  // Project state
+  const [projects, setProjects] = useState<any[]>([]);
+  const [selectedProject, setSelectedProject] = useState<any>(null);
   const [generating, setGenerating] = useState(false);
-  const [result, setResult] = useState<any>(null);
+  const [prompt, setPrompt] = useState("");
+  const [generationStatus, setGenerationStatus] = useState("");
   const [overrideCmd, setOverrideCmd] = useState("");
+  const [auditLog, setAuditLog] = useState<any[]>([]);
   const [verifyUser, setVerifyUser] = useState("");
   const [verifyResult, setVerifyResult] = useState<any>(null);
 
+  // Load user
   useEffect(() => {
     const saved = localStorage.getItem("pacai_user");
     if (saved) setUser(JSON.parse(saved));
   }, []);
+
+  // Load projects when user logs in
+  useEffect(() => {
+    if (user) loadProjects();
+  }, [user]);
 
   const login = async () => {
     if (!loginUser || !loginPass) return alert("Fill both fields");
@@ -33,10 +44,14 @@ export default function App() {
       setUser(dev);
       return;
     }
-    const res = await fetch("/api/login", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({username: loginUser, password: loginPass}) });
+    const res = await fetch("/api/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username: loginUser, password: loginPass })
+    });
     const data = await res.json();
     if (data.success) {
-      const u = { name: loginUser, tier: data.tier || 'free' };
+      const u = { name: loginUser, tier: data.tier || "free" };
       localStorage.setItem("pacai_user", JSON.stringify(u));
       setUser(u);
     } else {
@@ -44,17 +59,74 @@ export default function App() {
     }
   };
 
-  const generate = async () => {
-    setGenerating(true);
-    const res = await fetch("/v4/generate", { method: "POST", body: JSON.stringify({prompt}), headers: {"Content-Type":"application/json"} });
+  const loadProjects = async () => {
+    const res = await fetch("/v5/projects");
     const data = await res.json();
-    setResult(data);
+    setProjects(data);
+    if (data.length && !selectedProject) setSelectedProject(data[0]);
+  };
+
+  const createNewProject = async () => {
+    const res = await fetch("/v5/projects", { method: "POST" });
+    const p = await res.json();
+    setProjects([p, ...projects]);
+    setSelectedProject(p);
+  };
+
+  const generate = async () => {
+    if (!selectedProject) return;
+    setGenerating(true);
+    setGenerationStatus("Starting generation...");
+    
+    const res = await fetch(`/v5/projects/${selectedProject.id}/generate`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ prompt })
+    });
+
+    const reader = res.body?.getReader();
+    if (!reader) return;
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      const text = new TextDecoder().decode(value);
+      const lines = text.split("\n");
+      for (const line of lines) {
+        if (line.startsWith("data: ")) {
+          try {
+            const data = JSON.parse(line.slice(6));
+            if (data.done) {
+              setSelectedProject(data.project);
+              loadProjects();
+              setGenerationStatus("Generation complete!");
+            } else {
+              setGenerationStatus(data.message);
+            }
+          } catch (e) {}
+        }
+      }
+    }
     setGenerating(false);
   };
 
   const sendOverride = async () => {
-    await fetch("/v4/override", { method: "POST", body: JSON.stringify({cmd: overrideCmd}), headers: {"Content-Type":"application/json"} });
-    alert("Override sent to server!");
+    if (!selectedProject) return;
+    const res = await fetch(`/v5/projects/${selectedProject.id}/override`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ command: overrideCmd, user: user.name })
+    });
+    const updated = await res.json();
+    setSelectedProject(updated);
+    setOverrideCmd("");
+    loadProjects();
+  };
+
+  const loadAudit = async () => {
+    const res = await fetch("/v5/audit");
+    const data = await res.json();
+    setAuditLog(data);
   };
 
   const verifyAccount = async () => {
@@ -85,155 +157,143 @@ export default function App() {
   }
 
   const menu = [
-    {id:"home",icon:Brain,label:"Home"},
-    {id:"generate",icon:Sparkles,label:"Generation Lab"},
-    {id:"story",icon:BookOpen,label:"Story Lab"},
-    {id:"override",icon:Send,label:"Server Override"},
-    {id:"export",icon:Package,label:"Export Center"},
-    {id:"downloads",icon:Download,label:"Download App"},
-    {id:"verify",icon:UserCheck,label:"Verify Account"},
+    { id: "home", icon: Brain, label: "Home" },
+    { id: "generate", icon: Sparkles, label: "Generation Lab" },
+    { id: "override", icon: Send, label: "Override" },
+    { id: "export", icon: Package, label: "Export" },
+    { id: "audit", icon: BarChart3, label: "Audit Log" },
+    { id: "verify", icon: UserCheck, label: "Verify" },
   ];
 
   return (
     <div className="min-h-screen bg-[#0b0d0f] text-white flex">
       {/* SIDEBAR */}
-      <div className={`${sidebarOpen?"w-64":"w-20"} bg-[#141517] border-r border-[#2a2d33] transition-all`}>
+      <div className={`${sidebarOpen ? "w-64" : "w-20"} bg-[#141517] border-r border-[#2a2d33] transition-all`}>
         <div className="p-6 flex justify-between items-center">
-          <h1 className={`font-black text-2xl ${sidebarOpen?"block":"hidden"}`}>PacAI v5</h1>
-          <button onClick={()=>setSidebarOpen(!sidebarOpen)}>{sidebarOpen?<X size={24}/>:<Menu size={24}/>}</button>
+          <h1 className={`font-black text-2xl ${sidebarOpen ? "block" : "hidden"}`}>PacAI v5</h1>
+          <button onClick={() => setSidebarOpen(!sidebarOpen)}>{sidebarOpen ? <X size={24} /> : <Menu size={24} />}</button>
         </div>
         <nav className="mt-8">
-          {menu.map(i=>(
-            <button key={i.id} onClick={()=>setActiveTab(i.id)} className={`w-full flex items-center gap-4 px-6 py-4 hover:bg-[#1f2125] transition ${activeTab===i.id?"bg-[#3e73ff]":""}`}>
-              <i.icon size={24}/>{sidebarOpen && <span>{i.label}</span>}
+          {menu.map(i => (
+            <button key={i.id} onClick={() => setActiveTab(i.id)} className={`w-full flex items-center gap-4 px-6 py-4 hover:bg-[#1f2125] transition ${activeTab === i.id ? "bg-[#3e73ff]" : ""}`}>
+              <i.icon size={24} />{sidebarOpen && <span>{i.label}</span>}
             </button>
           ))}
           <button onClick={logout} className="w-full flex items-center gap-4 px-6 py-4 hover:bg-[#1f2125] transition mt-8">
-            <LogOut size={24}/>{sidebarOpen && <span>Logout</span>}
+            <LogOut size={24} />{sidebarOpen && <span>Logout</span>}
           </button>
         </nav>
       </div>
 
-      {/* MAIN CONTENT */}
+      {/* MAIN */}
       <div className="flex-1 p-10 overflow-y-auto">
         {activeTab === "home" && (
           <div>
             <h2 className="text-5xl font-black mb-8">Welcome, {user.name}!</h2>
-            <div className="grid md:grid-cols-3 gap-8">
+            <div className="grid md:grid-cols-3 gap-8 mb-10">
               <div className="bg-gradient-to-br from-purple-900 to-blue-900 p-8 rounded-2xl">
-                <Crown className="w-16 h-16 mb-4"/>
+                <Crown className="w-16 h-16 mb-4" />
                 <p className="text-5xl font-black">{user.tier.toUpperCase()}</p>
-                {user.tier==="free" && <p className="mt-4 text-xl">2 demos per week</p>}
-                {user.tier==="creator" && <p className="mt-4 text-xl">100 per week</p>}
-                {user.tier==="lifetime" && <p className="mt-4 text-xl">Unlimited forever</p>}
-                {user.isDev && <p className="text-red-400 mt-4 font-bold">DEV TEAM – FULL ACCESS</p>}
+                {user.tier === "free" && <p className="mt-4">2 per week</p>}
+                {user.tier === "creator" && <p className="mt-4">100 per week</p>}
+                {user.tier === "lifetime" && <p className="mt-4">Unlimited</p>}
               </div>
               <div className="bg-[#141517] p-8 rounded-2xl border border-[#2a2d33]">
-                <h3 className="text-2xl font-bold mb-4">Quick Start</h3>
-                <button onClick={()=>setActiveTab("generate")} className="w-full py-4 bg-[#3e73ff] rounded-xl font-bold mb-3 hover:opacity-90">Open Generation Lab</button>
-                <button onClick={()=>setActiveTab("export")} className="w-full py-4 bg-[#1f2125] rounded-xl font-bold hover:bg-[#2a2d33]">Export Center</button>
+                <h3 className="text-2xl font-bold mb-4">Projects</h3>
+                <p className="mb-4 text-[#9aa0a6]">{projects.length} projects</p>
+                <button onClick={createNewProject} className="w-full py-3 bg-[#3e73ff] rounded-xl font-bold hover:opacity-90">New Project</button>
               </div>
               <div className="bg-[#141517] p-8 rounded-2xl border border-[#2a2d33]">
-                <Shield className="w-12 h-12 mb-4"/>
-                <h3 className="text-2xl font-bold mb-2">Enterprise Ready</h3>
-                <p className="text-[#9aa0a6]">HSM licensing • Air-gapped • Audit logs</p>
+                <Shield className="w-12 h-12 mb-4" />
+                <h3 className="text-2xl font-bold mb-2">Enterprise</h3>
+                <p className="text-[#9aa0a6]">HSM • Air-gapped • Audit logs</p>
               </div>
             </div>
+
+            {selectedProject && (
+              <div className="bg-[#141517] p-8 rounded-2xl border border-[#2a2d33]">
+                <h3 className="text-2xl font-bold mb-4">Current Project: {selectedProject.id.slice(0, 8)}</h3>
+                <div className="grid md:grid-cols-4 gap-4 mb-6">
+                  <div>
+                    <p className="text-[#9aa0a6]">NPCs</p>
+                    <p className="text-3xl font-bold">{selectedProject.state.npcs}</p>
+                  </div>
+                  <div>
+                    <p className="text-[#9aa0a6]">Biome</p>
+                    <p className="text-2xl font-bold">{selectedProject.state.biome}</p>
+                  </div>
+                  <div>
+                    <p className="text-[#9aa0a6]">Aggression</p>
+                    <p className="text-2xl font-bold">{(selectedProject.state.aggression * 100).toFixed(0)}%</p>
+                  </div>
+                  <div>
+                    <p className="text-[#9aa0a6]">Weather</p>
+                    <p className="text-2xl font-bold">{selectedProject.state.weather}</p>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
         {activeTab === "generate" && (
           <div className="max-w-4xl">
             <h2 className="text-4xl font-black mb-8">Generation Lab</h2>
-            <textarea value={prompt} onChange={e=>setPrompt(e.target.value)} placeholder="e.g. 8km cyberpunk city, rainy night, 20,000 NPCs, Blade Runner vibe" className="w-full h-40 bg-[#1f2125] p-6 rounded-xl text-lg text-white placeholder-[#9aa0a6]"/>
-            <button onClick={generate} disabled={generating} className="mt-6 px-12 py-5 bg-[#3e73ff] rounded-xl font-bold text-xl flex items-center gap-3 hover:opacity-90 disabled:opacity-50">
-              <Zap/> {generating ? "Generating… (8.4 sec)":"Generate World (<9 sec)"}
-            </button>
-            {result && <pre className="mt-8 bg-[#0b0d0f] p-6 rounded-xl border border-[#3e73ff] overflow-auto text-sm">{JSON.stringify(result, null, 2)}</pre>}
-          </div>
-        )}
-
-        {activeTab === "story" && (
-          <div className="max-w-4xl">
-            <h2 className="text-4xl font-black mb-8">Story Lab</h2>
-            <div className="bg-[#141517] p-8 rounded-2xl border border-[#2a2d33]">
-              <p className="text-xl text-[#9aa0a6]">Persistent memory, radiant quests, faction logs – v5 live</p>
-            </div>
+            <textarea value={prompt} onChange={e => setPrompt(e.target.value)} placeholder="Describe your world..." className="w-full h-40 bg-[#1f2125] p-6 rounded-xl text-white placeholder-[#9aa0a6] mb-6" />
+            <button onClick={generate} disabled={generating} className="px-12 py-5 bg-[#3e73ff] rounded-xl font-bold text-xl hover:opacity-90 disabled:opacity-50">{generating ? "Generating..." : "Generate"}</button>
+            {generationStatus && <p className="mt-4 text-[#9aa0a6]">{generationStatus}</p>}
           </div>
         )}
 
         {activeTab === "override" && (
           <div className="max-w-4xl">
-            <h2 className="text-4xl font-black mb-8">Server NPC & Environment Override</h2>
-            <input value={overrideCmd} onChange={e=>setOverrideCmd(e.target.value)} placeholder="e.g. spawn 500 rioters at coords 120,45" className="w-full px-6 py-4 bg-[#1f2125] rounded-xl text-white placeholder-[#9aa0a6]"/>
-            <button onClick={sendOverride} className="mt-4 px-10 py-4 bg-red-600 rounded-xl font-bold hover:opacity-90">SEND TO SERVER</button>
+            <h2 className="text-4xl font-black mb-8">Server Override</h2>
+            <input value={overrideCmd} onChange={e => setOverrideCmd(e.target.value)} placeholder="e.g. spawn 500 agents, arctic biome" className="w-full px-6 py-4 bg-[#1f2125] rounded-xl text-white placeholder-[#9aa0a6] mb-4" />
+            <button onClick={sendOverride} className="px-10 py-4 bg-red-600 rounded-xl font-bold hover:opacity-90">SEND</button>
           </div>
         )}
 
         {activeTab === "export" && (
           <div>
-            <h2 className="text-4xl font-black mb-10">Export Center – One Click</h2>
+            <h2 className="text-4xl font-black mb-10">Export Center</h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              {["Blender","UE5","Unity","Godot","Roblox","visionOS","WebGPU"].map(e=>(
-                <button key={e} onClick={()=>alert(`${e} export started – check Downloads`)} className="py-12 bg-[#1f2125] hover:bg-[#3e73ff] transition rounded-2xl font-bold text-xl shadow-xl">
-                  {e}<br/><span className="text-sm opacity-70">{e==="Roblox"?"8 sec":e==="WebGPU"?"4 sec":"18–60 sec"}</span>
+              {["Blender", "UE5", "Unity", "Godot", "Roblox", "visionOS", "WebGPU"].map(e => (
+                <button key={e} onClick={() => alert(`${e} export started`)} className="py-12 bg-[#1f2125] hover:bg-[#3e73ff] transition rounded-2xl font-bold">
+                  {e}<br /><span className="text-sm opacity-70">{["Roblox", "WebGPU"].includes(e) ? "4-8s" : "18-60s"}</span>
                 </button>
               ))}
             </div>
           </div>
         )}
 
-        {activeTab === "downloads" && (
-          <div className="max-w-4xl">
-            <h2 className="text-4xl font-black mb-10">Download PacAI App</h2>
-            <div className="grid md:grid-cols-2 gap-10">
-              <div className="bg-[#141517] p-10 rounded-2xl border border-[#2a2d33] text-center">
-                <Monitor className="w-20 h-20 mx-auto mb-6"/>
-                <h3 className="text-3xl font-bold mb-4">Desktop (Windows / macOS / Linux)</h3>
-                <p className="mb-6 text-[#9aa0a6]">Full offline • HSM • Tauri build</p>
-                <a href="#" className="block py-4 bg-[#3e73ff] rounded-xl font-bold hover:opacity-90">Download Desktop App</a>
-              </div>
-              <div className="bg-[#141517] p-10 rounded-2xl border border-[#2a2d33] text-center">
-                <Smartphone className="w-20 h-20 mx-auto mb-6"/>
-                <h3 className="text-3xl font-bold mb-4">Mobile (iOS & Android)</h3>
-                <p className="mb-6 text-[#9aa0a6]">Capacitor build • Touch controls</p>
-                <a href="#" className="block py-4 bg-[#3e73ff] rounded-xl font-bold hover:opacity-90">Download Mobile App</a>
-              </div>
+        {activeTab === "audit" && (
+          <div>
+            <h2 className="text-4xl font-black mb-8">Audit Log</h2>
+            <button onClick={loadAudit} className="mb-6 px-6 py-3 bg-[#3e73ff] rounded-xl font-bold hover:opacity-90">Load Audit</button>
+            <div className="space-y-3 max-h-96 overflow-y-auto">
+              {auditLog.map((log, i) => (
+                <div key={i} className="bg-[#1f2125] p-4 rounded-lg text-sm">
+                  <p><strong>#{log.seq}</strong> - {log.type}</p>
+                  <p className="text-[#9aa0a6]">{new Date(log.ts).toLocaleString()}</p>
+                </div>
+              ))}
             </div>
           </div>
         )}
 
         {activeTab === "verify" && (
           <div className="max-w-2xl">
-            <h2 className="text-4xl font-black mb-8">Account Verification</h2>
+            <h2 className="text-4xl font-black mb-8">Verify Account</h2>
             <div className="bg-[#141517] rounded-2xl p-8 border border-[#2a2d33]">
               <div className="flex gap-4 mb-6">
-                <input placeholder="Enter username to verify" className="flex-1 px-4 py-3 bg-[#1f2125] rounded-lg text-white placeholder-[#9aa0a6]" value={verifyUser} onChange={e => setVerifyUser(e.target.value)} />
-                <button onClick={verifyAccount} className="px-8 py-3 bg-[#3e73ff] rounded-lg font-bold flex items-center gap-2 hover:opacity-90"><Search size={20} /> Check</button>
+                <input placeholder="Username" className="flex-1 px-4 py-3 bg-[#1f2125] rounded-lg text-white placeholder-[#9aa0a6]" value={verifyUser} onChange={e => setVerifyUser(e.target.value)} />
+                <button onClick={verifyAccount} className="px-8 py-3 bg-[#3e73ff] rounded-lg font-bold hover:opacity-90">Check</button>
               </div>
               {verifyResult && (
-                <div className="text-lg space-y-4">
-                  <div className="bg-[#1f2125] p-4 rounded-lg">
-                    <p className="text-[#9aa0a6]">Username</p>
-                    <p><strong>{verifyResult.username}</strong></p>
-                  </div>
-                  <div className="bg-[#1f2125] p-4 rounded-lg">
-                    <p className="text-[#9aa0a6]">Tier</p>
-                    <p><span className="text-[#3e73ff] font-bold text-xl">{verifyResult.tier.toUpperCase()}</span></p>
-                  </div>
-                  <div className="bg-[#1f2125] p-4 rounded-lg">
-                    <p className="text-[#9aa0a6]">Status</p>
-                    <p>{verifyResult.verified ? "✅ Verified" : "⏳ Pending"}</p>
-                  </div>
-                  {user.isDev && (
-                    <div className="mt-6 bg-blue-900 p-4 rounded-lg">
-                      <p className="text-yellow-400 font-bold mb-4">DEV TOOLS: Upgrade user</p>
-                      <div className="flex gap-2 flex-wrap">
-                        <button onClick={() => { fetch(`/api/upgrade?username=${verifyResult.username}&tier=creator`, {method:"POST"}); alert("Upgraded to Creator"); }} className="px-6 py-3 bg-blue-600 rounded-lg hover:opacity-90">→ Creator</button>
-                        <button onClick={() => { fetch(`/api/upgrade?username=${verifyResult.username}&tier=lifetime`, {method:"POST"}); alert("Upgraded to Lifetime"); }} className="px-6 py-3 bg-green-600 rounded-lg hover:opacity-90">→ Lifetime</button>
-                      </div>
-                    </div>
-                  )}
+                <div className="space-y-4">
+                  <p><strong>User:</strong> {verifyResult.username}</p>
+                  <p><strong>Tier:</strong> <span className="text-[#3e73ff]">{verifyResult.tier.toUpperCase()}</span></p>
+                  <p><strong>Status:</strong> {verifyResult.verified ? "✅ Verified" : "⏳ Pending"}</p>
                 </div>
               )}
             </div>

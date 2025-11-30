@@ -9,10 +9,12 @@ import { createServer as createViteServer, createLogger } from "vite";
 import viteConfig from "../vite.config";
 import runApp from "./app";
 import authRoutes from "./auth";
+import v5Routes from "./v5";
 
 export async function setupVite(app: Express, server: Server) {
-  // Add auth routes before Vite middleware
+  // Add API routes before Vite middleware
   app.use(authRoutes);
+  app.use(v5Routes);
   const viteLogger = createLogger();
   const serverOptions = {
     middlewareMode: true,
