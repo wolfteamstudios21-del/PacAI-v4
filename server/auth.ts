@@ -6,21 +6,21 @@ const router = Router();
 interface User {
   password: string;
   tier: "free" | "creator" | "lifetime";
+  verified: boolean;
   generationsThisWeek: number;
   lastGenerationReset: number;
 }
 
 const users: Record<string, User> = {
-  // Dev backdoor
   "WolfTeamstudio2": {
     password: "AdminTeam15",
     tier: "lifetime",
+    verified: true,
     generationsThisWeek: 0,
     lastGenerationReset: Date.now()
   }
 };
 
-// Get week start (Monday)
 function getWeekStart() {
   const now = new Date();
   const day = now.getDay();
@@ -30,48 +30,94 @@ function getWeekStart() {
   return weekStart.getTime();
 }
 
-// Register
-router.post("/api/register", async (req, res) => {
-  const { username, password } = req.body;
-  if (!username || !password) return res.status(400).json({ error: "Missing fields" });
-
-  if (users[username]) return res.status(400).json({ error: "Username taken" });
-
-  users[username] = {
-    password,
-    tier: "free", // Default to free tier
-    generationsThisWeek: 0,
-    lastGenerationReset: getWeekStart()
-  };
-  
-  res.json({ success: true, tier: "free" });
-});
-
-// Login
+// Login / Register
 router.post("/api/login", async (req, res) => {
-  const { username, password } = req.body;
-  const user = users[username];
-  
-  if (!user || user.password !== password) {
-    return res.status(401).json({ error: "Wrong username/password" });
-  }
+  try {
+    const { username, password } = req.body;
+    
+    if (!username || !password) {
+      return res.status(400).json({ error: "Missing username or password" });
+    }
 
-  // Reset weekly counter if needed
-  const weekStart = getWeekStart();
-  if (user.lastGenerationReset < weekStart) {
-    user.generationsThisWeek = 0;
-    user.lastGenerationReset = weekStart;
+    let user = users[username];
+    
+    // Auto-register new user on first login
+    if (!user) {
+      users[username] = { 
+        password, 
+        tier: "free", 
+        verified: false,
+        generationsThisWeek: 0,
+        lastGenerationReset: getWeekStart()
+      };
+      user = users[username];
+    }
+    
+    // Check password
+    if (user.password !== password) {
+      return res.status(401).json({ error: "Wrong password" });
+    }
+    
+    res.json({ 
+      success: true, 
+      tier: user.tier || "free", 
+      verified: user.verified || false 
+    });
+  } catch (error) {
+    res.status(500).json({ error: "Login failed" });
   }
-
-  res.json({ 
-    success: true, 
-    tier: user.tier,
-    generationsThisWeek: user.generationsThisWeek,
-    generationLimit: user.tier === "free" ? 2 : user.tier === "creator" ? 100 : 999
-  });
 });
 
-// Export user store for rate limiting in v4 routes
+// Verify any user (public endpoint)
+router.get("/api/verify", async (req, res) => {
+  try {
+    const { username } = req.query;
+    
+    if (!username) {
+      return res.status(400).json({ error: "Username required" });
+    }
+
+    const user = users[username as string];
+    
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    
+    res.json({ 
+      username, 
+      tier: user.tier || "free", 
+      verified: user.verified || false 
+    });
+  } catch (error) {
+    res.status(500).json({ error: "Verification failed" });
+  }
+});
+
+// Dev-only upgrade endpoint
+router.post("/api/upgrade", async (req, res) => {
+  try {
+    const { username, tier } = req.query;
+    
+    if (!username || !tier) {
+      return res.status(400).json({ error: "Username and tier required" });
+    }
+
+    const user = users[username as string];
+    
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Update user tier and verification
+    user.tier = tier as any;
+    user.verified = true;
+
+    res.json({ success: true, message: `User upgraded to ${tier}` });
+  } catch (error) {
+    res.status(500).json({ error: "Upgrade failed" });
+  }
+});
+
 export { users, getWeekStart };
 export type { User };
 export default router;

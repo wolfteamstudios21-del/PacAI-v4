@@ -5,17 +5,6 @@
 
 import { Router, type Request, type Response } from "express";
 import crypto from "crypto";
-import { users, getWeekStart } from "../auth";
-
-// Extend Request to include user info
-declare global {
-  namespace Express {
-    interface Request {
-      user?: { username: string; tier: string };
-      isDev?: boolean;
-    }
-  }
-}
 
 // ===== Mock Controllers (stub implementations for v4 endpoints) =====
 
@@ -82,32 +71,6 @@ async function getProject(req: Request, res: Response) {
 
 async function generateZone(req: Request, res: Response) {
   try {
-    // TIER ENFORCEMENT: Check generation limits
-    const username = req.body.username || req.query.username;
-    const isDev = req.isDev || (username === "WolfTeamstudio2");
-    
-    if (!isDev && username) {
-      const user = users[username];
-      if (user) {
-        const weekStart = getWeekStart();
-        if (user.lastGenerationReset < weekStart) {
-          user.generationsThisWeek = 0;
-          user.lastGenerationReset = weekStart;
-        }
-
-        const limit = user.tier === "free" ? 2 : user.tier === "creator" ? 100 : 999;
-        if (user.generationsThisWeek >= limit) {
-          return res.status(429).json({ 
-            error: `${user.tier === "free" ? "Free" : "Creator"} tier limit reached (${limit}/week)`,
-            tier: user.tier,
-            used: user.generationsThisWeek,
-            limit
-          });
-        }
-        user.generationsThisWeek++;
-      }
-    }
-
     const { id } = req.params;
     const { prompt, seed, stream } = req.body;
 

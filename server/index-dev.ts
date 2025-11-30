@@ -8,8 +8,11 @@ import { createServer as createViteServer, createLogger } from "vite";
 
 import viteConfig from "../vite.config";
 import runApp from "./app";
+import authRoutes from "./auth";
 
 export async function setupVite(app: Express, server: Server) {
+  // Add auth routes before Vite middleware
+  app.use(authRoutes);
   const viteLogger = createLogger();
   const serverOptions = {
     middlewareMode: true,
