@@ -1,11 +1,11 @@
-import { v4 as uuidv4 } from "uuid";
+import { randomUUID } from "crypto";
 import { saveProject, getProject, addAudit } from "./db";
 import crypto from "crypto";
 
 let seedCounter = 0;
 
 export async function createProject(type = "game") {
-  const id = uuidv4();
+  const id = randomUUID();
   const project = {
     id,
     created_at: Date.now(),
