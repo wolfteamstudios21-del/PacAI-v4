@@ -146,7 +146,7 @@ export default function App() {
     return (
       <div className="min-h-screen bg-[#0b0d0f] flex items-center justify-center p-8">
         <div className="bg-[#141517] rounded-2xl p-10 w-full max-w-md border border-[#2a2d33]">
-          <h1 className="text-5xl font-black text-center mb-8 text-[#3e73ff]">PacAI v5</h1>
+          <h1 className="text-5xl font-black text-center mb-8 text-[#3e73ff]">PacAI v5 – Dev Companion</h1>
           <input placeholder="Username" className="w-full px-4 py-3 bg-[#1f2125] rounded-lg mb-4 text-white placeholder-[#9aa0a6]" value={loginUser} onChange={e => setLoginUser(e.target.value)} />
           <input type="password" placeholder="Password" className="w-full px-4 py-3 bg-[#1f2125] rounded-lg mb-6 text-white placeholder-[#9aa0a6]" value={loginPass} onChange={e => setLoginPass(e.target.value)} />
           <button onClick={login} className="w-full py-4 bg-[#3e73ff] rounded-xl font-bold text-lg hover:opacity-90">Login / Register</button>

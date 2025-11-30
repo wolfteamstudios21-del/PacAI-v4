@@ -118,6 +118,11 @@ router.post("/api/upgrade", async (req, res) => {
   }
 });
 
+// Export users for tier checks in routes
+export function getUser(username: string) {
+  return users[username];
+}
+
 export { users, getWeekStart };
 export type { User };
 export default router;

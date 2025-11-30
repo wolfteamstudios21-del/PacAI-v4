@@ -1,6 +1,7 @@
 import { Router, type Request, type Response } from "express";
 import { createProject, applyOverride } from "./projects";
 import { getProject, listProjects, getAuditLog, addAudit } from "./db";
+import { getUser, getWeekStart } from "./auth";
 
 const router = Router();
 
@@ -22,11 +23,27 @@ router.get("/v5/projects/:id", async (req, res) => {
   res.json(p);
 });
 
-// Generate (streaming)
+// Generate (streaming) - with tier enforcement
 router.post("/v5/projects/:id/generate", async (req, res) => {
-  const { prompt } = req.body;
+  const { prompt, username } = req.body;
   let p = await getProject(req.params.id);
   if (!p) return res.status(404).json({ error: "Project not found" });
+
+  // Tier enforcement
+  if (username) {
+    const user = getUser(username);
+    if (user && user.tier === "free") {
+      const weekStart = getWeekStart();
+      if (user.lastGenerationReset < weekStart) {
+        user.generationsThisWeek = 0;
+        user.lastGenerationReset = weekStart;
+      }
+      if (user.generationsThisWeek >= 2) {
+        return res.status(429).json({ error: "Free tier limit reached (2 per week)" });
+      }
+      user.generationsThisWeek++;
+    }
+  }
 
   res.writeHead(200, {
     "Content-Type": "text/event-stream",
