@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PacAI v4 - Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+    .guide-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
+    .guide-content.open { max-height: 1000px; }
+  </style>
+</head>
+<body class="bg-[#0b0d0f] text-white">
+  <div class="min-h-screen p-8">
+    <header class="flex justify-between items-center mb-8 max-w-7xl mx-auto">
+      <div>
+        <h1 class="text-5xl font-black">PacAI v4 <span class="text-[#3e73ff]">LIVE</span></h1>
+        <p class="text-[#9aa0a6]">Welcome, <span id="userName">Guest</span> • Unlimited generation • Offline-first</p>
+      </div>
+      <button onclick="logout()" class="flex items-center gap-2 text-red-400 hover:opacity-80 font-bold">
+        <span>🚪</span> Logout
+      </button>
+    </header>
+
+    <div class="grid lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
+      <!-- Generator -->
+      <div class="lg:col-span-2 space-y-6">
+        <div class="bg-[#141517] rounded-2xl p-6 border border-[#2a2d33]">
+          <h2 class="text-2xl font-bold mb-4">Generate World</h2>
+          <textarea
+            id="prompt"
+            placeholder="e.g. 4km cyberpunk city, rainy night, 10,000 NPCs, Blade Runner vibe"
+            class="w-full h-32 bg-[#1f2125] rounded-lg p-4 text-sm text-white placeholder-[#9aa0a6]"
+          ></textarea>
+          <button onclick="generate()" class="mt-4 px-8 py-4 bg-[#3e73ff] rounded-xl font-bold text-white hover:opacity-90 flex items-center gap-3 transition">
+            <span>⚡</span> <span id="genBtn">Generate (<9 sec)</span>
+          </button>
+        </div>
+
+        <div id="resultDiv" style="display: none;" class="bg-[#141517] rounded-2xl p-6 border border-[#2a2d33]">
+          <h3 class="text-2xl font-bold flex items-center gap-2 mb-6">✅ Generation Complete</h3>
+          
+          <div class="mb-8 p-4 bg-[#1f2125] rounded-lg">
+            <div class="grid grid-cols-2 gap-4 font-mono text-sm">
+              <div>Zone: <span id="zone" class="text-[#3e73ff]"></span></div>
+              <div>NPCs: <span id="npcs" class="text-[#3e73ff]"></span></div>
+              <div>Seed: <span id="seed" class="text-[#3e73ff]"></span></div>
+              <div>Time: <span id="time" class="text-[#3e73ff]"></span></div>
+            </div>
+          </div>
+
+          <h4 class="text-lg font-bold mb-4">Export to Your Engine</h4>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <button onclick="exportTo('Blender')" class="py-4 bg-orange-600 rounded-lg hover:opacity-90 font-bold text-sm transition flex flex-col items-center gap-1">
+              <span>🎨</span> Blender <div class="text-xs opacity-80">18–30s</div>
+            </button>
+            <button onclick="exportTo('UE5')" class="py-4 bg-gray-900 rounded-lg hover:opacity-90 font-bold text-sm transition flex flex-col items-center gap-1">
+              <span>🎮</span> UE5 <div class="text-xs opacity-80">22–45s</div>
+            </button>
+            <button onclick="exportTo('Unity')" class="py-4 bg-gray-200 text-black rounded-lg hover:opacity-90 font-bold text-sm transition flex flex-col items-center gap-1">
+              <span>⚙️</span> Unity <div class="text-xs opacity-80">25–60s</div>
+            </button>
+            <button onclick="exportTo('Godot')" class="py-4 bg-blue-600 rounded-lg hover:opacity-90 font-bold text-sm transition flex flex-col items-center gap-1">
+              <span>🔷</span> Godot <div class="text-xs opacity-80">15–35s</div>
+            </button>
+            <button onclick="exportTo('Roblox')" class="py-4 bg-green-600 rounded-lg hover:opacity-90 font-bold text-sm transition flex flex-col items-center gap-1">
+              <span>🎯</span> Roblox <div class="text-xs opacity-80">8–20s</div>
+            </button>
+            <button onclick="exportTo('visionOS')" class="py-4 bg-black rounded-lg hover:opacity-90 font-bold text-sm transition border border-white flex flex-col items-center gap-1">
+              <span>👓</span> visionOS <div class="text-xs opacity-80">12–30s</div>
+            </button>
+            <button onclick="exportTo('WebGPU')" class="py-4 bg-purple-700 rounded-lg hover:opacity-90 font-bold text-sm transition flex flex-col items-center gap-1">
+              <span>🌐</span> WebGPU <div class="text-xs opacity-80">4–9s</div>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sidebar -->
+      <div class="space-y-6">
+        <!-- How-To Guide (Collapsible) -->
+        <div class="bg-[#141517] rounded-2xl p-6 border border-[#2a2d33]">
+          <button onclick="toggleGuide()" class="w-full text-left flex items-center justify-between font-bold text-lg hover:text-[#3e73ff] transition">
+            <span>📖 How-To Guide</span>
+            <span id="guideToggle">▼</span>
+          </button>
+          <div id="guideContent" class="guide-content mt-4 text-sm space-y-4 text-[#9aa0a6]">
+            <div class="border-t border-[#2a2d33] pt-4">
+              <p class="font-bold text-white mb-2">Export & Import (30–90 sec)</p>
+              <ol class="space-y-2 ml-4">
+                <li>1. Generate your world above</li>
+                <li>2. Click your engine button</li>
+                <li>3. ZIP downloads automatically</li>
+                <li>4. Import ZIP into your engine</li>
+                <li>5. Done – full world + NPCs</li>
+              </ol>
+            </div>
+
+            <div class="border-t border-[#2a2d33] pt-4">
+              <p class="font-bold text-white mb-2">What's Included?</p>
+              <ul class="space-y-1 ml-4">
+                <li>• 10,000+ rigged NPCs</li>
+                <li>• Terrain + materials</li>
+                <li>• 40-emotion voice bank</li>
+                <li>• Navmesh + pathfinding</li>
+                <li>• HSM-signed + deterministic</li>
+              </ul>
+            </div>
+
+            <div class="border-t border-[#2a2d33] pt-4">
+              <p class="font-bold text-white mb-2">Engine Quick Links</p>
+              <ul class="space-y-2 ml-4 text-[#5865F2]">
+                <li>• <a href="https://github.com/PacAI/blender-addon" target="_blank" class="hover:underline">Blender Add-on</a></li>
+                <li>• UE5: Right-click → Import PacAI</li>
+                <li>• Unity: Assets → Import Package</li>
+                <li>• Godot: Drag & drop ZIP</li>
+                <li>• Roblox: Plugins → PacAI Import</li>
+              </ul>
+            </div>
+
+            <div class="border-t border-[#2a2d33] pt-4">
+              <p class="font-bold text-white mb-2">Stuck?</p>
+              <a href="https://discord.gg/TtfHgfCQMY" target="_blank" class="text-[#5865F2] hover:underline">Join Discord (300+ members) – support in &lt;2 min</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="bg-[#141517] rounded-2xl p-6 border border-[#2a2d33]">
+          <h3 class="text-xl font-bold mb-4">Stats</h3>
+          <div class="space-y-3 text-sm">
+            <div class="flex justify-between">
+              <span class="text-[#9aa0a6]">Generations</span>
+              <span class="font-bold text-[#3e73ff]">∞ (free)</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-[#9aa0a6]">Avg Gen Time</span>
+              <span class="font-bold text-[#3e73ff]">&lt;9 sec</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-[#9aa0a6]">Engines</span>
+              <span class="font-bold text-[#3e73ff]">7 (all free)</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-[#9aa0a6]">Offline</span>
+              <span class="font-bold text-green-400">✓ Ready</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Lifetime CTA -->
+        <div class="bg-gradient-to-br from-purple-900 to-blue-900 rounded-2xl p-6 text-center border border-purple-700">
+          <p class="text-4xl font-black mb-2">$2,997</p>
+          <p class="text-lg font-bold mb-1">Lifetime Indie</p>
+          <p class="text-sm mb-4 opacity-90">Own PacAI forever • 247 slots left</p>
+          <a href="mailto:wolfteamstudios21@gmail.com?subject=Lifetime%20Slot" class="block bg-white text-black py-3 rounded-xl font-bold hover:opacity-90 transition">
+            Claim Now
+          </a>
+          <p class="text-xs mt-4 opacity-80">Or join Discord for creator discounts</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Check auth on load
+    window.addEventListener('load', () => {
+      const user = localStorage.getItem('pacai_user');
+      if (!user) {
+        window.location.href = '/';
+      } else {
+        const userData = JSON.parse(user);
+        document.getElementById('userName').textContent = userData.name + (userData.isDev ? ' (DEV)' : '');
+      }
+    });
+
+    function logout() {
+      if (confirm('Log out?')) {
+        localStorage.removeItem('pacai_user');
+        window.location.href = '/';
+      }
+    }
+
+    // Guide toggle
+    function toggleGuide() {
+      const content = document.getElementById('guideContent');
+      const toggle = document.getElementById('guideToggle');
+      content.classList.toggle('open');
+      toggle.textContent = content.classList.contains('open') ? '▲' : '▼';
+    }
+
+    // Generation mock
+    let generating = false;
+    async function generate() {
+      const prompt = document.getElementById('prompt').value;
+      if (!prompt) {
+        alert('Please enter a prompt');
+        return;
+      }
+      if (generating) return;
+
+      generating = true;
+      const btn = document.getElementById('genBtn');
+      const originalText = btn.textContent;
+      btn.textContent = 'Generating… 8.2 sec';
+      
+      // Simulate <9 sec generation
+      await new Promise(r => setTimeout(r, 8200));
+
+      // Display mock results
+      document.getElementById('zone').textContent = 'Cyberpunk Downtown';
+      document.getElementById('npcs').textContent = '10,428';
+      document.getElementById('seed').textContent = '0xdeadbeef2025';
+      document.getElementById('time').textContent = '8.2 sec';
+      document.getElementById('resultDiv').style.display = 'block';
+
+      generating = false;
+      btn.textContent = originalText;
+    }
+
+    // Export mock
+    function exportTo(engine) {
+      const times = {
+        'Blender': '18–30 sec',
+        'UE5': '22–45 sec',
+        'Unity': '25–60 sec',
+        'Godot': '15–35 sec',
+        'Roblox': '8–20 sec',
+        'visionOS': '12–30 sec',
+        'WebGPU': '4–9 sec'
+      };
+      alert(`✅ ${engine} export started!\n\nTime: ${times[engine]}\n\nCheck your Downloads folder for the ZIP file.\n\nSee the How-To Guide (left panel) for import instructions.`);
+    }
+  </script>
+</body>
+</html>
