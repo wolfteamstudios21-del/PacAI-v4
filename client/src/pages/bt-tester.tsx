@@ -45,7 +45,7 @@ export default function BTTester() {
     },
     onSuccess: (data) => {
       const logs = [
-        `[${new Date().toLocaleTimeString()}] Status: ${data.tick_output.status.toUpperCase()} (${executionTime}ms)`,
+        `[${new Date().toLocaleTimeString()}] Status: ${(data.tick_output?.status || "unknown").toUpperCase()} (${executionTime}ms)`,
         `Nodes: ${data.tick_output.executedNodes.join(' → ')}`,
         ...data.tick_output.logs,
       ];
