@@ -537,7 +537,7 @@ async function exportMultiEngine(req: Request, res: Response) {
 
 router.post("/v5/projects/:id/voice-clone", generateVoiceClone);
 router.get("/v5/projects/:id/replay", getReplay);
-router.post("/v5/export", exportMultiEngine);
+// NOTE: /v5/export is handled in server/v5.ts with proper multi-engine support
 
 // ──────────────────────────────────────────────────────────────
 // Catch-all for v4 paths only (doesn't interfere with frontend)

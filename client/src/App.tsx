@@ -9,6 +9,16 @@ const DEV_PASS = "AdminTeam15";
 
 export default function App() {
   console.log("PacAI v5 Export UI v2.0 loaded - 9 engines with Select All/Clear");
+  
+  // Add global error handler to trace toUpperCase issues
+  if (typeof window !== 'undefined' && !(window as any).__errorHandlerInstalled) {
+    (window as any).__errorHandlerInstalled = true;
+    window.addEventListener('error', (e) => {
+      if (e.message?.includes('toUpperCase')) {
+        console.error('toUpperCase error stack:', e.error?.stack || e.filename + ':' + e.lineno);
+      }
+    });
+  }
   const [user, setUser] = useState<any>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [activeTab, setActiveTab] = useState("home");
@@ -482,7 +492,7 @@ export default function App() {
 
         {activeTab === "export" && (
           <div className="max-w-6xl">
-            <h2 className="text-4xl font-black mb-8">Export Center <span className="text-sm font-normal text-[#3e73ff]">(v2.0)</span></h2>
+            <h2 className="text-4xl font-black mb-8 text-green-500">Export Center v2.0 - 9 ENGINES</h2>
             
             {!selectedProject ? (
               <div className="bg-[#141517] rounded-2xl p-8 border border-[#2a2d33] text-center">
