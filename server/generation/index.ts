@@ -29,6 +29,23 @@ export {
   computeStateChecksum 
 } from './override-handler';
 
+export {
+  exportToEngines,
+  getEngineBundle,
+  getAllEngines,
+  getEngineDisplayName,
+  getEstimatedTime,
+  generateWorldJson,
+  formatFileSize
+} from './exporter';
+
+export type {
+  EngineBundle,
+  ExportManifest,
+  EngineExport,
+  ExportResult
+} from './exporter';
+
 export type {
   World,
   Tile,

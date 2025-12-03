@@ -11,9 +11,14 @@ import {
   tickEntity,
   getWorldSummary,
   getEntitySummary,
-  getNarrativeSummary
+  getNarrativeSummary,
+  exportToEngines,
+  getAllEngines,
+  getEngineDisplayName,
+  getEstimatedTime,
+  formatFileSize
 } from "./generation";
-import type { GenerationResult, Entity, World, Narrative } from "./generation";
+import type { GenerationResult, Entity, World, Narrative, ExportResult } from "./generation";
 
 const router = Router();
 
@@ -338,6 +343,92 @@ router.get("/v5/health", async (req, res) => {
       multi_engine_export: true
     },
     engines: ["UE5", "Unity", "Godot", "Roblox", "Blender", "CryEngine", "Source2", "WebGPU", "visionOS"]
+  });
+});
+
+const exportCache: Map<string, ExportResult> = new Map();
+
+router.get("/v5/engines", async (req, res) => {
+  const engines = getAllEngines().map(engine => ({
+    id: engine,
+    name: getEngineDisplayName(engine),
+    estimated_time_seconds: getEstimatedTime(engine)
+  }));
+  res.json({ engines });
+});
+
+router.post("/v5/export", async (req, res) => {
+  const { project_id, engines = ['ue5'], include_assets = true, quality = 'high' } = req.body;
+  
+  if (!project_id) {
+    return res.status(400).json({ error: "project_id required" });
+  }
+  
+  const state = projectStates.get(project_id);
+  if (!state) {
+    return res.status(404).json({ error: "Project not generated yet. Generate a world first." });
+  }
+  
+  const validEngines = getAllEngines();
+  const requestedEngines = (Array.isArray(engines) ? engines : [engines])
+    .filter(e => validEngines.includes(e.toLowerCase()));
+  
+  if (requestedEngines.length === 0) {
+    return res.status(400).json({ 
+      error: "No valid engines specified",
+      available: validEngines
+    });
+  }
+  
+  try {
+    const result = await exportToEngines(
+      project_id,
+      requestedEngines,
+      state.result.world,
+      state.entities,
+      state.result.narrative,
+      state.result.metadata.seed
+    );
+    
+    exportCache.set(result.id, result);
+    
+    await addAudit({
+      type: "export",
+      projectId: project_id,
+      engines: requestedEngines,
+      exportId: result.id
+    });
+    
+    res.json(result);
+  } catch (error) {
+    console.error("Export error:", error);
+    res.status(500).json({ 
+      error: "Export failed",
+      message: error instanceof Error ? error.message : "Unknown error"
+    });
+  }
+});
+
+router.get("/v5/export/:exportId", async (req, res) => {
+  const result = exportCache.get(req.params.exportId);
+  if (!result) {
+    return res.status(404).json({ error: "Export not found" });
+  }
+  res.json(result);
+});
+
+router.get("/v5/export/:exportId/download", async (req, res) => {
+  const result = exportCache.get(req.params.exportId);
+  if (!result) {
+    return res.status(404).json({ error: "Export not found" });
+  }
+  
+  res.json({
+    message: "Download would start here in production",
+    export_id: result.id,
+    engines: result.engines.map(e => e.engine),
+    total_size: formatFileSize(result.total_size_bytes),
+    manifest: result.manifest
   });
 });
 

@@ -8,6 +8,7 @@ const DEV_USER = "WolfTeamstudio2";
 const DEV_PASS = "AdminTeam15";
 
 export default function App() {
+  console.log("PacAI v5 Export UI v2.0 loaded - 9 engines with Select All/Clear");
   const [user, setUser] = useState<any>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [activeTab, setActiveTab] = useState("home");
@@ -26,6 +27,9 @@ export default function App() {
   const [verifyUser, setVerifyUser] = useState("");
   const [verifyResult, setVerifyResult] = useState<any>(null);
   const [generationResult, setGenerationResult] = useState<any>(null);
+  const [selectedEngines, setSelectedEngines] = useState<string[]>([]);
+  const [exporting, setExporting] = useState(false);
+  const [exportResult, setExportResult] = useState<any>(null);
 
   // Load user
   useEffect(() => {
@@ -203,7 +207,7 @@ export default function App() {
             <div className="grid md:grid-cols-3 gap-8 mb-10">
               <div className="bg-gradient-to-br from-purple-900 to-blue-900 p-8 rounded-2xl">
                 <Crown className="w-16 h-16 mb-4" />
-                <p className="text-5xl font-black">{(user.tier || "free").toUpperCase()}</p>
+                <p className="text-5xl font-black">{String(user?.tier || "free").toUpperCase()}</p>
                 {(user.tier === "free" || !user.tier) && <p className="mt-4">2 per week</p>}
                 {user.tier === "creator" && <p className="mt-4">100 per week</p>}
                 {user.tier === "lifetime" && <p className="mt-4">Unlimited</p>}
@@ -477,15 +481,150 @@ export default function App() {
         )}
 
         {activeTab === "export" && (
-          <div>
-            <h2 className="text-4xl font-black mb-10">Export Center</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              {["Blender", "UE5", "Unity", "Godot", "Roblox", "visionOS", "WebGPU"].map(e => (
-                <button key={e} onClick={() => alert(`${e} export started`)} className="py-12 bg-[#1f2125] hover:bg-[#3e73ff] transition rounded-2xl font-bold">
-                  {e}<br /><span className="text-sm opacity-70">{["Roblox", "WebGPU"].includes(e) ? "4-8s" : "18-60s"}</span>
-                </button>
-              ))}
-            </div>
+          <div className="max-w-6xl">
+            <h2 className="text-4xl font-black mb-8">Export Center <span className="text-sm font-normal text-[#3e73ff]">(v2.0)</span></h2>
+            
+            {!selectedProject ? (
+              <div className="bg-[#141517] rounded-2xl p-8 border border-[#2a2d33] text-center">
+                <p className="text-xl text-[#9aa0a6] mb-4">No project selected</p>
+                <p className="text-sm text-[#9aa0a6]">Create and generate a project first to enable exports</p>
+              </div>
+            ) : !generationResult ? (
+              <div className="bg-[#141517] rounded-2xl p-8 border border-[#2a2d33] text-center">
+                <p className="text-xl text-[#9aa0a6] mb-4">World not generated yet</p>
+                <p className="text-sm text-[#9aa0a6]">Go to Generation Lab and generate a world first</p>
+              </div>
+            ) : (
+              <>
+                <div className="bg-[#141517] rounded-2xl p-6 border border-[#2a2d33] mb-8">
+                  <h3 className="text-xl font-bold mb-4">Select Target Engines</h3>
+                  <div className="grid grid-cols-3 md:grid-cols-5 gap-4 mb-6">
+                    {[
+                      { id: 'ue5', name: 'Unreal Engine 5', time: '45s', size: '50MB' },
+                      { id: 'unity', name: 'Unity 2023.2', time: '35s', size: '40MB' },
+                      { id: 'godot', name: 'Godot 4.2', time: '12s', size: '15MB' },
+                      { id: 'roblox', name: 'Roblox Studio', time: '6s', size: '8MB' },
+                      { id: 'blender', name: 'Blender 4.0', time: '60s', size: '100MB' },
+                      { id: 'cryengine', name: 'CryEngine 5.7', time: '50s', size: '75MB' },
+                      { id: 'source2', name: 'Source 2', time: '40s', size: '60MB' },
+                      { id: 'webgpu', name: 'WebGPU', time: '4s', size: '5MB' },
+                      { id: 'visionos', name: 'visionOS', time: '25s', size: '30MB' },
+                    ].map(engine => (
+                      <button
+                        key={engine.id}
+                        onClick={() => {
+                          if (selectedEngines.includes(engine.id)) {
+                            setSelectedEngines(selectedEngines.filter(e => e !== engine.id));
+                          } else {
+                            setSelectedEngines([...selectedEngines, engine.id]);
+                          }
+                        }}
+                        className={`p-4 rounded-xl border-2 transition text-left ${
+                          selectedEngines.includes(engine.id)
+                            ? 'border-[#3e73ff] bg-[#3e73ff]/20'
+                            : 'border-[#2a2d33] bg-[#1f2125] hover:border-[#3e73ff]/50'
+                        }`}
+                        data-testid={`button-engine-${engine.id}`}
+                      >
+                        <p className="font-bold text-sm">{engine.name}</p>
+                        <p className="text-xs text-[#9aa0a6] mt-1">{engine.time} / {engine.size}</p>
+                      </button>
+                    ))}
+                  </div>
+                  
+                  <div className="flex gap-4 items-center">
+                    <button
+                      onClick={async () => {
+                        if (selectedEngines.length === 0) return;
+                        setExporting(true);
+                        setExportResult(null);
+                        try {
+                          const res = await fetch('/v5/export', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                              project_id: selectedProject.id,
+                              engines: selectedEngines
+                            })
+                          });
+                          const data = await res.json();
+                          if (res.ok) {
+                            setExportResult(data);
+                          } else {
+                            alert(data.error || 'Export failed');
+                          }
+                        } catch (e) {
+                          alert('Export failed');
+                        }
+                        setExporting(false);
+                      }}
+                      disabled={selectedEngines.length === 0 || exporting}
+                      className="px-8 py-4 bg-[#3e73ff] rounded-xl font-bold text-lg hover:opacity-90 disabled:opacity-50"
+                      data-testid="button-start-export"
+                    >
+                      {exporting ? 'Exporting...' : `Export ${selectedEngines.length} Engine${selectedEngines.length !== 1 ? 's' : ''}`}
+                    </button>
+                    <button
+                      onClick={() => setSelectedEngines(['ue5', 'unity', 'godot', 'roblox', 'blender', 'cryengine', 'source2', 'webgpu', 'visionos'])}
+                      className="px-6 py-4 bg-[#1f2125] hover:bg-[#2a2d33] rounded-xl font-bold transition"
+                    >
+                      Select All
+                    </button>
+                    <button
+                      onClick={() => setSelectedEngines([])}
+                      className="px-6 py-4 bg-[#1f2125] hover:bg-[#2a2d33] rounded-xl font-bold transition"
+                    >
+                      Clear
+                    </button>
+                  </div>
+                </div>
+
+                {exportResult && (
+                  <div className="bg-[#141517] rounded-2xl p-6 border border-green-500/50">
+                    <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+                      <span className="w-3 h-3 bg-green-500 rounded-full"></span>
+                      Export Complete
+                    </h3>
+                    
+                    <div className="grid md:grid-cols-2 gap-6 mb-6">
+                      <div>
+                        <p className="text-[#9aa0a6] text-sm mb-1">Export ID</p>
+                        <p className="font-mono text-sm">{exportResult.id}</p>
+                      </div>
+                      <div>
+                        <p className="text-[#9aa0a6] text-sm mb-1">Total Size</p>
+                        <p className="font-bold">{(exportResult.total_size_bytes / 1048576).toFixed(1)} MB</p>
+                      </div>
+                    </div>
+                    
+                    <div className="mb-6">
+                      <p className="text-[#9aa0a6] text-sm mb-2">Exported Engines</p>
+                      <div className="flex gap-2 flex-wrap">
+                        {exportResult.engines?.map((eng: any) => (
+                          <span key={eng.engine} className="px-3 py-1 bg-[#3e73ff]/20 text-[#3e73ff] rounded-lg text-sm font-bold">
+                            {eng.display_name} ({eng.files?.length} files)
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    <div className="mb-4">
+                      <p className="text-[#9aa0a6] text-sm mb-2">Manifest</p>
+                      <div className="bg-[#1f2125] p-4 rounded-lg text-xs font-mono overflow-x-auto">
+                        <p>PacAI: {exportResult.manifest?.pacai}</p>
+                        <p>Seed: {exportResult.manifest?.seed}</p>
+                        <p>Generated: {exportResult.manifest?.generated}</p>
+                        <p>Signature: {exportResult.manifest?.signature_algorithm}</p>
+                      </div>
+                    </div>
+                    
+                    <p className="text-[#9aa0a6] text-xs">
+                      Expires: {new Date(exportResult.expires_at).toLocaleString()}
+                    </p>
+                  </div>
+                )}
+              </>
+            )}
           </div>
         )}
 
@@ -515,7 +654,7 @@ export default function App() {
               {verifyResult && (
                 <div className="space-y-4">
                   <p><strong>User:</strong> {verifyResult.username}</p>
-                  <p><strong>Tier:</strong> <span className="text-[#3e73ff]">{(verifyResult.tier || "free").toUpperCase()}</span></p>
+                  <p><strong>Tier:</strong> <span className="text-[#3e73ff]">{String(verifyResult?.tier || "free").toUpperCase()}</span></p>
                   <p><strong>Status:</strong> {verifyResult.verified ? "Verified" : "Pending"}</p>
                 </div>
               )}
