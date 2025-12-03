@@ -1,12 +1,15 @@
 {
   "version": 2,
   "builds": [
-    { "src": "dist/index.js", "use": "@vercel/node" }
+    { "src": "server/index-prod.ts", "use": "@vercel/node" },
+    { "src": "client/package.json", "use": "@vercel/static-build", "config": { "distDir": "dist" } }
   ],
   "routes": [
-    { "src": "/api/(.*)", "dest": "/dist/index.js" },
-    { "src": "/v4/(.*)", "dest": "/dist/index.js" },
-    { "src": "/v5/(.*)", "dest": "/dist/index.js" },
-    { "src": "/(.*)", "dest": "/dist/index.js" }
-  ]
+    { "src": "/api/(.*)", "dest": "/server/index-prod.ts" },
+    { "src": "/v4/(.*)", "dest": "/server/index-prod.ts" },
+    { "src": "/(.*)", "dest": "/client/dist/index.html" }
+  ],
+  "functions": {
+    "server/index-prod.ts": { "memory": 1024, "maxDuration": 60 }
+  }
 }
