@@ -130,20 +130,24 @@ export default function App() {
   };
 
   const sendOverride = async () => {
-    if (!selectedProject || !overrideCmd.trim()) return;
+    if (!selectedProject?.id || !overrideCmd.trim()) return;
     try {
       const res = await fetch(`/v5/projects/${selectedProject.id}/override`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ command: overrideCmd, user: user.name })
+        body: JSON.stringify({ command: overrideCmd, user: user?.name || 'anonymous' })
       });
       const updated = await res.json();
       setLastOverride({ cmd: overrideCmd, ts: Date.now() });
-      setSelectedProject(updated);
+      // Only update selectedProject if response has valid id
+      if (updated && updated.id) {
+        setSelectedProject(updated);
+      }
       setOverrideCmd("");
       loadProjects();
     } catch (e) {
-      alert("Override failed");
+      console.error("Override error:", e);
+      alert("Override failed - check console for details");
     }
   };
 
@@ -397,10 +401,10 @@ export default function App() {
             </div>
 
             {/* Override Input */}
-            {selectedProject && (
+            {selectedProject?.id && (
               <div className="bg-[#141517] rounded-2xl p-6 border border-[#2a2d33] mb-6">
                 <h3 className="text-xl font-bold mb-4">
-                  Injecting into: <span className="text-[#3e73ff]">{selectedProject.id.slice(0,8)}</span>
+                  Injecting into: <span className="text-[#3e73ff]">{String(selectedProject.id).slice(0,8)}</span>
                 </h3>
                 <input
                   value={overrideCmd}
@@ -465,7 +469,7 @@ export default function App() {
             )}
 
             {/* Override Help */}
-            {selectedProject && (
+            {selectedProject?.id && (
               <div className="bg-[#141517] rounded-2xl p-6 border border-[#2a2d33]">
                 <h4 className="text-lg font-bold mb-4 text-[#9aa0a6]">Available Commands</h4>
                 <div className="grid md:grid-cols-2 gap-4 text-sm font-mono">

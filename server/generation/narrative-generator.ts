@@ -162,8 +162,10 @@ export async function generateNarrative(
   if (useAI) {
     try {
       await enhanceNarrativeWithAI(rng, factions, missions, timeline, world);
-    } catch (error) {
-      console.warn('AI enhancement failed, using procedural narrative:', error);
+    } catch (error: any) {
+      // Mask sensitive data - never expose API keys in logs
+      const safeMessage = error?.message?.replace(/sk-[a-zA-Z0-9]+/g, 'sk-***REDACTED***') || 'Unknown error';
+      console.warn(`AI enhancement failed (using procedural fallback): ${safeMessage}`);
     }
   }
 
@@ -375,8 +377,10 @@ Keep responses concise and militaristic. Use NATO phonetic alphabet where approp
         }
       }
     }
-  } catch (error) {
-    console.warn('Failed to enhance narrative with AI:', error);
+  } catch (error: any) {
+    // Mask sensitive data in error logs - never expose API keys
+    const safeMessage = error?.message?.replace(/sk-[a-zA-Z0-9]+/g, 'sk-***REDACTED***') || 'Unknown error';
+    console.warn(`AI enhancement failed (using procedural fallback): ${safeMessage}`);
   }
 }
 

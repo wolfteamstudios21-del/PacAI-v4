@@ -46,13 +46,16 @@ app.use(express.urlencoded({ extended: false }));
 // Serve static files (login.html, dashboard.html, etc.)
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Serve React build (dist/public)
-app.use(express.static(path.join(__dirname, '../dist/public')));
-
-// Root route (landing page - React app)
-app.get('/', (req: Request, res: Response) => {
-  res.sendFile(path.join(__dirname, '../dist/public/index.html'));
-});
+// Production only: Serve React build from dist/public
+// In development, Vite middleware handles this via index-dev.ts
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(path.join(__dirname, '../dist/public')));
+  
+  // Root route (landing page - React app)
+  app.get('/', (req: Request, res: Response) => {
+    res.sendFile(path.join(__dirname, '../dist/public/index.html'));
+  });
+}
 
 // Login route
 app.get('/login', (req: Request, res: Response) => {
