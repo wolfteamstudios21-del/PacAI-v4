@@ -25,6 +25,7 @@ export default function App() {
   const [auditLog, setAuditLog] = useState<any[]>([]);
   const [verifyUser, setVerifyUser] = useState("");
   const [verifyResult, setVerifyResult] = useState<any>(null);
+  const [generationResult, setGenerationResult] = useState<any>(null);
 
   // Load user
   useEffect(() => {
@@ -99,8 +100,11 @@ export default function App() {
             const data = JSON.parse(line.slice(6));
             if (data.done) {
               setSelectedProject(data.project);
+              setGenerationResult(data.generation);
               loadProjects();
               setGenerationStatus("Generation complete!");
+            } else if (data.error) {
+              setGenerationStatus(`Error: ${data.message}`);
             } else {
               setGenerationStatus(data.message);
             }
@@ -199,8 +203,8 @@ export default function App() {
             <div className="grid md:grid-cols-3 gap-8 mb-10">
               <div className="bg-gradient-to-br from-purple-900 to-blue-900 p-8 rounded-2xl">
                 <Crown className="w-16 h-16 mb-4" />
-                <p className="text-5xl font-black">{user.tier.toUpperCase()}</p>
-                {user.tier === "free" && <p className="mt-4">2 per week</p>}
+                <p className="text-5xl font-black">{(user.tier || "free").toUpperCase()}</p>
+                {(user.tier === "free" || !user.tier) && <p className="mt-4">2 per week</p>}
                 {user.tier === "creator" && <p className="mt-4">100 per week</p>}
                 {user.tier === "lifetime" && <p className="mt-4">Unlimited</p>}
               </div>
@@ -243,11 +247,116 @@ export default function App() {
         )}
 
         {activeTab === "generate" && (
-          <div className="max-w-4xl">
+          <div className="max-w-6xl">
             <h2 className="text-4xl font-black mb-8">Generation Lab</h2>
-            <textarea value={prompt} onChange={e => setPrompt(e.target.value)} placeholder="Describe your world..." className="w-full h-40 bg-[#1f2125] p-6 rounded-xl text-white placeholder-[#9aa0a6] mb-6" />
-            <button onClick={generate} disabled={generating} className="px-12 py-5 bg-[#3e73ff] rounded-xl font-bold text-xl hover:opacity-90 disabled:opacity-50">{generating ? "Generating..." : "Generate"}</button>
-            {generationStatus && <p className="mt-4 text-[#9aa0a6]">{generationStatus}</p>}
+            
+            <div className="grid md:grid-cols-2 gap-8 mb-8">
+              <div>
+                <textarea 
+                  value={prompt} 
+                  onChange={e => setPrompt(e.target.value)} 
+                  placeholder="Describe your world... e.g. 'arctic research base under siege' or 'urban patrol mission in hostile territory'" 
+                  className="w-full h-40 bg-[#1f2125] p-6 rounded-xl text-white placeholder-[#9aa0a6] mb-4"
+                  data-testid="input-generation-prompt"
+                />
+                <div className="flex gap-4 flex-wrap mb-4">
+                  <button onClick={() => setPrompt("Arctic research facility during a blizzard")} className="px-4 py-2 bg-[#1f2125] hover:bg-[#2a2d33] rounded-lg text-sm">Arctic Base</button>
+                  <button onClick={() => setPrompt("Urban patrol in downtown metropolitan area")} className="px-4 py-2 bg-[#1f2125] hover:bg-[#2a2d33] rounded-lg text-sm">Urban Patrol</button>
+                  <button onClick={() => setPrompt("Desert extraction operation at night")} className="px-4 py-2 bg-[#1f2125] hover:bg-[#2a2d33] rounded-lg text-sm">Desert Ops</button>
+                  <button onClick={() => setPrompt("Jungle recon mission with hostile presence")} className="px-4 py-2 bg-[#1f2125] hover:bg-[#2a2d33] rounded-lg text-sm">Jungle Recon</button>
+                </div>
+                <button 
+                  onClick={generate} 
+                  disabled={generating || !selectedProject} 
+                  className="px-12 py-5 bg-[#3e73ff] rounded-xl font-bold text-xl hover:opacity-90 disabled:opacity-50"
+                  data-testid="button-generate"
+                >
+                  {generating ? "Generating..." : "Generate World"}
+                </button>
+                {!selectedProject && <p className="mt-2 text-yellow-400 text-sm">Create a project first</p>}
+                {generationStatus && <p className="mt-4 text-[#9aa0a6]">{generationStatus}</p>}
+              </div>
+              
+              <div className="bg-[#141517] p-6 rounded-2xl border border-[#2a2d33]">
+                <h3 className="text-xl font-bold mb-4">Generation Options</h3>
+                <div className="space-y-4 text-sm">
+                  <p className="text-[#9aa0a6]">Seed: <span className="text-white font-mono">{generationResult?.seed || "Auto-generated"}</span></p>
+                  <p className="text-[#9aa0a6]">Deterministic: <span className="text-green-400">Yes</span></p>
+                  <p className="text-[#9aa0a6]">AI Enhanced: <span className="text-green-400">OpenAI</span></p>
+                </div>
+              </div>
+            </div>
+
+            {generationResult && (
+              <div className="grid md:grid-cols-3 gap-6">
+                <div className="bg-[#141517] p-6 rounded-2xl border border-[#2a2d33]">
+                  <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+                    <span className="w-3 h-3 bg-green-500 rounded-full"></span>
+                    World
+                  </h3>
+                  <div className="space-y-2 text-sm">
+                    <p><span className="text-[#9aa0a6]">Dimensions:</span> {generationResult.world?.dimensions}</p>
+                    <p><span className="text-[#9aa0a6]">Tiles:</span> {generationResult.world?.tile_count?.toLocaleString()}</p>
+                    <p><span className="text-[#9aa0a6]">POIs:</span> {generationResult.world?.poi_count}</p>
+                    <p><span className="text-[#9aa0a6]">Roads:</span> {generationResult.world?.road_count}</p>
+                    <p><span className="text-[#9aa0a6]">Spawns:</span> {generationResult.world?.spawn_count}</p>
+                    <p><span className="text-[#9aa0a6]">Weather:</span> {generationResult.world?.weather}</p>
+                    <p><span className="text-[#9aa0a6]">Biomes:</span> {generationResult.world?.biomes?.join(", ")}</p>
+                  </div>
+                </div>
+
+                <div className="bg-[#141517] p-6 rounded-2xl border border-[#2a2d33]">
+                  <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+                    <span className="w-3 h-3 bg-blue-500 rounded-full"></span>
+                    Entities
+                  </h3>
+                  <div className="space-y-2 text-sm">
+                    <p><span className="text-[#9aa0a6]">Total:</span> {generationResult.entities?.total}</p>
+                    <p><span className="text-[#9aa0a6]">Alive:</span> {generationResult.entities?.alive}</p>
+                    <p><span className="text-[#9aa0a6]">Combat Ready:</span> {generationResult.entities?.combat_ready}</p>
+                    {generationResult.entities?.by_faction && (
+                      <div className="mt-2">
+                        <p className="text-[#9aa0a6] mb-1">By Faction:</p>
+                        {Object.entries(generationResult.entities.by_faction).map(([k, v]) => (
+                          <p key={k} className="pl-2">{k}: {String(v)}</p>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="bg-[#141517] p-6 rounded-2xl border border-[#2a2d33]">
+                  <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+                    <span className="w-3 h-3 bg-purple-500 rounded-full"></span>
+                    Narrative
+                  </h3>
+                  <div className="space-y-2 text-sm">
+                    <p><span className="text-[#9aa0a6]">Factions:</span> {generationResult.narrative?.faction_count}</p>
+                    <p><span className="text-[#9aa0a6]">Missions:</span> {generationResult.narrative?.mission_count}</p>
+                    <p><span className="text-[#9aa0a6]">Active:</span> {generationResult.narrative?.active_missions}</p>
+                    <p><span className="text-[#9aa0a6]">Timeline Events:</span> {generationResult.narrative?.timeline_events}</p>
+                    <p><span className="text-[#9aa0a6]">Global Tension:</span> <span className="text-red-400">{generationResult.narrative?.global_tension}</span></p>
+                    {generationResult.narrative?.conflicts?.length > 0 && (
+                      <div className="mt-2">
+                        <p className="text-[#9aa0a6] mb-1">Active Conflicts:</p>
+                        {generationResult.narrative.conflicts.map((c: string, i: number) => (
+                          <p key={i} className="pl-2 text-orange-400">{c}</p>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {generationResult && (
+              <div className="mt-6 bg-[#141517] p-4 rounded-xl border border-[#2a2d33]">
+                <p className="text-sm text-[#9aa0a6]">
+                  <span className="text-white">Checksum:</span> {generationResult.checksum?.slice(0, 32)}...
+                  <span className="ml-4 text-white">Generated in:</span> {generationResult.generation_time_ms}ms
+                </p>
+              </div>
+            )}
           </div>
         )}
 
@@ -275,43 +384,93 @@ export default function App() {
 
             {/* Override Input */}
             {selectedProject && (
-              <div className="bg-[#141517] rounded-2xl p-6 border border-[#2a2d33]">
+              <div className="bg-[#141517] rounded-2xl p-6 border border-[#2a2d33] mb-6">
                 <h3 className="text-xl font-bold mb-4">
                   Injecting into: <span className="text-[#3e73ff]">{selectedProject.id.slice(0,8)}</span>
                 </h3>
                 <input
                   value={overrideCmd}
                   onChange={(e) => setOverrideCmd(e.target.value)}
-                  onKeyPress={(e) => e.key === "Enter" && sendOverride()}
-                  placeholder="e.g. spawn 200 rioters, arctic biome, aggression +15, night cycle"
+                  onKeyDown={(e) => e.key === "Enter" && sendOverride()}
+                  placeholder="e.g. spawn 20 hostile, weather storm, aggression +0.3"
                   className="w-full px-6 py-5 bg-[#1f2125] rounded-xl text-lg mb-4 text-white placeholder-[#9aa0a6]"
+                  data-testid="input-override-command"
                 />
-                <div className="flex gap-4 flex-wrap">
+                <div className="flex gap-3 flex-wrap mb-4">
                   <button 
                     onClick={sendOverride}
                     disabled={!overrideCmd.trim()}
                     className="px-10 py-4 bg-red-600 hover:bg-red-700 rounded-xl font-bold text-xl disabled:opacity-50 transition"
+                    data-testid="button-send-override"
                   >
-                    SEND LIVE OVERRIDE
+                    SEND OVERRIDE
                   </button>
                   <button 
-                    onClick={() => setOverrideCmd("spawn 500 rioters at downtown")}
-                    className="px-6 py-4 bg-[#1f2125] hover:bg-[#2a2d33] rounded-xl font-bold transition"
+                    onClick={() => setOverrideCmd("riot")}
+                    className="px-5 py-3 bg-orange-600 hover:bg-orange-700 rounded-xl font-bold transition"
                   >
-                    Quick Riot
+                    Riot
                   </button>
                   <button 
-                    onClick={() => setOverrideCmd("biome arctic, weather snowstorm")}
-                    className="px-6 py-4 bg-[#1f2125] hover:bg-[#2a2d33] rounded-xl font-bold transition"
+                    onClick={() => setOverrideCmd("arctic")}
+                    className="px-5 py-3 bg-cyan-600 hover:bg-cyan-700 rounded-xl font-bold transition"
                   >
-                    Arctic Shift
+                    Arctic
+                  </button>
+                  <button 
+                    onClick={() => setOverrideCmd("desert")}
+                    className="px-5 py-3 bg-yellow-600 hover:bg-yellow-700 rounded-xl font-bold transition"
+                  >
+                    Desert
+                  </button>
+                  <button 
+                    onClick={() => setOverrideCmd("spawn 10 infantry at 32,32 faction alpha")}
+                    className="px-5 py-3 bg-[#1f2125] hover:bg-[#2a2d33] rounded-xl font-bold transition"
+                  >
+                    Spawn Alpha
+                  </button>
+                  <button 
+                    onClick={() => setOverrideCmd("weather storm intensity 80")}
+                    className="px-5 py-3 bg-[#1f2125] hover:bg-[#2a2d33] rounded-xl font-bold transition"
+                  >
+                    Storm
+                  </button>
+                  <button 
+                    onClick={() => setOverrideCmd("aggression +0.5")}
+                    className="px-5 py-3 bg-[#1f2125] hover:bg-[#2a2d33] rounded-xl font-bold transition"
+                  >
+                    +Aggression
                   </button>
                 </div>
                 {lastOverride && (
-                  <p className="mt-6 text-green-400 font-mono text-sm">
-                    Last override sent {new Date(lastOverride.ts).toLocaleTimeString()}: "{lastOverride.cmd}"
+                  <p className="mt-4 text-green-400 font-mono text-sm">
+                    Override sent {new Date(lastOverride.ts).toLocaleTimeString()}: "{lastOverride.cmd}"
                   </p>
                 )}
+              </div>
+            )}
+
+            {/* Override Help */}
+            {selectedProject && (
+              <div className="bg-[#141517] rounded-2xl p-6 border border-[#2a2d33]">
+                <h4 className="text-lg font-bold mb-4 text-[#9aa0a6]">Available Commands</h4>
+                <div className="grid md:grid-cols-2 gap-4 text-sm font-mono">
+                  <div>
+                    <p className="text-[#9aa0a6] mb-1">Entity:</p>
+                    <p>spawn [n] infantry/scout/heavy/hostile</p>
+                    <p>spawn 20 hostile at 10,20 faction bravo</p>
+                    <p>remove entity_xxx</p>
+                    <p>damage entity_xxx 50</p>
+                    <p>heal entity_xxx 25</p>
+                  </div>
+                  <div>
+                    <p className="text-[#9aa0a6] mb-1">World:</p>
+                    <p>weather clear/rain/storm/snow/fog</p>
+                    <p>set time 14.5</p>
+                    <p>aggression +0.3</p>
+                    <p>arctic / desert / riot</p>
+                  </div>
+                </div>
               </div>
             )}
           </div>
@@ -356,8 +515,8 @@ export default function App() {
               {verifyResult && (
                 <div className="space-y-4">
                   <p><strong>User:</strong> {verifyResult.username}</p>
-                  <p><strong>Tier:</strong> <span className="text-[#3e73ff]">{verifyResult.tier.toUpperCase()}</span></p>
-                  <p><strong>Status:</strong> {verifyResult.verified ? "✅ Verified" : "⏳ Pending"}</p>
+                  <p><strong>Tier:</strong> <span className="text-[#3e73ff]">{(verifyResult.tier || "free").toUpperCase()}</span></p>
+                  <p><strong>Status:</strong> {verifyResult.verified ? "Verified" : "Pending"}</p>
                 </div>
               )}
             </div>
