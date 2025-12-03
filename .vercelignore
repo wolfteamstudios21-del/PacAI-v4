@@ -1,6 +1,0 @@
-node_modules
-.git
-.env*
-client/src
-server/routes/__tests__
-*.log
