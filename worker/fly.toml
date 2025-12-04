@@ -1,0 +1,18 @@
+app = "pacai-export-worker"
+primary_region = "sjc"
+kill_signal = "SIGINT"
+
+[env]
+  REDIS_URL = "redis://:password@redis.internal:6379"
+  EXPORTS_DIR = "/data/exports"
+  EXPORT_BUCKET_URL = "https://assets.pacaiwolfstudio.com/exports"
+  CALLBACK_URL = "https://pacaiwolfstudio.com/api/v4/export/callback"
+  WORKER_CONCURRENCY = "4"
+
+[[services]]
+  internal_port = 8080
+  protocol = "tcp"
+
+[[mounts]]
+  source = "exports"
+  destination = "/data/exports"
