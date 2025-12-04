@@ -1,0 +1,19 @@
+{
+  "name": "pacai-vercel",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vercel dev",
+    "lint": "eslint . --ext .ts",
+    "start": "vercel dev"
+  },
+  "dependencies": {
+    "@vercel/kv": "^1.0.0",
+    "tweetnacl": "^1.0.3",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  }
+}
