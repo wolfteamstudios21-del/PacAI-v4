@@ -8,9 +8,13 @@
  * - REDIS_URL: Redis connection string (e.g., redis://localhost:6379)
  * - EXPORT_BUCKET_URL: Base URL for export downloads
  * - WORKER_ENABLED: Set to 'true' to enable BullMQ (default: false for dev)
+ * - WORKER_CALLBACK_SECRET: HMAC secret for callback verification
  */
 
-import type { ExportResult } from "./generation";
+import crypto from 'crypto';
+import type { ExportResult } from "./generation/exporter";
+
+const CALLBACK_SECRET = process.env.WORKER_CALLBACK_SECRET || 'dev-callback-secret-change-in-prod';
 
 // Job status types
 export interface ExportJob {
@@ -93,7 +97,7 @@ export async function enqueueExportJob(
       return {
         job_id: jobId,
         status: 'queued',
-        poll_url: `/api/v5/export/${jobId}`
+        poll_url: `/api/v5/export/job/${jobId}`
       };
     } catch (error) {
       console.warn('[queue] BullMQ unavailable, falling back to in-memory:', error);
@@ -109,7 +113,7 @@ export async function enqueueExportJob(
   return {
     job_id: jobId,
     status: 'queued',
-    poll_url: `/api/v5/export/${jobId}`
+    poll_url: `/api/v5/export/job/${jobId}`
   };
 }
 
@@ -233,6 +237,40 @@ async function simulateExportProcessing(jobId: string): Promise<void> {
     result: mockResult,
     finishedAt: new Date()
   });
+}
+
+/**
+ * Verify HMAC signature from worker callback
+ */
+export function verifyCallbackSignature(
+  payload: string,
+  signature: string | undefined
+): boolean {
+  if (!signature) return false;
+  
+  const expectedSignature = crypto
+    .createHmac('sha256', CALLBACK_SECRET)
+    .update(payload)
+    .digest('hex');
+  
+  try {
+    return crypto.timingSafeEqual(
+      Buffer.from(signature, 'hex'),
+      Buffer.from(expectedSignature, 'hex')
+    );
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Generate HMAC signature for worker (used by worker to sign callbacks)
+ */
+export function generateCallbackSignature(payload: string): string {
+  return crypto
+    .createHmac('sha256', CALLBACK_SECRET)
+    .update(payload)
+    .digest('hex');
 }
 
 /**

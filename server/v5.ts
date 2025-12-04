@@ -19,6 +19,7 @@ import {
   formatFileSize
 } from "./generation";
 import type { GenerationResult, Entity, World, Narrative, ExportResult } from "./generation";
+import { enqueueExportJob, getExportJobStatus, handleWorkerCallback, verifyCallbackSignature } from "./queue";
 
 const router = Router();
 
@@ -430,6 +431,93 @@ router.get("/v5/export/:exportId/download", async (req, res) => {
     total_size: formatFileSize(result.total_size_bytes),
     manifest: result.manifest
   });
+});
+
+router.post("/v5/export/async", async (req, res) => {
+  const { project_id, engines = ['ue5'], include_assets = true, quality = 'high' } = req.body;
+  
+  if (!project_id) {
+    return res.status(400).json({ error: "project_id required" });
+  }
+  
+  const state = projectStates.get(project_id);
+  if (!state) {
+    return res.status(404).json({ error: "Project not generated yet. Generate a world first." });
+  }
+  
+  const validEngines = getAllEngines();
+  const requestedEngines = (Array.isArray(engines) ? engines : [engines])
+    .filter(e => validEngines.includes(e.toLowerCase()));
+  
+  if (requestedEngines.length === 0) {
+    return res.status(400).json({ 
+      error: "No valid engines specified",
+      available: validEngines
+    });
+  }
+  
+  try {
+    const jobResult = await enqueueExportJob(project_id, requestedEngines, {
+      include_assets,
+      quality,
+      seed: state.result.metadata.seed
+    });
+    
+    await addAudit({
+      type: "export",
+      projectId: project_id,
+      engines: requestedEngines,
+      exportId: jobResult.job_id,
+      async: true
+    });
+    
+    res.json({
+      ...jobResult,
+      engines: requestedEngines.map(e => ({
+        engine: e,
+        display_name: getEngineDisplayName(e),
+        estimated_time_seconds: getEstimatedTime(e)
+      }))
+    });
+  } catch (error) {
+    console.error("Async export error:", error);
+    res.status(500).json({ 
+      error: "Failed to queue export",
+      message: error instanceof Error ? error.message : "Unknown error"
+    });
+  }
+});
+
+router.get("/v5/export/job/:jobId", async (req, res) => {
+  const job = await getExportJobStatus(req.params.jobId);
+  if (!job) {
+    return res.status(404).json({ error: "Job not found" });
+  }
+  res.json(job);
+});
+
+router.post("/v5/export/callback", async (req, res) => {
+  const signature = req.headers['x-signature'] as string | undefined;
+  const payload = JSON.stringify(req.body);
+  
+  if (!verifyCallbackSignature(payload, signature)) {
+    console.warn('[callback] Invalid or missing signature');
+    return res.status(401).json({ error: "Invalid signature" });
+  }
+  
+  const { job_id, status, result, error } = req.body;
+  
+  if (!job_id || !status) {
+    return res.status(400).json({ error: "job_id and status required" });
+  }
+  
+  handleWorkerCallback(job_id, status, result, error);
+  
+  if (result) {
+    exportCache.set(result.id, result);
+  }
+  
+  res.json({ acknowledged: true });
 });
 
 function extractBiomeFromPrompt(prompt: string): string | undefined {
