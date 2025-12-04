@@ -2,8 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
-/* DEFENSE-GRADE ENTERPRISE THEME */
-:root {
+@layer base {
+  /* DEFENSE-GRADE ENTERPRISE THEME */
+  :root {
   --button-outline: rgba(62,115,255, .15);
   --badge-outline: rgba(62,115,255, .08);
   --opaque-button-border-intensity: 8;
@@ -163,6 +164,7 @@
   /* Fallback for older browsers */
   --destructive-border: hsl(var(--destructive));
   --destructive-border: hsl(from hsl(var(--destructive)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+}
 }
 
 @layer base {
