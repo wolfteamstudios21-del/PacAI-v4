@@ -1,24 +1,37 @@
 import fs from "node:fs";
 import path from "node:path";
-import { type Server } from "node:http";
-
-import express, { type Express } from "express";
+import { fileURLToPath } from "node:url";
+import express from "express";
 import runApp from "./app";
 
-export async function serveStatic(app: Express, _server: Server) {
-  const distPath = path.resolve(import.meta.dirname, "public");
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-  if (!fs.existsSync(distPath)) {
-    throw new Error(
-      `Could not find the build directory: ${distPath}, make sure to build the client first`,
-    );
+async function serveStatic(app: express.Express) {
+  // === MIDDLEWARE ===
+  app.use(express.json({ limit: "10mb" }));
+  app.use(express.urlencoded({ extended: true }));
+
+  // === STATIC SERVING (FRONTEND FIRST) ===
+  const clientDist = path.join(__dirname, "../dist/public");
+  if (fs.existsSync(clientDist)) {
+    app.use(express.static(clientDist));
+    console.log(`✓ Serving frontend from ${clientDist}`);
+  } else {
+    console.warn(`⚠ frontend not found at ${clientDist}`);
   }
 
-  app.use(express.static(distPath));
-
-  // fall through to index.html if the file doesn't exist
-  app.use("*", (_req, res) => {
-    res.sendFile(path.resolve(distPath, "index.html"));
+  // === API ROUTES (BACKEND SECOND) ===
+  // These are imported in app.ts, routes are already registered
+  
+  // === CATCH-ALL (FRONTEND ROUTES) ===
+  app.get("*", (req, res) => {
+    const clientIndex = path.join(__dirname, "../dist/public/index.html");
+    if (fs.existsSync(clientIndex)) {
+      res.sendFile(clientIndex);
+    } else {
+      res.status(500).send("Build failed — dist/public/index.html not found. Run 'npm run build' first.");
+    }
   });
 }
 
