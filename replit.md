@@ -242,12 +242,43 @@ GET    /v5/audit               - Audit stream (SSE)
 
 ## Environment Variables
 ```
+# API & Database
 OPENAI_API_KEY      - OpenAI fallback LLM (via Replit Secrets)
 DATABASE_URL        - PostgreSQL connection (Neon-backed)
 SESSION_SECRET      - Express session encryption (via Replit Secrets)
-HSM_PRIMARY         - YubiHSM2 device path (production)
-HSM_FALLBACK        - Nitrokey3 device path (production)
+
+# Security (Production)
+DEV_USERNAME        - Dev user username (default: WolfTeamstudio2)
+DEV_PASSWORD        - Dev user password (default: AdminTeam15)
+ADMIN_SECRET        - Required header for /api/upgrade in dev mode
+WORKER_CALLBACK_SECRET - HMAC secret for export job callbacks
+
+# Hardware Licensing (Production)
+HSM_PRIMARY         - YubiHSM2 device path
+HSM_FALLBACK        - Nitrokey3 device path
+
+# Worker Fleet (Fly.io)
+REDIS_URL           - Redis connection for BullMQ job queue
+EXPORT_BUCKET_URL   - S3/R2 bucket URL for export files
 ```
+
+---
+
+## Security Hardening (Phase 2)
+
+### Tier Enforcement
+- `/v5/export/async` requires `X-Auth-Password` header matching user's password
+- Free users receive 403 with upgrade message when attempting async exports
+- `hasTier(userTier, requiredTier)` enforces tier hierarchy: free < creator/pro < lifetime
+
+### Endpoint Protection
+- `/api/upgrade` blocked in production (returns 403)
+- `/api/upgrade` requires `X-Admin-Secret` header in development
+- Dev credentials configurable via `DEV_USERNAME`/`DEV_PASSWORD` env vars
+
+### Export Callbacks
+- HMAC-SHA256 signature verification on `/v5/export/callback`
+- Requires `WORKER_CALLBACK_SECRET` match between server and worker fleet
 
 ---
 
@@ -259,7 +290,8 @@ npm install
 npm run dev
 # Frontend: http://localhost:5000/
 # API: http://localhost:5000/v5/*
-# Dev login: WolfTeamstudio2 / AdminTeam15
+# Dev login: Configurable via DEV_USERNAME/DEV_PASSWORD env vars
+# Defaults: WolfTeamstudio2 / AdminTeam15 (dev only)
 ```
 
 ### Production (Rust Gateway)
