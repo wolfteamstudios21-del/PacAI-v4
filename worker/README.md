@@ -41,21 +41,60 @@ CALLBACK_URL=https://pacaiwolfstudio.com/api/v5/export/callback
 WORKER_CONCURRENCY=4
 ```
 
-## Deployment (Fly.io)
+## Deployment (Fly.io) - HA Setup
 
 ```bash
-# 1. Create Fly app
-flyctl launch --name pacai-export-worker
+# 1. Install Fly CLI and authenticate
+curl -L https://fly.io/install.sh | sh
+fly auth login
 
-# 2. Create persistent volume for exports
-flyctl volumes create exports --size 10
+# 2. Create Fly app (from worker/ directory)
+cd worker
+fly launch --name pacai-export-worker --no-deploy
 
-# 3. Set secrets
-flyctl secrets set REDIS_URL="redis://..."
-flyctl secrets set CALLBACK_URL="https://pacaiwolfstudio.com/api/v5/export/callback"
+# 3. Create persistent volume for exports (in each region)
+fly volumes create exports --size 10 --region sjc
+fly volumes create exports --size 10 --region iad
 
-# 4. Deploy
-flyctl deploy
+# 4. Set secrets (REQUIRED)
+fly secrets set REDIS_URL="redis://default:password@your-redis.upstash.io:6379"
+fly secrets set WORKER_CALLBACK_SECRET="your-secure-hmac-secret-here"
+
+# 5. Deploy with High Availability (2 machines across regions)
+fly deploy --ha
+
+# 6. Verify deployment
+fly status
+fly logs
+```
+
+### HA Configuration Details
+- **Primary Region**: sjc (US West - San Jose)
+- **Secondary Region**: iad (US East - Virginia)
+- **Machine Size**: shared-cpu-2x (2 CPUs, 1GB RAM)
+- **Auto-scaling**: Machines start/stop based on queue depth
+- **Persistent Storage**: 10GB for export files
+
+### Required Secrets
+| Secret | Description |
+|--------|-------------|
+| `REDIS_URL` | Redis connection (Upstash, Redis Cloud, or self-hosted) |
+| `WORKER_CALLBACK_SECRET` | HMAC secret matching server's `WORKER_CALLBACK_SECRET` |
+
+### Post-Deployment Verification & HA Scaling
+```bash
+# Check machine status
+fly machines list
+
+# View real-time logs
+fly logs --app pacai-export-worker
+
+# Scale to HA across regions (after initial deploy)
+fly scale count 2 --region sjc  # 2 machines in US West
+fly scale count 2 --region iad  # 2 machines in US East
+
+# Verify HA status
+fly status
 ```
 
 ## Deployment (Docker)

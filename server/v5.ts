@@ -1,7 +1,7 @@
 import { Router, type Request, type Response } from "express";
 import { createProject, applyOverride } from "./projects";
 import { getProject, listProjects, getAuditLog, addAudit, saveProject } from "./db";
-import { getUser, getWeekStart } from "./auth";
+import { getUser, getWeekStart, hasTier } from "./auth";
 import { 
   generateFullWorld, 
   getSummary, 
@@ -434,7 +434,31 @@ router.get("/v5/export/:exportId/download", async (req, res) => {
 });
 
 router.post("/v5/export/async", async (req, res) => {
-  const { project_id, engines = ['ue5'], include_assets = true, quality = 'high' } = req.body;
+  const { project_id, engines = ['ue5'], include_assets = true, quality = 'high', username } = req.body;
+  
+  // Tier check: Only pro/creator+ can queue async exports
+  // Validate username exists and password matches (prevents spoofing)
+  const password = req.headers['x-auth-password'] as string;
+  const user = username ? getUser(username) : null;
+  
+  // Require valid authentication - user must exist and password must match
+  if (!user || user.password !== password) {
+    return res.status(401).json({ 
+      error: "Authentication required",
+      message: "Valid username and password required for export operations"
+    });
+  }
+  
+  const userTier = user.tier || 'free';
+  
+  if (!hasTier(userTier, 'pro')) {
+    return res.status(403).json({ 
+      error: "Upgrade required",
+      message: "Async exports require Creator tier or higher. Free users cannot queue export jobs.",
+      current_tier: userTier,
+      required_tier: "creator"
+    });
+  }
   
   if (!project_id) {
     return res.status(400).json({ error: "project_id required" });

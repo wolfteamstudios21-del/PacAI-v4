@@ -1,18 +1,54 @@
+# PacAI Export Worker - Fly.io Configuration
+# Deploy with: fly deploy --ha
 app = "pacai-export-worker"
 primary_region = "sjc"
 kill_signal = "SIGINT"
+kill_timeout = "30s"
+
+[build]
+  dockerfile = "Dockerfile"
 
 [env]
-  REDIS_URL = "redis://:password@redis.internal:6379"
   EXPORTS_DIR = "/data/exports"
   EXPORT_BUCKET_URL = "https://assets.pacaiwolfstudio.com/exports"
-  CALLBACK_URL = "https://pacaiwolfstudio.com/api/v4/export/callback"
+  CALLBACK_URL = "https://pacaiwolfstudio.com/api/v5/export/callback"
   WORKER_CONCURRENCY = "4"
+  NODE_ENV = "production"
 
-[[services]]
+# Health check endpoint
+[http_service]
   internal_port = 8080
-  protocol = "tcp"
+  force_https = true
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 1
 
+  [http_service.concurrency]
+    type = "requests"
+    hard_limit = 100
+    soft_limit = 80
+
+# Machine configuration for dedicated workers
+[[vm]]
+  size = "shared-cpu-2x"
+  memory = "1gb"
+
+# Persistent volume for exports
 [[mounts]]
   source = "exports"
   destination = "/data/exports"
+  initial_size = "10gb"
+
+# Process groups for scaling
+[processes]
+  worker = "node dist/worker.js"
+
+# Secrets (set via: fly secrets set REDIS_URL=... WORKER_CALLBACK_SECRET=...)
+# REDIS_URL - Redis connection string (Upstash/Redis Cloud)
+# WORKER_CALLBACK_SECRET - HMAC secret for callback verification
+
+# HA Deployment Instructions:
+# After initial deploy, scale across regions with:
+#   fly scale count 2 --region sjc
+#   fly scale count 2 --region iad
+# This creates dedicated machines in both US West and US East
