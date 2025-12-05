@@ -17,6 +17,13 @@ PacAI v5 employs a robust, security-focused architecture. The user interface is 
 
 **CRITICAL FIX (Dec 5, 2025):** Route order in `server/app.ts` was REVERSED. Fixed by moving API routes (authRoutes, v4Routes) to execute BEFORE static file serving. This ensures `/v5/health` and `/v5/projects` endpoints are processed before Express serves the static SPA fallback. Route execution order now: (1) Middleware, (2) API routes, (3) Individual routes, (4) Static serving, (5) Catch-all fallback.
 
+**DOCUMENTATION ADDED (Dec 5, 2025):**
+- README.md: Comprehensive overview with architecture, quick start, folder structure, environment template
+- ROADMAP.md: Detailed milestones for v4 (Q1 2026), v5 (Q2 2026), v6+ (Enterprise scale)
+- .env.example: Environment variables template for all configs
+- Folder scaffolding: Created /app, /api, /components, /lib, /middleware, /config, /tools, /public
+- Effect: Repo now looks professional and polished; engineers can hit the ground running without "mystery box" uncertainty
+
 **UI/UX Decisions:**
 - **Theme**: Enterprise dark theme (`#0b0d0f`, `#141517`, `#3e73ff`) inspired by VS Code, emphasizing a technical aesthetic.
 - **Components**: Dashboard for generation, project selection with quick actions, and a 9-engine export center.
