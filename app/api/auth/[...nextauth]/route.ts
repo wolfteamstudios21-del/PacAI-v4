@@ -16,8 +16,8 @@ const users = [
     id: "2",
     name: "WolfTeam",
     email: "wolfteamstudio2@pacai.com",
-    // Password: AdminTeam15 (will be hashed on first auth attempt for now)
-    password: "$2b$10$6f6n9cM2Tap1Mk71E.LpFOymiuPbxSxv.shE.2y1DoezlqueXu6pa",
+    // Password: AdminTeam15 (bcrypt hashed)
+    password: "$2b$10$.Mix.CMYv9R96GpFrpaucO5.RONRLl4VCOUcw41Qb81gHZzxoAmhW",
     tier: "admin" as const,
   },
 ];

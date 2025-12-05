@@ -56,3 +56,38 @@ PacAI v5 employs a robust, security-focused architecture. The user interface is 
 - **Express**: Used for the proof-of-concept demo backend (`server/`).
 - **Axum**: Rust web framework for the production gateway (`pacai-gateway/`).
 - **Tauri**: Framework for building the desktop admin console (`pacai-desktop/`).
+- **Next.js**: Added for hybrid architecture with SSR and NextAuth authentication.
+- **NextAuth**: Credentials-based authentication with bcrypt password hashing and JWT sessions.
+
+## Recent Changes (Dec 5, 2025)
+
+### NextAuth v5 Setup Complete
+- Installed Next.js 16 and NextAuth v5 beta with bcryptjs
+- Created Next.js App Router structure in `/app` directory:
+  - `app/layout.tsx` - Root layout with SessionProvider and enterprise dark theme
+  - `app/page.tsx` - Home page with session redirect
+  - `app/login/page.tsx` - Professional login form with demo credentials
+  - `app/dashboard/page.tsx` - Protected dashboard with API integration
+  - `app/api/auth/[...nextauth]/route.ts` - NextAuth credentials provider
+  - `app/globals.css` - Enterprise dark theme styling
+- Added JWT middleware to Express (`server/middleware/jwt.ts`) for token validation
+- Created `next.config.mjs` with API proxy rewrites to Express backend
+- Environment variables configured: NEXTAUTH_SECRET, NEXTAUTH_URL, JWT_SECRET, API_URL
+
+### Demo Credentials
+- **NextAuth Login**: wolf@pacaiwolfstudio.com / wolf123
+- **Express Demo**: WolfTeamstudio2 / AdminTeam15
+
+### Build Status
+- Next.js build successful with 5 routes:
+  - `/` - Home (session redirect)
+  - `/login` - Login page
+  - `/dashboard` - Protected dashboard
+  - `/api/auth/[...nextauth]` - Auth API
+  - `/_not-found` - 404 page
+
+### Architecture Notes
+- Hybrid setup: Next.js frontend (port 3000) + Express backend (port 5000)
+- Next.js proxies `/v5/*` requests to Express via rewrites
+- JWT tokens from NextAuth can be validated by Express middleware
+- bcrypt hash for wolf123: $2b$10$6f6n9cM2Tap1Mk71E.LpFOymiuPbxSxv.shE.2y1DoezlqueXu6pa

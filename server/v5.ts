@@ -30,7 +30,8 @@ const projectStates: Map<string, {
 }> = new Map();
 
 router.get("/v5/projects", async (req, res) => {
-  res.json(await listProjects());
+  const projects = await listProjects();
+  res.json({ projects });
 });
 
 router.post("/v5/projects", async (req, res) => {
