@@ -539,6 +539,23 @@ router.post("/v5/projects/:id/voice-clone", generateVoiceClone);
 router.get("/v5/projects/:id/replay", getReplay);
 // NOTE: /v5/export is handled in server/v5.ts with proper multi-engine support
 
+// ===== v5 HEALTH CHECK (for monitoring/uptime checks) =====
+router.get("/v5/health", (req: Request, res: Response) => {
+  res.json({
+    status: "operational",
+    version: "v5.0.0",
+    features: {
+      procedural_generation: true,
+      deterministic_worlds: true,
+      entity_behaviors: true,
+      narrative_ai: true,
+      live_overrides: true,
+      multi_engine_export: true
+    },
+    engines: ["UE5", "Unity", "Godot", "Roblox", "Blender", "CryEngine", "Source2", "WebGPU", "visionOS"]
+  });
+});
+
 // ──────────────────────────────────────────────────────────────
 // Catch-all for v4 paths only (doesn't interfere with frontend)
 // ──────────────────────────────────────────────────────────────
