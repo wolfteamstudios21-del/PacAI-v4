@@ -15,6 +15,8 @@ I like functional programming.
 ## System Architecture
 PacAI v5 employs a robust, security-focused architecture. The user interface is a React-based dashboard, featuring a generation lab, override controls, and an audit log, all rendered with an enterprise dark theme. The backend transitions from an Express-based proof-of-concept to a production-grade Rust Axum Gateway for performance and security.
 
+**CRITICAL FIX (Dec 5, 2025):** Route order in `server/app.ts` was REVERSED. Fixed by moving API routes (authRoutes, v4Routes) to execute BEFORE static file serving. This ensures `/v5/health` and `/v5/projects` endpoints are processed before Express serves the static SPA fallback. Route execution order now: (1) Middleware, (2) API routes, (3) Individual routes, (4) Static serving, (5) Catch-all fallback.
+
 **UI/UX Decisions:**
 - **Theme**: Enterprise dark theme (`#0b0d0f`, `#141517`, `#3e73ff`) inspired by VS Code, emphasizing a technical aesthetic.
 - **Components**: Dashboard for generation, project selection with quick actions, and a 9-engine export center.

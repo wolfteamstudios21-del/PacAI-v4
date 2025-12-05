@@ -43,20 +43,17 @@ app.use(express.json({
 }));
 app.use(express.urlencoded({ extended: false }));
 
-// Serve static files (login.html, dashboard.html, etc.)
-app.use(express.static(path.join(__dirname, 'public')));
+// ===== API ROUTES FIRST (highest priority) =====
+// Auth routes
+app.use(authRoutes);
 
-// Production only: Serve React build from dist/public
-// In development, Vite middleware handles this via index-dev.ts
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '../dist/public')));
-  
-  // Root route (landing page - React app)
-  app.get('/', (req: Request, res: Response) => {
-    res.sendFile(path.join(__dirname, '../dist/public/index.html'));
-  });
-}
+// v4 Routes (includes /v5/health, /v5/projects)
+app.use(v4Routes);
 
+// v3 Gateway proxy (before static so /v3/* are intercepted)
+app.use(v3Proxy);
+
+// ===== INDIVIDUAL ROUTES (before static serving) =====
 // Login route
 app.get('/login', (req: Request, res: Response) => {
   res.sendFile(path.join(__dirname, 'public', 'login.html'));
@@ -67,8 +64,15 @@ app.get('/dashboard', (req: Request, res: Response) => {
   res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
 });
 
-// v3 Gateway proxy (before other routes so /v3/* are intercepted)
-app.use(v3Proxy);
+// ===== STATIC SERVING (after API routes) =====
+// Serve static files (login.html, dashboard.html, etc.)
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Production only: Serve React build from dist/public
+// In development, Vite middleware handles this via index-dev.ts
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(path.join(__dirname, '../dist/public')));
+}
 
 app.use((req, res, next) => {
   const start = Date.now();
@@ -103,12 +107,8 @@ app.use((req, res, next) => {
 export default async function runApp(
   setup: (app: Express, server: Server) => Promise<void>,
 ) {
-  // ===== Register Auth Routes (before v4) =====
-  app.use(authRoutes);
-
-  // ===== Register v4 Routes (only v4, no legacy) =====
-  app.use(v4Routes);
-
+  // Routes already registered at module level (before static serving)
+  
   // Create HTTP server
   const server = createServer(app);
 
