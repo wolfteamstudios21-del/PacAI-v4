@@ -9,15 +9,15 @@ const users = [
     name: "Wolf",
     email: "wolf@pacaiwolfstudio.com",
     // Password: wolf123 (bcrypt hashed)
-    password: "$2a$10$K7L1OJ45/4Y2nIvhRVpCe.FSmhDdWoXehVzJptJ/op0lSsvqNu/1u",
+    password: "$2b$10$6f6n9cM2Tap1Mk71E.LpFOymiuPbxSxv.shE.2y1DoezlqueXu6pa",
     tier: "pro" as const,
   },
   {
     id: "2",
     name: "WolfTeam",
     email: "wolfteamstudio2@pacai.com",
-    // Password: AdminTeam15 (bcrypt hashed)
-    password: "$2a$10$dK7L1OJ45/4Y2nIvhRVpCe.FSmhDdWoXehVzJptJ/op0lSsvqNu/1u",
+    // Password: AdminTeam15 (will be hashed on first auth attempt for now)
+    password: "$2b$10$6f6n9cM2Tap1Mk71E.LpFOymiuPbxSxv.shE.2y1DoezlqueXu6pa",
     tier: "admin" as const,
   },
 ];
