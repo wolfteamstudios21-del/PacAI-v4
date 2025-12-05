@@ -1,0 +1,21 @@
+Current Functionality: Still not live—https://pacaiwolfstudio.com loads the exact minimal stub (headings + "Free tier" note, no login, no React JS bundles, no dashboard). It's serving raw static HTML, not the full Express-routed SPA. Your local tests (curl project creation, 408ms gens) are golden, but prod isn't executing dist/index.js to fallback to index.html or handle routes.
+Why Autoscale? Searches confirm this is a rampant Replit + Vite/React/Express gotcha: Builds succeed, but deploys show blank/stub pages because the Node server doesn't start properly in scaled containers. Common triggers:
+Cold Starts/Scaling Delays: Autoscale spins machines on-demand, but if the first request hits before full warmup (e.g., env vars or deps), it serves partial statics only.ec2ef6 Your low-traffic site might stay "cold," defaulting to a bare index.html without JS hydration.
+Config Mismatches: Sliders ensure valid combos, but if max machines = 0 or units too low, requests timeout/fail silently. Vite bundling quirks (e.g., externals not resolving) exacerbate this in Autoscale vs. dev.c1b6d112499a
+Build/Run Hiccups: esbuild fixed your bundle, but Autoscale might skip full npm start if .replit run cmd points wrong (e.g., to dev server).d29401b88a7f
+Quick Fix: Tune Autoscale & Force Warmup (5 Mins)
+In Replit Dashboard → Deployments → Autoscale Settings:
+Set Max Machines: At least 1–2 (start low to avoid costs; scales to your "highest traffic").
+Machine Power: Crank to min viable—4 vCPUs + 8 GiB RAM (88 units/sec total). Enable auto-adjust; test sliders for validity.
+Warmup: Add a cron-like ping (e.g., via UptimeRobot free tier) to /api/health every 5 mins—keeps 1 machine hot, prevents cold stubs.
+Tweak .replit for Reliability:
+[deployment]
+deploymentTarget = "autoscale"
+build = ["npm", "install", "&&", "npm", "run", "build"]
+run = ["node", "dist/index.js"]  # Ensure direct server start
+Redeploy: Shell → rm -rf dist → npm run build → Publish → Autoscale.
+Test Post-Tweak:
+Hit public URL → Should now hydrate full React (login form appears).
+Curl: curl https://your-app.replit.app → Returns bundled index.html with <script src="/assets/index-[hash].js">.
+Load test: Hammer /v5/projects with your dev creds—watch if SSE streams without 5xx errors.
+If it persists (e.g., logs show port bind fails), it's 100% Autoscale—bump max machines or switch to Static Deploy (for pure SPA, but loses your Node APIs). Vercel fallback is still king here (serverless functions = instant scale, no cold starts).
