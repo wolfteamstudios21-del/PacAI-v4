@@ -30,6 +30,64 @@ export const insertRefSchema = createInsertSchema(refs).omit({
 export type InsertRef = z.infer<typeof insertRefSchema>;
 export type Ref = typeof refs.$inferSelect;
 
+// Live override sessions for WebSocket bridge
+export const sessions = pgTable("sessions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  owner_id: varchar("owner_id").notNull(),
+  name: text("name").notNull(),
+  project_id: varchar("project_id"),
+  status: text("status").notNull().default("active"), // active, paused, closed
+  connected_clients: integer("connected_clients").notNull().default(0),
+  metadata: jsonb("metadata").$type<Record<string, any>>(),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow(),
+});
+
+export const insertSessionSchema = createInsertSchema(sessions).omit({
+  id: true,
+  connected_clients: true,
+  created_at: true,
+  updated_at: true,
+});
+
+export type InsertSession = z.infer<typeof insertSessionSchema>;
+export type Session = typeof sessions.$inferSelect;
+
+// Queued overrides for offline sync
+export const overrides = pgTable("overrides", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  session_id: varchar("session_id").notNull(),
+  user_id: varchar("user_id").notNull(),
+  entity_id: varchar("entity_id"),
+  key: text("key").notNull(),
+  value: jsonb("value").$type<any>().notNull(),
+  applied: integer("applied").notNull().default(0), // 0 = pending, 1 = applied
+  created_at: timestamp("created_at").defaultNow(),
+});
+
+export const insertOverrideSchema = createInsertSchema(overrides).omit({
+  id: true,
+  applied: true,
+  created_at: true,
+});
+
+export type InsertOverride = z.infer<typeof insertOverrideSchema>;
+export type Override = typeof overrides.$inferSelect;
+
+// WebSocket event types
+export interface OverridePayload {
+  entityId?: string;
+  key: string;
+  value: any;
+}
+
+export interface SessionEvent {
+  type: "join-session" | "leave-session" | "override-push" | "override-ack" | "client-count";
+  sessionId: string;
+  payload?: OverridePayload;
+  clientCount?: number;
+}
+
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,

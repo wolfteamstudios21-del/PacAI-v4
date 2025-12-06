@@ -13,7 +13,9 @@ import express, {
 import authRoutes from "./auth";
 import v4Routes from "./routes/v4";
 import refsRoutes from "./refs";
+import sessionsRoutes from "./sessions";
 import { v3Proxy } from "./middleware/v3-proxy";
+import { initWebSocket } from "./websocket";
 
 // Fix __dirname for ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -53,6 +55,9 @@ app.use(v4Routes);
 
 // Refs routes (image references for generation)
 app.use(refsRoutes);
+
+// Sessions routes (live override WebSocket bridge)
+app.use(sessionsRoutes);
 
 // Serve uploads directory for ref images
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
@@ -118,6 +123,9 @@ export default async function runApp(
   
   // Create HTTP server
   const server = createServer(app);
+  
+  // Initialize WebSocket server for live overrides
+  initWebSocket(server);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;

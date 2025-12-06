@@ -61,6 +61,25 @@ PacAI v5 employs a robust, security-focused architecture. The user interface is 
 
 ## Recent Changes (Dec 6, 2025)
 
+### v5.2 WebSocket Bridge for Live Overrides
+- **New Feature**: Real-time override syncing between dashboard and exported game servers
+- **WebSocket Server** (server/websocket.ts): Socket.io with JWT auth, rate limiting, session management
+- **Sessions API** (server/sessions.ts): 7 endpoints - create, list, get, token, overrides, ack, delete
+- **Security**:
+  - JWT-only authentication (no unsigned tokens)
+  - Session binding (tokens tied to specific sessions)
+  - Tier-based rate limiting (free: 5/min, pro: 30/min, lifetime: 100/min)
+  - Token endpoint validates session ownership
+- **Frontend** (client/src/components/LiveOverrides.tsx):
+  - SessionManager for creating/managing sessions
+  - LiveOverrides panel with real-time connection status
+  - Quick override buttons for common operations
+  - Override history with timestamps
+- **Game SDKs** (sdk/): Ready-to-use client libraries for Unity, Godot, and WebGPU
+- **Production Notes**: For production deployment, add proper auth middleware to REST endpoints
+
+---
+
 ### v5.1 Image Reference System Complete
 - **New Feature**: Style-guided generation with image references
 - **Backend API** (server/refs.ts): 6 endpoints - upload, link, list, get, delete, thumbnail

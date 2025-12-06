@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import {
   Zap, Shield, Download, LogOut, Menu, X, Crown, Search, UserCheck,
-  Brain, Sparkles, Send, Package, Smartphone, Monitor, BookOpen, BarChart3, Image
+  Brain, Sparkles, Send, Package, Smartphone, Monitor, BookOpen, BarChart3, Image, Radio
 } from "lucide-react";
 import RefUploader from "./components/RefUploader";
+import { SessionManager } from "./components/LiveOverrides";
 
 const DEV_USER = "WolfTeamstudio2";
 const DEV_PASS = "AdminTeam15";
@@ -194,6 +195,7 @@ export default function App() {
     { id: "home", icon: Brain, label: "Home" },
     { id: "generate", icon: Sparkles, label: "Generation Lab" },
     { id: "override", icon: Send, label: "Override" },
+    { id: "live", icon: Radio, label: "Live Overrides" },
     { id: "export", icon: Package, label: "Export" },
     { id: "audit", icon: BarChart3, label: "Audit Log" },
     { id: "verify", icon: UserCheck, label: "Verify" },
@@ -513,6 +515,19 @@ export default function App() {
                   </div>
                 </div>
               </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === "live" && (
+          <div className="max-w-6xl">
+            <h2 className="text-4xl font-black mb-8 text-purple-400">Live Override Sessions</h2>
+            <p className="text-[#9aa0a6] mb-8">
+              Connect exported game servers to PacAI in real-time. Push overrides from this dashboard
+              and they'll sync instantly to all connected game instances without requiring a restart.
+            </p>
+            {user?.name && (
+              <SessionManager username={user.name} />
             )}
           </div>
         )}
