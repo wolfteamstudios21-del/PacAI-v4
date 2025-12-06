@@ -12,6 +12,7 @@ import express, {
 
 import authRoutes from "./auth";
 import v4Routes from "./routes/v4";
+import refsRoutes from "./refs";
 import { v3Proxy } from "./middleware/v3-proxy";
 
 // Fix __dirname for ES modules
@@ -49,6 +50,12 @@ app.use(authRoutes);
 
 // v4 Routes (includes /v5/health, /v5/projects)
 app.use(v4Routes);
+
+// Refs routes (image references for generation)
+app.use(refsRoutes);
+
+// Serve uploads directory for ref images
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
 // v3 Gateway proxy (before static so /v3/* are intercepted)
 app.use(v3Proxy);

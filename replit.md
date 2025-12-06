@@ -59,7 +59,24 @@ PacAI v5 employs a robust, security-focused architecture. The user interface is 
 - **Next.js**: Added for hybrid architecture with SSR and NextAuth authentication.
 - **NextAuth**: Credentials-based authentication with bcrypt password hashing and JWT sessions.
 
-## Recent Changes (Dec 5, 2025)
+## Recent Changes (Dec 6, 2025)
+
+### v5.1 Image Reference System Complete
+- **New Feature**: Style-guided generation with image references
+- **Backend API** (server/refs.ts): 6 endpoints - upload, link, list, get, delete, thumbnail
+- **Tier-Based Limits**:
+  - Free: 5 total refs, 1 per generation
+  - Pro/Creator: 50 total refs, 5 per generation  
+  - Lifetime: unlimited total refs, 10 per generation
+- **Security**: File type validation (PNG/JPG only), 5MB size limit, sanitized filenames
+- **AI Source Detection**: Auto-detects Midjourney, DALL-E, Stable Diffusion, Firefly URLs
+- **Frontend**: RefUploader component with drag-drop, link input, and gallery view
+- **Integration**: Generation endpoint accepts refIds and injects style descriptions into prompts
+- **Performance**: All API benchmarks passing (health: 3-5ms, generation: 1.8s, exports: 58ms)
+
+---
+
+## Previous Changes (Dec 5, 2025)
 
 ### NextAuth v5 Setup Complete
 - Installed Next.js 16 and NextAuth v5 beta with bcryptjs

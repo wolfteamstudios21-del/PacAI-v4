@@ -9,6 +9,27 @@ export const users = pgTable("users", {
   password: text("password").notNull(),
 });
 
+// Reference images for generation
+export const refs = pgTable("refs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  user_id: varchar("user_id").notNull(),
+  url: text("url").notNull(),
+  thumbnail_url: text("thumbnail_url"),
+  type: text("type").notNull().default("upload"), // upload, link, gallery, other-ai
+  source: text("source"), // midjourney, dalle, stable-diffusion, etc.
+  description: text("description"),
+  metadata: jsonb("metadata").$type<Record<string, any>>(),
+  created_at: timestamp("created_at").defaultNow(),
+});
+
+export const insertRefSchema = createInsertSchema(refs).omit({
+  id: true,
+  created_at: true,
+});
+
+export type InsertRef = z.infer<typeof insertRefSchema>;
+export type Ref = typeof refs.$inferSelect;
+
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,

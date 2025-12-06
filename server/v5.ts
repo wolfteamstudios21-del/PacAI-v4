@@ -20,6 +20,7 @@ import {
 } from "./generation";
 import type { GenerationResult, Entity, World, Narrative, ExportResult } from "./generation";
 import { enqueueExportJob, getExportJobStatus, handleWorkerCallback, verifyCallbackSignature } from "./queue";
+import { getRefsByIds, buildRefPromptEnhancement, getRefsPerGenLimit } from "./refs";
 
 const router = Router();
 
@@ -93,24 +94,33 @@ router.get("/v5/projects/:id/narrative", async (req, res) => {
 });
 
 router.post("/v5/projects/:id/generate", async (req, res) => {
-  const { prompt, username, options = {} } = req.body;
+  const { prompt, username, options = {}, refIds = [] } = req.body;
   let p = await getProject(req.params.id);
   if (!p) return res.status(404).json({ error: "Project not found" });
 
-  if (username) {
-    const user = getUser(username);
-    if (user && user.tier === "free") {
-      const weekStart = getWeekStart();
-      if (user.lastGenerationReset < weekStart) {
-        user.generationsThisWeek = 0;
-        user.lastGenerationReset = weekStart;
-      }
-      if (user.generationsThisWeek >= 2) {
-        return res.status(429).json({ error: "Free tier limit reached (2 per week)" });
-      }
-      user.generationsThisWeek++;
+  const user = username ? getUser(username) : null;
+  const userTier = user?.tier || "free";
+  
+  if (user && userTier === "free") {
+    const weekStart = getWeekStart();
+    if (user.lastGenerationReset < weekStart) {
+      user.generationsThisWeek = 0;
+      user.lastGenerationReset = weekStart;
     }
+    if (user.generationsThisWeek >= 2) {
+      return res.status(429).json({ error: "Free tier limit reached (2 per week)" });
+    }
+    user.generationsThisWeek++;
   }
+
+  // Validate refIds count against tier limits
+  const refsLimit = getRefsPerGenLimit(userTier);
+  const validRefIds = Array.isArray(refIds) ? refIds.slice(0, refsLimit) : [];
+  const refs = validRefIds.length > 0 ? getRefsByIds(validRefIds) : [];
+  
+  // Build enhanced prompt with ref descriptions
+  const refEnhancement = buildRefPromptEnhancement(refs);
+  const enhancedPrompt = refEnhancement + (prompt || '');
 
   res.writeHead(200, {
     "Content-Type": "text/event-stream",
@@ -119,7 +129,7 @@ router.post("/v5/projects/:id/generate", async (req, res) => {
   });
 
   const seed = options.seed || `${p.seed}_${Date.now()}`;
-  const biomeHints = extractBiomeFromPrompt(prompt || '');
+  const biomeHints = extractBiomeFromPrompt(enhancedPrompt || '');
   
   const steps = [
     { step: 1, total: 6, message: "Analyzing scenario parameters..." },
@@ -168,8 +178,9 @@ router.post("/v5/projects/:id/generate", async (req, res) => {
     };
     p.history.push({ 
       type: "generation", 
-      prompt, 
+      prompt: enhancedPrompt, 
       seed: result.metadata.seed,
+      refCount: refs.length,
       ts: Date.now() 
     });
 
@@ -177,9 +188,10 @@ router.post("/v5/projects/:id/generate", async (req, res) => {
     await addAudit({ 
       type: "generation", 
       projectId: p.id, 
-      prompt,
+      prompt: enhancedPrompt,
       seed: result.metadata.seed,
-      checksum: result.metadata.checksum
+      checksum: result.metadata.checksum,
+      refIds: validRefIds
     });
 
     const summary = getSummary(result);
@@ -193,7 +205,9 @@ router.post("/v5/projects/:id/generate", async (req, res) => {
         world: summary.world,
         entities: summary.entities,
         narrative: summary.narrative,
-        checksum: result.metadata.checksum
+        checksum: result.metadata.checksum,
+        refs_used: refs.length,
+        refs_limit: refsLimit
       }
     })}\n\n`);
     

@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import {
   Zap, Shield, Download, LogOut, Menu, X, Crown, Search, UserCheck,
-  Brain, Sparkles, Send, Package, Smartphone, Monitor, BookOpen, BarChart3
+  Brain, Sparkles, Send, Package, Smartphone, Monitor, BookOpen, BarChart3, Image
 } from "lucide-react";
+import RefUploader from "./components/RefUploader";
 
 const DEV_USER = "WolfTeamstudio2";
 const DEV_PASS = "AdminTeam15";
@@ -40,6 +41,7 @@ export default function App() {
   const [selectedEngines, setSelectedEngines] = useState<string[]>([]);
   const [exporting, setExporting] = useState(false);
   const [exportResult, setExportResult] = useState<any>(null);
+  const [selectedRefs, setSelectedRefs] = useState<string[]>([]);
 
   // Load user
   useEffect(() => {
@@ -97,7 +99,11 @@ export default function App() {
     const res = await fetch(`/v5/projects/${selectedProject.id}/generate`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ prompt })
+      body: JSON.stringify({ 
+        prompt, 
+        username: user?.name,
+        refIds: selectedRefs 
+      })
     });
 
     const reader = res.body?.getReader();
@@ -295,13 +301,30 @@ export default function App() {
                 {generationStatus && <p className="mt-4 text-[#9aa0a6]">{generationStatus}</p>}
               </div>
               
-              <div className="bg-[#141517] p-6 rounded-2xl border border-[#2a2d33]">
-                <h3 className="text-xl font-bold mb-4">Generation Options</h3>
-                <div className="space-y-4 text-sm">
-                  <p className="text-[#9aa0a6]">Seed: <span className="text-white font-mono">{generationResult?.seed || "Auto-generated"}</span></p>
-                  <p className="text-[#9aa0a6]">Deterministic: <span className="text-green-400">Yes</span></p>
-                  <p className="text-[#9aa0a6]">AI Enhanced: <span className="text-green-400">OpenAI</span></p>
+              <div className="space-y-6">
+                <div className="bg-[#141517] p-6 rounded-2xl border border-[#2a2d33]">
+                  <h3 className="text-xl font-bold mb-4">Generation Options</h3>
+                  <div className="space-y-4 text-sm">
+                    <p className="text-[#9aa0a6]">Seed: <span className="text-white font-mono">{generationResult?.seed || "Auto-generated"}</span></p>
+                    <p className="text-[#9aa0a6]">Deterministic: <span className="text-green-400">Yes</span></p>
+                    <p className="text-[#9aa0a6]">AI Enhanced: <span className="text-green-400">OpenAI</span></p>
+                    {generationResult?.refs_used > 0 && (
+                      <p className="text-[#9aa0a6]">Style Refs: <span className="text-blue-400">{generationResult.refs_used} applied</span></p>
+                    )}
+                  </div>
                 </div>
+                
+                {user?.name && (
+                  <RefUploader
+                    username={user.name}
+                    selectedRefs={selectedRefs}
+                    onRefsChange={setSelectedRefs}
+                    maxRefs={
+                      user.tier === "lifetime" ? 10 : 
+                      (user.tier === "creator" || user.tier === "pro") ? 5 : 1
+                    }
+                  />
+                )}
               </div>
             </div>
 
