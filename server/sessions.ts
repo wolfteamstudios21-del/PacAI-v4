@@ -1,9 +1,44 @@
-import { Router, Request, Response } from "express";
+import { Router, Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import { Session, Override, OverridePayload } from "@shared/schema";
 import { getSessionState, getActiveSessionCount } from "./websocket";
 
 const router = Router();
+
+interface AuthenticatedRequest extends Request {
+  user?: { username: string; tier: string };
+}
+
+function optionalAuth(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  const authHeader = req.headers.authorization;
+  if (authHeader?.startsWith("Bearer ")) {
+    const token = authHeader.slice(7);
+    try {
+      const secret = process.env.SESSION_SECRET || process.env.JWT_SECRET || "pacai-dev-secret";
+      const decoded = jwt.verify(token, secret) as { username: string; tier?: string; sessionId?: string };
+      req.user = { username: decoded.username, tier: decoded.tier || "free" };
+    } catch (err) {
+    }
+  }
+  next();
+}
+
+function requireOwner(req: AuthenticatedRequest, res: Response, sessionId: string): boolean {
+  const session = sessionsStore.get(sessionId);
+  if (!session) {
+    return true;
+  }
+  
+  if (!req.user) {
+    return true;
+  }
+  
+  if (req.user.username !== session.owner_id && req.user.tier !== "admin") {
+    res.status(403).json({ error: "You do not own this session" });
+    return false;
+  }
+  return true;
+}
 
 interface SessionRecord {
   id: string;
