@@ -1,7 +1,7 @@
 FROM node:20-alpine AS frontend-build
 WORKDIR /app
 COPY package*.json ./
-RUN npm ci --only=production
+RUN npm ci
 COPY client/ ./client/
 COPY vite.config.ts ./
 COPY tsconfig.json ./
@@ -11,6 +11,7 @@ RUN cd client && npm run build
 FROM node:20-alpine AS backend
 WORKDIR /app
 COPY --from=frontend-build /app/dist/public ./dist/public
+COPY --from=frontend-build /app/dist/index.js ./dist/index.js
 COPY server/ ./server/
 COPY shared/ ./shared/
 COPY package*.json ./
@@ -24,4 +25,4 @@ USER nodejs
 
 EXPOSE 8080
 ENV NODE_ENV=production
-CMD ["node", "server/index-prod.js"]
+CMD ["node", "dist/index.js"]
