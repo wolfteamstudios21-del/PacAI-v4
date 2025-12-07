@@ -67,17 +67,33 @@ export default function App() {
   };
 
   const loadProjects = async () => {
-    const res = await fetch("/v5/projects");
-    const data = await res.json();
-    setProjects(data);
-    if (data.length && !selectedProject) setSelectedProject(data[0]);
+    try {
+      const res = await fetch("/v5/projects");
+      const data = await res.json();
+      const projectsList = data.projects || [];
+      setProjects(projectsList);
+      if (projectsList.length && !selectedProject) setSelectedProject(projectsList[0]);
+    } catch (error) {
+      console.error("Failed to load projects", error);
+    }
   };
 
   const createNewProject = async () => {
-    const res = await fetch("/v5/projects", { method: "POST" });
-    const p = await res.json();
-    setProjects([p, ...projects]);
-    setSelectedProject(p);
+    try {
+      const res = await fetch("/v5/projects", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: "New Project" })
+      });
+      const p = await res.json();
+      if (p.id) {
+        setProjects([p, ...projects]);
+        setSelectedProject(p);
+      }
+    } catch (error) {
+      console.error("Failed to create project", error);
+      alert("Failed to create project");
+    }
   };
 
   const generate = async () => {
