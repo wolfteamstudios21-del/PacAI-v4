@@ -59,6 +59,53 @@ PacAI v5 employs a robust, security-focused architecture. The user interface is 
 - **Next.js**: Added for hybrid architecture with SSR and NextAuth authentication.
 - **NextAuth**: Credentials-based authentication with bcrypt password hashing and JWT sessions.
 
+## Deployment Guide (Fly.io - Production Ready)
+
+### Local Development (Replit)
+```bash
+npm run dev           # Starts Express backend + Vite frontend on port 5000
+# Then visit: http://localhost:5000/v5/health
+```
+
+### Production Deployment (Fly.io)
+
+**Prerequisites:**
+1. Install flyctl: `curl -L https://fly.io/install.sh | sh`
+2. Neon PostgreSQL account (free tier available)
+3. GitHub repo (export via Replit → "Export to GitHub")
+
+**Deploy Steps:**
+```bash
+# 1. Authenticate with Fly.io
+flyctl auth signup  # or login
+
+# 2. Create volume for persistent data (audit logs, models)
+flyctl volume create pacai_vol --region iad --size 10
+
+# 3. Set production secrets
+flyctl secrets set DATABASE_URL="postgresql://..." \
+  JWT_SECRET="your-32-char-secret" \
+  SESSION_SECRET="your-32-char-secret" \
+  OPENAI_API_KEY="sk-..." \
+  NODE_ENV="production"
+
+# 4. Deploy
+flyctl deploy
+
+# 5. Verify deployment
+flyctl status
+# Should show: https://pacai-v5.fly.dev/v5/health
+```
+
+**Architecture:**
+- **Dockerfile**: Multi-stage build (frontend assets → backend image)
+- **fly.toml**: Fly.io config (8080 internal port, TLS on 443)
+- **Database**: Neon PostgreSQL with automatic backups
+- **Secrets**: All env vars stored encrypted in Fly.io secrets manager
+- **Scaling**: `flyctl scale count 3 --region iad,fra,syd` for multi-region
+
+---
+
 ## Recent Changes (Dec 6, 2025)
 
 ### v5.2 WebSocket Bridge for Live Overrides
