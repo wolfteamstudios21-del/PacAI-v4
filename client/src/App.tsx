@@ -6,9 +6,13 @@ import {
 import RefUploader from "./components/RefUploader";
 import { SessionManager } from "./components/LiveOverrides";
 
+// API base URL configuration
+const API_BASE_URL = import.meta.env.VITE_API_URL || window.location.origin;
+
 export default function App() {
   if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
     console.log("PacAI v5 - Development mode");
+    console.log("API URL:", API_BASE_URL);
   }
   const [user, setUser] = useState<any>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -47,7 +51,7 @@ export default function App() {
   const login = async () => {
     if (!loginUser || !loginPass) return alert("Username and password required");
     try {
-      const res = await fetch("/api/login", {
+      const res = await fetch(`${API_BASE_URL}/api/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username: loginUser, password: loginPass })
@@ -68,7 +72,7 @@ export default function App() {
 
   const loadProjects = async () => {
     try {
-      const res = await fetch("/v5/projects");
+      const res = await fetch(`${API_BASE_URL}/v5/projects`);
       const data = await res.json();
       const projectsList = data.projects || [];
       setProjects(projectsList);
@@ -80,7 +84,7 @@ export default function App() {
 
   const createNewProject = async () => {
     try {
-      const res = await fetch("/v5/projects", {
+      const res = await fetch(`${API_BASE_URL}/v5/projects`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: "New Project" })
@@ -101,7 +105,7 @@ export default function App() {
     setGenerating(true);
     setGenerationStatus("Starting generation...");
     
-    const res = await fetch(`/v5/projects/${selectedProject.id}/generate`, {
+    const res = await fetch(`${API_BASE_URL}/v5/projects/${selectedProject.id}/generate`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ 

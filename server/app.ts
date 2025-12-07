@@ -10,6 +10,7 @@ import express, {
   NextFunction,
 } from "express";
 
+import cors from "cors";
 import authRoutes from "./auth";
 import v4Routes from "./routes/v4";
 import refsRoutes from "./refs";
@@ -45,6 +46,17 @@ app.use(express.json({
   }
 }));
 app.use(express.urlencoded({ extended: false }));
+
+// CORS configuration for Vercel frontend
+const corsOptions = {
+  origin: process.env.NODE_ENV === 'production' 
+    ? process.env.VERCEL_URL || 'https://pacaiwolfstudio.com'
+    : true,
+  credentials: true,
+  methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+};
+app.use(cors(corsOptions));
 
 // Production security headers
 app.use((req, res, next) => {
