@@ -36,5 +36,25 @@ async function serveStatic(app: express.Express) {
 }
 
 (async () => {
-  await runApp(serveStatic);
+  try {
+    // Validate required environment variables
+    const requiredEnvs = ['DATABASE_URL'];
+    const missingEnvs = requiredEnvs.filter(env => !process.env[env]);
+    
+    if (missingEnvs.length > 0) {
+      console.error(`❌ Missing required environment variables: ${missingEnvs.join(', ')}`);
+      console.error('Set these in Deployment Configuration → Environment Variables');
+      process.exit(1);
+    }
+
+    console.log('✓ Environment validation passed');
+    console.log(`✓ Node ENV: ${process.env.NODE_ENV}`);
+    console.log(`✓ Port: ${process.env.PORT || '8080'}`);
+    
+    await runApp(serveStatic);
+  } catch (error) {
+    console.error('❌ Failed to start production server:');
+    console.error(error);
+    process.exit(1);
+  }
 })();
