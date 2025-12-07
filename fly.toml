@@ -6,6 +6,7 @@ builder = "paketobuildpacks/builder:base"
 builder_args = { "DOCKERFILE" = "Dockerfile" }
 
 [[services]]
+http_port = 8080
 internal_port = 8080
 protocol = "tcp"
 

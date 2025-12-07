@@ -51,23 +51,29 @@
 ## Pre-Deploy Steps (Run Once)
 ```bash
 # 1. Test production build locally
-npm run build && npm run start
+npm run build && PORT=8080 npm run start
 
-# 2. Verify health endpoint
-curl http://localhost:5000/v5/health
+# 2. Verify health endpoint (should be on port 8080 in prod)
+curl http://localhost:8080/v5/health
 
 # 3. Commit production changes
 git add .
-git commit -m "chore: production-hardened — security, env vars, logging"
+git commit -m "chore: production-ready — port config, security hardening, removed dev credentials"
 git push origin main
 
-# 4. Deploy to Fly.io
+# 4. Deploy to Fly.io (from Replit terminal)
 flyctl deploy --remote-only
 
-# 5. Verify live
+# 5. Verify live deployment
 flyctl status
-# Visit: https://pacai-v5.fly.dev/v5/health
+# Should show: https://pacai-v5.fly.dev/v5/health
 ```
+
+## Port Configuration
+- **Development (Replit):** PORT 5000 (default in dev mode)
+- **Production (Fly.io):** PORT 8080 (set via $PORT env var, defaults to 8080)
+- **fly.toml:** internal_port=8080 (matches app default)
+- **Dockerfile:** Exposed port 8080
 
 ## Post-Deploy Monitoring
 ```bash

@@ -106,7 +106,19 @@ flyctl status
 
 ---
 
-## Recent Changes (Dec 6, 2025)
+## Recent Changes (Dec 7, 2025)
+
+### v5.3 Production Port Configuration & Security Hardening COMPLETE
+- **Port Configuration**: App now correctly defaults to 8080 (production) / 5000 (development)
+- **Fixed "New Project" button**: API response handling corrected (extract `projects` array from response)
+- **Security Headers**: X-Content-Type-Options, X-Frame-Options, X-XSS-Protection added
+- **Environment Guards**: Dev-only mock users now gated by `NODE_ENV === 'development'`
+- **Docker Non-Root User**: Added nodejs user (uid 1001) for container security
+- **fly.toml**: Updated with `http_port = 8080` to match app default
+- **PRODUCTION_CHECKLIST.md**: Complete pre/post-deploy instructions
+- **Status**: ✅ PRODUCTION-READY — secure, hardened, no dev credentials exposed
+
+## Previous Changes (Dec 6, 2025)
 
 ### v5.2 WebSocket Bridge for Live Overrides
 - **New Feature**: Real-time override syncing between dashboard and exported game servers
