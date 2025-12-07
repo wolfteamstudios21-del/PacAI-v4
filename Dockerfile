@@ -17,6 +17,11 @@ COPY package*.json ./
 COPY drizzle.config.ts ./
 COPY tsconfig.json ./
 RUN npm ci --only=production
+
+# Create non-root user for security
+RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
+USER nodejs
+
 EXPOSE 8080
 ENV NODE_ENV=production
 CMD ["node", "server/index-prod.js"]

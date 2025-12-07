@@ -66,16 +66,21 @@ interface OverrideRecord {
 const sessionsStore = new Map<string, SessionRecord>();
 const overridesStore = new Map<string, OverrideRecord[]>();
 
-const MOCK_USERS: Record<string, { tier: string }> = {
+// Dev-only mock users (remove in production)
+const MOCK_USERS: Record<string, { tier: string }> = process.env.NODE_ENV === 'development' ? {
   WolfTeamstudio2: { tier: "lifetime" },
   AdminTeam15: { tier: "admin" },
   ProUser: { tier: "pro" },
   CreatorUser: { tier: "creator" },
   FreeUser: { tier: "free" },
-};
+} : {};
 
 function getUserTier(username: string): string {
-  return MOCK_USERS[username]?.tier || "free";
+  if (process.env.NODE_ENV === 'development') {
+    return MOCK_USERS[username]?.tier || "free";
+  }
+  // Production: require actual user records from database
+  return "free";
 }
 
 function getSessionLimit(tier: string): number {

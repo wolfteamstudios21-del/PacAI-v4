@@ -6,20 +6,9 @@ import {
 import RefUploader from "./components/RefUploader";
 import { SessionManager } from "./components/LiveOverrides";
 
-const DEV_USER = "WolfTeamstudio2";
-const DEV_PASS = "AdminTeam15";
-
 export default function App() {
-  console.log("PacAI v5 Export UI v2.0 loaded - 9 engines with Select All/Clear");
-  
-  // Add global error handler to trace toUpperCase issues
-  if (typeof window !== 'undefined' && !(window as any).__errorHandlerInstalled) {
-    (window as any).__errorHandlerInstalled = true;
-    window.addEventListener('error', (e) => {
-      if (e.message?.includes('toUpperCase')) {
-        console.error('toUpperCase error stack:', e.error?.stack || e.filename + ':' + e.lineno);
-      }
-    });
+  if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+    console.log("PacAI v5 - Development mode");
   }
   const [user, setUser] = useState<any>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -56,25 +45,24 @@ export default function App() {
   }, [user]);
 
   const login = async () => {
-    if (!loginUser || !loginPass) return alert("Fill both fields");
-    if (loginUser === DEV_USER && loginPass === DEV_PASS) {
-      const dev = { name: loginUser, tier: "lifetime", isDev: true };
-      localStorage.setItem("pacai_user", JSON.stringify(dev));
-      setUser(dev);
-      return;
-    }
-    const res = await fetch("/api/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username: loginUser, password: loginPass })
-    });
-    const data = await res.json();
-    if (data.success) {
-      const u = { name: loginUser, tier: data.tier || "free" };
-      localStorage.setItem("pacai_user", JSON.stringify(u));
-      setUser(u);
-    } else {
-      alert(data.error || "Login failed");
+    if (!loginUser || !loginPass) return alert("Username and password required");
+    try {
+      const res = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: loginUser, password: loginPass })
+      });
+      const data = await res.json();
+      if (data.success) {
+        const u = { name: loginUser, tier: data.tier || "free" };
+        localStorage.setItem("pacai_user", JSON.stringify(u));
+        setUser(u);
+      } else {
+        alert(data.error || "Login failed");
+      }
+    } catch (error) {
+      console.error("Login error", error);
+      alert("Login failed - please try again");
     }
   };
 
