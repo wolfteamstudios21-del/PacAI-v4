@@ -7,8 +7,9 @@ import RefUploader from "./components/RefUploader";
 import { SessionManager } from "./components/LiveOverrides";
 import GalleryPage from "./pages/gallery";
 
-// API base URL configuration
-const API_BASE_URL = import.meta.env.VITE_API_URL || window.location.origin;
+// API base URL configuration - use relative URLs in production (Vercel rewrites handle proxy)
+// Use VITE_API_URL only for development pointing to external backends
+const API_BASE_URL = import.meta.env.VITE_API_URL || "";
 
 export default function App() {
   if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
