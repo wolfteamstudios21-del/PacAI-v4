@@ -17,6 +17,7 @@ import refsRoutes from "./refs";
 import sessionsRoutes from "./sessions";
 import mobileRoutes from "./v5-mobile";
 import linksRoutes from "./v5-links";
+import galleryRoutes from "./gallery";
 import { v3Proxy } from "./middleware/v3-proxy";
 import { initWebSocket } from "./websocket";
 
@@ -87,6 +88,9 @@ app.use(mobileRoutes);
 
 // v5.3: Direct shareable links with QR codes
 app.use(linksRoutes);
+
+// v5.4: Gallery with community remix + offline cache
+app.use(galleryRoutes);
 
 // Serve uploads directory for ref images
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));

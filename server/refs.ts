@@ -368,5 +368,110 @@ export function buildRefPromptEnhancement(refs: RefRecord[]): string {
   return `Style references: ${descriptions}. `;
 }
 
+// v5.4: Multi-view upload for 3D depth estimation
+const multiViewUpload = multer({
+  storage,
+  fileFilter,
+  limits: { fileSize: MAX_FILE_SIZE, files: 3 }
+}).fields([
+  { name: 'front', maxCount: 1 },
+  { name: 'side', maxCount: 1 },
+  { name: 'back', maxCount: 1 }
+]);
+
+interface MultiViewFiles {
+  front?: Express.Multer.File[];
+  side?: Express.Multer.File[];
+  back?: Express.Multer.File[];
+}
+
+router.post("/v5/refs/multi-view", multiViewUpload, async (req: Request, res: Response) => {
+  try {
+    const username = req.body.username || req.headers["x-username"] as string;
+    if (!username) {
+      return res.status(401).json({ error: "Authentication required" });
+    }
+
+    const user = getUser(username);
+    if (!user) {
+      return res.status(401).json({ error: "User not found" });
+    }
+
+    const files = req.files as MultiViewFiles;
+    if (!files.front && !files.side && !files.back) {
+      return res.status(400).json({ error: "At least one view is required (front, side, or back)" });
+    }
+
+    const views: Record<string, { url: string; filename: string }> = {};
+    
+    if (files.front?.[0]) {
+      views.front = { url: `/uploads/${files.front[0].filename}`, filename: files.front[0].filename };
+    }
+    if (files.side?.[0]) {
+      views.side = { url: `/uploads/${files.side[0].filename}`, filename: files.side[0].filename };
+    }
+    if (files.back?.[0]) {
+      views.back = { url: `/uploads/${files.back[0].filename}`, filename: files.back[0].filename };
+    }
+
+    // Create a multi-view ref record
+    const refId = generateId();
+    const description = req.body.description || `Multi-view reference (${Object.keys(views).join(", ")})`;
+    
+    const ref: RefRecord = {
+      id: refId,
+      user_id: username,
+      url: views.front?.url || views.side?.url || views.back?.url || "",
+      thumbnail_url: views.front?.url || views.side?.url || views.back?.url || null,
+      type: "upload",
+      source: "multi-view",
+      description,
+      metadata: {
+        views,
+        viewCount: Object.keys(views).length,
+        multiView: true,
+        // v5.4: Local depth estimation placeholder (would use Ollama in production)
+        depthEstimate: {
+          hasDepth: Object.keys(views).length >= 2,
+          quality: Object.keys(views).length === 3 ? "high" : "medium"
+        }
+      },
+      created_at: Date.now()
+    };
+
+    refsStore.set(refId, ref);
+    if (!userRefsIndex.has(username)) {
+      userRefsIndex.set(username, new Set());
+    }
+    userRefsIndex.get(username)!.add(refId);
+
+    // Generate base64 preview of primary view for immediate UI feedback
+    let preview = null;
+    const primaryViewPath = views.front?.filename || views.side?.filename || views.back?.filename;
+    if (primaryViewPath) {
+      const filePath = path.join(UPLOADS_DIR, primaryViewPath);
+      if (fs.existsSync(filePath)) {
+        const buffer = fs.readFileSync(filePath);
+        preview = `data:image/png;base64,${buffer.toString("base64")}`;
+      }
+    }
+
+    res.json({
+      refId,
+      views,
+      preview,
+      multiView: true,
+      depthEstimate: ref.metadata?.depthEstimate,
+      message: "Multi-view reference uploaded successfully"
+    });
+  } catch (error) {
+    console.error("Multi-view upload error:", error);
+    res.status(500).json({
+      error: "Multi-view upload failed",
+      message: error instanceof Error ? error.message : "Unknown error"
+    });
+  }
+});
+
 export { getRefsPerGenLimit };
 export default router;

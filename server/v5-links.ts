@@ -14,6 +14,7 @@ interface LinkRecord {
   expires_at: number;
   access_count: number;
   created_at: number;
+  license: "private" | "cc-by" | "cc-by-nc" | "commercial";
 }
 
 const linksStore = new Map<string, LinkRecord>();
@@ -29,7 +30,7 @@ function generateShortId(token: string): string {
 
 router.post("/v5/projects/:id/link", async (req: Request, res: Response) => {
   const { id } = req.params;
-  const { username = "anonymous", expiresInDays = 7, readOnly = true } = req.body;
+  const { username = "anonymous", expiresInDays = 7, readOnly = true, license = "private" } = req.body;
 
   const project = await getProject(id);
   if (!project) {
@@ -38,10 +39,12 @@ router.post("/v5/projects/:id/link", async (req: Request, res: Response) => {
 
   const expiresAt = Math.floor(Date.now() / 1000) + (60 * 60 * 24 * expiresInDays);
   
+  // v5.4: Include license in JWT for remix enforcement
   const token = jwt.sign({
     projectId: id,
     userId: username,
     readOnly,
+    license, // cc-by, cc-by-nc, private, commercial
     exp: expiresAt
   }, JWT_SECRET);
 
@@ -56,7 +59,8 @@ router.post("/v5/projects/:id/link", async (req: Request, res: Response) => {
     created_by: username,
     expires_at: expiresAt * 1000,
     access_count: 0,
-    created_at: Date.now()
+    created_at: Date.now(),
+    license: license as LinkRecord["license"]
   };
 
   linksStore.set(linkRecord.id, linkRecord);
@@ -80,7 +84,10 @@ router.post("/v5/projects/:id/link", async (req: Request, res: Response) => {
     expiresAt: new Date(expiresAt * 1000).toISOString(),
     expiresInDays,
     readOnly,
-    qr: qrDataUrl
+    license,
+    qr: qrDataUrl,
+    // v5.4: Mobile deep-link for PWA/native app
+    deepLink: `pacai://project/${shortId}`
   });
 });
 
@@ -119,6 +126,7 @@ router.get("/p/:shortId", async (req: Request, res: Response) => {
       projectId: string;
       userId: string;
       readOnly: boolean;
+      license?: string;
       exp: number;
     };
 
@@ -132,6 +140,12 @@ router.get("/p/:shortId", async (req: Request, res: Response) => {
       linkRecord.access_count++;
     }
 
+    // v5.4: Determine remix permissions based on license
+    const license = decoded.license || "private";
+    const allowRemix = license !== "private";
+    const requireAttribution = license === "cc-by" || license === "cc-by-nc";
+    const commercialAllowed = license === "cc-by" || license === "commercial";
+
     res.json({
       project: {
         id: project.id,
@@ -144,7 +158,15 @@ router.get("/p/:shortId", async (req: Request, res: Response) => {
         readOnly: decoded.readOnly,
         expiresAt: new Date(decoded.exp * 1000).toISOString(),
         accessCount: linkRecord?.access_count || 1
-      }
+      },
+      // v5.4: License + deep-link info
+      license: {
+        type: license,
+        allowRemix,
+        requireAttribution,
+        commercialAllowed
+      },
+      deepLink: `pacai://project/${shortId}`
     });
 
   } catch (err) {

@@ -5,6 +5,7 @@ import {
 } from "lucide-react";
 import RefUploader from "./components/RefUploader";
 import { SessionManager } from "./components/LiveOverrides";
+import GalleryPage from "./pages/gallery";
 
 // API base URL configuration
 const API_BASE_URL = import.meta.env.VITE_API_URL || window.location.origin;
@@ -221,6 +222,7 @@ export default function App() {
   const menu = [
     { id: "home", icon: Brain, label: "Home" },
     { id: "generate", icon: Sparkles, label: "Generation Lab" },
+    { id: "gallery", icon: Image, label: "Gallery" },
     { id: "override", icon: Send, label: "Override" },
     { id: "live", icon: Radio, label: "Live Overrides" },
     { id: "export", icon: Package, label: "Export" },
@@ -428,6 +430,10 @@ export default function App() {
               </div>
             )}
           </div>
+        )}
+
+        {activeTab === "gallery" && (
+          <GalleryPage />
         )}
 
         {activeTab === "override" && (
