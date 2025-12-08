@@ -222,7 +222,7 @@ export default function App() {
   const menu = [
     { id: "home", icon: Brain, label: "Home" },
     { id: "generate", icon: Sparkles, label: "Generation Lab" },
-    { id: "gallery", icon: Image, label: "Gallery" },
+    { id: "gallery", icon: Image, label: "3dRender Gallery" },
     { id: "override", icon: Send, label: "Override" },
     { id: "live", icon: Radio, label: "Live Overrides" },
     { id: "export", icon: Package, label: "Export" },

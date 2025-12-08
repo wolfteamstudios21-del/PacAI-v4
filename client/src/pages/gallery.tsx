@@ -138,21 +138,21 @@ export default function GalleryPage() {
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2" data-testid="text-gallery-title">
             <Image className="w-6 h-6" />
-            Gallery
+            3dRender Gallery
           </h1>
-          <p className="text-muted-foreground">Browse and remix community creations</p>
+          <p className="text-muted-foreground">Explore. Remix. Own.</p>
         </div>
         
         <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
           <DialogTrigger asChild>
             <Button data-testid="button-add-to-gallery">
               <Plus className="w-4 h-4 mr-2" />
-              Add to Gallery
+              Upload to 3dRender
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Add Project to Gallery</DialogTitle>
+              <DialogTitle>Upload to 3dRender</DialogTitle>
             </DialogHeader>
             <div className="space-y-4 py-4">
               <Input
@@ -229,8 +229,8 @@ export default function GalleryPage() {
       ) : galleryData?.galleries.length === 0 ? (
         <Card className="p-8 text-center">
           <Image className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-          <h3 className="text-lg font-medium mb-2">No gallery items yet</h3>
-          <p className="text-muted-foreground mb-4">Add your first project to the gallery to get started</p>
+          <h3 className="text-lg font-medium mb-2">No 3dRender items yet</h3>
+          <p className="text-muted-foreground mb-4">Upload your first project to the 3dRender Gallery to get started</p>
           <Button onClick={() => setShowAddDialog(true)} data-testid="button-add-first">
             <Plus className="w-4 h-4 mr-2" />
             Add Project
