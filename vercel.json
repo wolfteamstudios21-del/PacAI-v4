@@ -1,7 +1,22 @@
 {
   "buildCommand": "npm run build",
   "outputDirectory": ".next",
+  "framework": "nextjs",
   "env": {
     "NEXT_PUBLIC_API_URL": "@pacai_api_url"
-  }
+  },
+  "rewrites": [
+    { "source": "/api/:path*", "destination": "https://pacai-v5.fly.dev/api/:path*" },
+    { "source": "/v5/:path*", "destination": "https://pacai-v5.fly.dev/v5/:path*" }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "DENY" },
+        { "key": "X-XSS-Protection", "value": "1; mode=block" }
+      ]
+    }
+  ]
 }
