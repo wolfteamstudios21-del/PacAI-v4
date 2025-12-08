@@ -24,11 +24,17 @@ import { getRefsByIds, buildRefPromptEnhancement, getRefsPerGenLimit } from "./r
 
 const router = Router();
 
-const projectStates: Map<string, {
+// Shared project generation state - exported for use by mobile export routes
+export const projectStates: Map<string, {
   result: GenerationResult;
   entities: Entity[];
   tick: number;
 }> = new Map();
+
+// Helper to get project state for external modules
+export function getProjectState(projectId: string) {
+  return projectStates.get(projectId);
+}
 
 router.get("/v5/projects", async (req, res) => {
   const projects = await listProjects();
@@ -349,16 +355,58 @@ router.get("/v5/audit", async (req, res) => {
 router.get("/v5/health", async (req, res) => {
   res.json({
     status: "operational",
-    version: "v5.0.0",
+    version: "v5.3.0",
     features: {
       procedural_generation: true,
       deterministic_worlds: true,
       entity_behaviors: true,
       narrative_ai: true,
       live_overrides: true,
-      multi_engine_export: true
+      multi_engine_export: true,
+      mobile_exports: true,
+      direct_links: true,
+      constant_draw: true
     },
     engines: ["UE5", "Unity", "Godot", "Roblox", "Blender", "CryEngine", "Source2", "WebGPU", "visionOS"]
+  });
+});
+
+// v5.3: Random generation endpoint for polling fallback (when WebSocket unavailable)
+router.get("/v5/gen/random", async (req, res) => {
+  const { type = "world", projectId } = req.query;
+  
+  const seed = Date.now() + Math.floor(Math.random() * 10000);
+  const rng = new DeterministicRNG(`gen_${seed}`);
+  
+  const positions: Array<{ x: number; y: number; z: number }> = [];
+  const posCount = 3 + Math.floor(rng.next() * 5);
+  for (let i = 0; i < posCount; i++) {
+    positions.push({
+      x: rng.next() * 100 - 50,
+      y: rng.next() * 10,
+      z: rng.next() * 100 - 50
+    });
+  }
+
+  const biomes = ["forest", "desert", "arctic", "urban", "ocean", "volcanic"];
+  const dialogs = [
+    "Incoming hostile forces detected.",
+    "Mission objective updated.",
+    "Ally reinforcements en route.",
+    "Weather systems changing.",
+    "New zone discovered.",
+    "Resource deposit located."
+  ];
+
+  res.json({
+    type,
+    seed,
+    projectId: projectId || null,
+    positions,
+    biome: biomes[Math.floor(rng.next() * biomes.length)],
+    dialog: dialogs[Math.floor(rng.next() * dialogs.length)],
+    tension: rng.next(),
+    timestamp: Date.now()
   });
 });
 

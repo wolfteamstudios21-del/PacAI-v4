@@ -2,6 +2,7 @@ import { Server as HttpServer } from "http";
 import { Server, Socket } from "socket.io";
 import jwt from "jsonwebtoken";
 import { OverridePayload } from "@shared/schema";
+import { DeterministicRNG, noise2D } from "./generation";
 
 interface AuthenticatedSocket extends Socket {
   user?: {
@@ -9,6 +10,7 @@ interface AuthenticatedSocket extends Socket {
     tier: string;
     sessionId?: string;
   };
+  genSubscriptions?: Map<string, NodeJS.Timeout>;
 }
 
 interface SessionState {
@@ -189,7 +191,124 @@ export function initWebSocket(server: HttpServer): Server {
       console.log(`[WS] Override pushed to session ${sessionId}: ${payload.key}=${JSON.stringify(payload.value)}`);
     });
 
+    // v5.3: Constant Engine Draw - Subscribe to random generation pulls
+    socket.on("subscribe-gen", async ({ type = "world", frequency = 30000, projectId }: { type?: string; frequency?: number; projectId?: string }) => {
+      if (!socket.user) {
+        socket.emit("error", { message: "Not authenticated" });
+        return;
+      }
+
+      if (!checkRateLimit(socket.user.username, socket.user.tier)) {
+        socket.emit("error", { message: "Rate limit exceeded" });
+        return;
+      }
+
+      const subKey = `${type}_${projectId || "global"}`;
+      
+      if (!socket.genSubscriptions) {
+        socket.genSubscriptions = new Map();
+      }
+
+      if (socket.genSubscriptions.has(subKey)) {
+        clearInterval(socket.genSubscriptions.get(subKey));
+      }
+
+      const generateRandomData = () => {
+        const seed = Date.now() + Math.floor(Math.random() * 10000);
+        const rng = new DeterministicRNG(`gen_${seed}`);
+        
+        const positions: Array<{ x: number; y: number; z: number }> = [];
+        const posCount = 3 + Math.floor(rng.next() * 5);
+        for (let i = 0; i < posCount; i++) {
+          positions.push({
+            x: rng.next() * 100 - 50,
+            y: rng.next() * 10,
+            z: rng.next() * 100 - 50
+          });
+        }
+
+        const biomes = ["forest", "desert", "arctic", "urban", "ocean", "volcanic"];
+        const dialogs = [
+          "Incoming hostile forces detected.",
+          "Mission objective updated.",
+          "Ally reinforcements en route.",
+          "Weather systems changing.",
+          "New zone discovered.",
+          "Resource deposit located."
+        ];
+
+        return {
+          type,
+          seed,
+          projectId,
+          positions,
+          biome: biomes[Math.floor(rng.next() * biomes.length)],
+          dialog: dialogs[Math.floor(rng.next() * dialogs.length)],
+          tension: rng.next(),
+          timestamp: Date.now()
+        };
+      };
+
+      const initialData = generateRandomData();
+      socket.emit("gen-pull", initialData);
+
+      const interval = setInterval(() => {
+        if (!checkRateLimit(socket.user!.username, socket.user!.tier)) {
+          return;
+        }
+        const freshGen = generateRandomData();
+        socket.emit("gen-pull", freshGen);
+      }, Math.max(frequency, 5000));
+
+      socket.genSubscriptions.set(subKey, interval);
+
+      console.log(`[WS] ${socket.user.username} subscribed to ${type} gen (every ${frequency}ms)`);
+    });
+
+    socket.on("unsubscribe-gen", ({ type = "world", projectId }: { type?: string; projectId?: string }) => {
+      const subKey = `${type}_${projectId || "global"}`;
+      
+      if (socket.genSubscriptions?.has(subKey)) {
+        clearInterval(socket.genSubscriptions.get(subKey));
+        socket.genSubscriptions.delete(subKey);
+        console.log(`[WS] Unsubscribed from ${subKey}`);
+      }
+    });
+
+    // v5.3: Event Override - Push seasonal/special events without full update
+    socket.on("event-override", async ({ eventType = "seasonal", payload }: { eventType?: string; payload: any }) => {
+      if (!socket.user) {
+        socket.emit("error", { message: "Not authenticated" });
+        return;
+      }
+
+      if (!checkRateLimit(socket.user.username, socket.user.tier)) {
+        socket.emit("error", { message: "Rate limit exceeded" });
+        return;
+      }
+
+      const overrideEvent = {
+        type: eventType,
+        data: payload,
+        timestamp: Date.now(),
+        userId: socket.user.username
+      };
+
+      socket.rooms.forEach((room) => {
+        if (room !== socket.id) {
+          io.to(room).emit("apply-event", overrideEvent);
+        }
+      });
+
+      console.log(`[WS] Event override pushed: ${eventType}`);
+    });
+
     socket.on("disconnect", () => {
+      if (socket.genSubscriptions) {
+        socket.genSubscriptions.forEach((interval) => clearInterval(interval));
+        socket.genSubscriptions.clear();
+      }
+
       activeSessions.forEach((session, sessionId) => {
         if (session.clients.has(socket.id)) {
           session.clients.delete(socket.id);

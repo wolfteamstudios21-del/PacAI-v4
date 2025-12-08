@@ -15,6 +15,8 @@ import authRoutes from "./auth";
 import v4Routes from "./routes/v4";
 import refsRoutes from "./refs";
 import sessionsRoutes from "./sessions";
+import mobileRoutes from "./v5-mobile";
+import linksRoutes from "./v5-links";
 import { v3Proxy } from "./middleware/v3-proxy";
 import { initWebSocket } from "./websocket";
 
@@ -79,6 +81,12 @@ app.use(refsRoutes);
 
 // Sessions routes (live override WebSocket bridge)
 app.use(sessionsRoutes);
+
+// v5.3: Mobile exports (ZIP downloads)
+app.use(mobileRoutes);
+
+// v5.3: Direct shareable links with QR codes
+app.use(linksRoutes);
 
 // Serve uploads directory for ref images
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));

@@ -5,8 +5,13 @@ import { getSessionState, getActiveSessionCount } from "./websocket";
 
 const router = Router();
 
+interface SessionUser {
+  username: string;
+  tier: string;
+}
+
 interface AuthenticatedRequest extends Request {
-  user?: { username: string; tier: string };
+  sessionUser?: SessionUser;
 }
 
 function optionalAuth(req: AuthenticatedRequest, res: Response, next: NextFunction) {
@@ -16,7 +21,7 @@ function optionalAuth(req: AuthenticatedRequest, res: Response, next: NextFuncti
     try {
       const secret = process.env.SESSION_SECRET || process.env.JWT_SECRET || "pacai-dev-secret";
       const decoded = jwt.verify(token, secret) as { username: string; tier?: string; sessionId?: string };
-      req.user = { username: decoded.username, tier: decoded.tier || "free" };
+      req.sessionUser = { username: decoded.username, tier: decoded.tier || "free" };
     } catch (err) {
     }
   }
@@ -29,11 +34,11 @@ function requireOwner(req: AuthenticatedRequest, res: Response, sessionId: strin
     return true;
   }
   
-  if (!req.user) {
+  if (!req.sessionUser) {
     return true;
   }
   
-  if (req.user.username !== session.owner_id && req.user.tier !== "admin") {
+  if (req.sessionUser.username !== session.owner_id && req.sessionUser.tier !== "admin") {
     res.status(403).json({ error: "You do not own this session" });
     return false;
   }

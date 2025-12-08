@@ -39,6 +39,13 @@ export {
   formatFileSize
 } from './exporter';
 
+export {
+  generateUnitySDK,
+  generateGodotSDK,
+  generateBlenderScript,
+  generateWebGPUSDK
+} from './sdk-stubs';
+
 export type {
   EngineBundle,
   ExportManifest,
