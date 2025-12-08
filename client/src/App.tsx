@@ -54,11 +54,14 @@ export default function App() {
       const res = await fetch(`${API_BASE_URL}/api/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: loginUser, password: loginPass })
+        body: JSON.stringify({ username: loginUser, password: loginPass }),
+        credentials: "include"
       });
+      if (!res.ok) throw new Error(`Login failed: HTTP ${res.status}`);
       const data = await res.json();
       if (data.success) {
-        const u = { name: loginUser, tier: data.tier || "free" };
+        // Store auth token for subsequent requests
+        const u = { name: loginUser, tier: data.tier || "free", token: data.token || "" };
         localStorage.setItem("pacai_user", JSON.stringify(u));
         setUser(u);
       } else {
@@ -66,13 +69,16 @@ export default function App() {
       }
     } catch (error) {
       console.error("Login error", error);
-      alert("Login failed - please try again");
+      alert(`Login failed: ${error instanceof Error ? error.message : "Unknown error"}`);
     }
   };
 
   const loadProjects = async () => {
     try {
-      const res = await fetch(`${API_BASE_URL}/v5/projects`);
+      const res = await fetch(`${API_BASE_URL}/v5/projects`, {
+        credentials: "include"
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       const projectsList = data.projects || [];
       setProjects(projectsList);
@@ -86,17 +92,30 @@ export default function App() {
     try {
       const res = await fetch(`${API_BASE_URL}/v5/projects`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: "New Project" })
+        headers: { 
+          "Content-Type": "application/json",
+          // Add authorization if user has auth token
+          ...(user?.token && { "Authorization": `Bearer ${user.token}` })
+        },
+        body: JSON.stringify({ name: "New Project", seed: Date.now() }),
+        credentials: "include" // Send cookies with request
       });
+      
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(`HTTP ${res.status}: ${errorText}`);
+      }
+      
       const p = await res.json();
       if (p.id) {
-        setProjects([p, ...projects]);
+        setProjects(prev => [p, ...(prev || [])]);
         setSelectedProject(p);
+      } else {
+        throw new Error("Invalid project response: missing ID");
       }
     } catch (error) {
       console.error("Failed to create project", error);
-      alert("Failed to create project");
+      alert(`Failed to create project: ${error instanceof Error ? error.message : "Unknown error"}`);
     }
   };
 

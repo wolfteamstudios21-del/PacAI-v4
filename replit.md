@@ -108,6 +108,17 @@ flyctl status
 
 ## Recent Changes (Dec 8, 2025)
 
+### v5.5 Auth & API Integration Fixes COMPLETE
+- **Auth Flow Fixed**: Added Authorization header with Bearer token in `createNewProject`
+- **API Credentials**: Added `credentials: "include"` to all fetch calls (cookies/auth)
+- **HTTP Status Validation**: All endpoints now check `!res.ok` before parsing JSON
+- **Config Fixed**:
+  - `next.config.mjs`: Changed `API_URL` → `NEXT_PUBLIC_API_URL` (client-visible)
+  - `vercel.json`: Updated for Next.js deployment (buildCommand, outputDirectory)
+- **Error Messages**: Improved error handling with actual HTTP status codes
+- **Token Storage**: Login now stores auth token for subsequent requests
+- **Status**: ✅ PRODUCTION-READY — Create Project button now works end-to-end
+
 ### v5.4 Comprehensive Test Suite & Production Validation COMPLETE
 - **Performance Verified**: Health check 44ms, all endpoints <100ms
 - **Features Validated**: 9 engines, live overrides, image refs, audit logs all working
