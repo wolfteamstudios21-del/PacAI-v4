@@ -21,6 +21,7 @@ import {
 import type { GenerationResult, Entity, World, Narrative, ExportResult } from "./generation";
 import { enqueueExportJob, getExportJobStatus, handleWorkerCallback, verifyCallbackSignature } from "./queue";
 import { getRefsByIds, buildRefPromptEnhancement, getRefsPerGenLimit } from "./refs";
+import { broadcastOverrideToProject, broadcastStateToProject, broadcastGenerationToProject, getProjectSubscriberCount } from "./websocket";
 
 const router = Router();
 
@@ -182,6 +183,16 @@ router.post("/v5/projects/:id/generate", async (req, res) => {
       seed: result.metadata.seed,
       checksum: result.metadata.checksum
     };
+
+    // v5.3: Broadcast new generation to connected game servers
+    broadcastGenerationToProject(p.id, {
+      seed: result.metadata.seed,
+      world: result.world,
+      entities: result.entities,
+      narrative: result.narrative,
+      checksum: result.metadata.checksum
+    });
+
     p.history.push({ 
       type: "generation", 
       prompt: enhancedPrompt, 
@@ -254,12 +265,26 @@ router.post("/v5/projects/:id/tick", async (req, res) => {
   const combatEvents = detectCombatEvents(state.entities);
   events.push(...combatEvents);
 
+  // v5.3: Broadcast tick updates to connected game servers
+  broadcastStateToProject(req.params.id, {
+    type: "tick",
+    data: {
+      entity_updates: updates,
+      events,
+      summary: getEntitySummary(state.entities)
+    },
+    tick: state.tick
+  });
+
   res.json({
     tick: state.tick,
     deltaTime,
     entity_updates: updates.length,
     events,
-    summary: getEntitySummary(state.entities)
+    summary: getEntitySummary(state.entities),
+    broadcast: {
+      clientsReached: getProjectSubscriberCount(req.params.id)
+    }
   });
 });
 
@@ -323,9 +348,22 @@ router.post("/v5/projects/:id/override", async (req, res) => {
       success: overrideResult.success
     });
 
+    // v5.3: Bridge to WebSocket - push override to connected game servers
+    const clientsReached = broadcastOverrideToProject(req.params.id, {
+      command,
+      user,
+      success: overrideResult.success,
+      changes: overrideResult.changes,
+      timestamp: Date.now()
+    });
+
     return res.json({
       project: p,
-      override: overrideResult
+      override: overrideResult,
+      broadcast: {
+        clientsReached,
+        synced: clientsReached > 0
+      }
     });
   }
 
