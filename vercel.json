@@ -1,13 +1,14 @@
 {
   "buildCommand": "npm run build",
-  "outputDirectory": ".next",
-  "framework": "nextjs",
+  "outputDirectory": "dist/public",
+  "framework": null,
   "env": {
-    "NEXT_PUBLIC_API_URL": "@pacai_api_url"
+    "VITE_API_URL": "https://pacai-v5.fly.dev"
   },
   "rewrites": [
     { "source": "/api/:path*", "destination": "https://pacai-v5.fly.dev/api/:path*" },
-    { "source": "/v5/:path*", "destination": "https://pacai-v5.fly.dev/v5/:path*" }
+    { "source": "/v5/:path*", "destination": "https://pacai-v5.fly.dev/v5/:path*" },
+    { "source": "/(.*)", "destination": "/index.html" }
   ],
   "headers": [
     {
