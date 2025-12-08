@@ -1,35 +1,54 @@
+# PacAI v5.3 - Fly.io Configuration
+# Enterprise deployment with auto-scaling and multi-region support
+
 app = "pacai-v5"
 primary_region = "iad"
+kill_signal = "SIGINT"
+kill_timeout = "5s"
 
 [build]
-builder = "paketobuildpacks/builder:base"
-builder_args = { "DOCKERFILE" = "Dockerfile" }
+dockerfile = "Dockerfile"
 
-[[services]]
-http_port = 8080
+[env]
+NODE_ENV = "production"
+PORT = "8080"
+
+[http_service]
 internal_port = 8080
-protocol = "tcp"
+force_https = true
+auto_stop_machines = false
+auto_start_machines = true
+min_machines_running = 1
+processes = ["app"]
 
-[[services.ports]]
-handlers = ["http", "tls"]
-port = 443
+[http_service.concurrency]
+type = "connections"
+hard_limit = 100
+soft_limit = 75
 
-[[services.ports]]
-handlers = ["http"]
-port = 80
-
-[[services.tcp_checks]]
-interval = 10000
-timeout = 5000
-grace_period = "5s"
+[[http_service.checks]]
+interval = "15s"
+timeout = "5s"
+grace_period = "10s"
+method = "GET"
+path = "/v5/health"
 
 [mounts]
 source = "pacai_vol"
 destination = "/data"
 
-[env]
-NODE_ENV = "production"
-
 [deploy]
 release_command = "npm run db:push"
 strategy = "rolling"
+
+[[vm]]
+memory = "512mb"
+cpu_kind = "shared"
+cpus = 1
+
+# Multi-region scaling (uncomment for production)
+# [[vm]]
+# size = "shared-cpu-1x"
+# memory = "1gb"
+# [processes]
+# app = "node dist/index.js"
