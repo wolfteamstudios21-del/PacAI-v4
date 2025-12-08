@@ -24,16 +24,25 @@ export async function applyOverride(projectId: string, command: string, user: st
   let p = await getProject(projectId);
   if (!p) return null;
 
+  const cmd = command.toLowerCase();
+  
   // Parse simple overrides
-  if (command.includes("spawn")) {
+  if (cmd.includes("spawn")) {
     const n = parseInt(command.match(/\d+/)?.[0] || "10");
     p.state.npcs += n;
   }
-  if (command.includes("arctic")) p.state.biome = "arctic";
-  if (command.includes("desert")) p.state.biome = "desert";
-  if (command.includes("rain")) p.state.weather = "rainy";
-  if (command.includes("aggression")) {
-    const val = parseFloat(command.match(/-?\d+\.?\d*/)?.[0] || "0");
+  if (cmd.includes("riot")) {
+    p.state.npcs += 20;
+  }
+  if (cmd.includes("arctic")) p.state.biome = "arctic";
+  if (cmd.includes("desert")) p.state.biome = "desert";
+  if (cmd.includes("rain")) p.state.weather = "rain";
+  if (cmd.includes("storm")) p.state.weather = "storm";
+  if (cmd.includes("clear")) p.state.weather = "clear";
+  if (cmd.includes("fog")) p.state.weather = "fog";
+  if (cmd.includes("snow")) p.state.weather = "snow";
+  if (cmd.includes("aggression")) {
+    const val = parseFloat(command.match(/[+-]?\d+\.?\d*/)?.[0] || "0");
     p.state.aggression = Math.max(0, Math.min(1, p.state.aggression + val / 100));
   }
 

@@ -325,10 +325,19 @@ router.post("/v5/projects/:id/override", async (req, res) => {
       }
       if (overrideResult.changes.world) {
         Object.assign(state.result.world, overrideResult.changes.world);
+        // Update biome if biome_shift was triggered (arctic, desert commands)
+        if (parsedOverride.payload.biome_shift) {
+          p.state.biome = parsedOverride.payload.biome_shift;
+        }
       }
 
       p.state.npcs = state.entities.length;
       p.state.weather = state.result.world.weather.condition;
+      // Also update aggression from average entity alert levels
+      const hostileEntities = state.entities.filter(e => e.faction === 'hostile' && e.alive);
+      if (hostileEntities.length > 0) {
+        p.state.aggression = hostileEntities.reduce((sum, e) => sum + (e.behavior?.alert_level || 0.5), 0) / hostileEntities.length;
+      }
     }
 
     p.history.push({ 

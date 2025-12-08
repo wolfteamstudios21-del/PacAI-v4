@@ -175,9 +175,10 @@ export default function App() {
       });
       const updated = await res.json();
       setLastOverride({ cmd: overrideCmd, ts: Date.now() });
-      // Only update selectedProject if response has valid id
-      if (updated && updated.id) {
-        setSelectedProject(updated);
+      // Update selectedProject - response may be { project: {...} } or direct project object
+      const projectData = updated.project || updated;
+      if (projectData && projectData.id) {
+        setSelectedProject(projectData);
       }
       setOverrideCmd("");
       loadProjects();
