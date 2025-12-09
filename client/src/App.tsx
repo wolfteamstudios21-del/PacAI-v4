@@ -228,6 +228,7 @@ export default function App() {
     { id: "override", icon: Send, label: "Override" },
     { id: "live", icon: Radio, label: "Live Overrides" },
     { id: "export", icon: Package, label: "Export" },
+    { id: "download", icon: Download, label: "Download App" },
     { id: "audit", icon: BarChart3, label: "Audit Log" },
     { id: "verify", icon: UserCheck, label: "Verify" },
   ];
@@ -712,6 +713,123 @@ export default function App() {
                 )}
               </>
             )}
+          </div>
+        )}
+
+        {activeTab === "download" && (
+          <div className="max-w-4xl">
+            <h2 className="text-4xl font-black mb-8">Download PacAI App</h2>
+            <p className="text-[#9aa0a6] mb-8 text-lg">Install PacAI on your device for offline access and native performance.</p>
+            
+            <div className="grid md:grid-cols-2 gap-8 mb-10">
+              <div className="bg-[#141517] p-8 rounded-2xl border border-[#2a2d33]">
+                <div className="flex items-center gap-4 mb-6">
+                  <Smartphone className="w-12 h-12 text-[#3e73ff]" />
+                  <div>
+                    <h3 className="text-2xl font-bold">Mobile / Web App</h3>
+                    <p className="text-[#9aa0a6]">iOS, Android, Browser</p>
+                  </div>
+                </div>
+                <p className="text-[#9aa0a6] mb-6">
+                  Install as a Progressive Web App (PWA) for offline access. Works on any device with a modern browser.
+                </p>
+                <div className="space-y-4">
+                  <button 
+                    onClick={() => {
+                      if ('standalone' in window.navigator && (window.navigator as any).standalone) {
+                        alert('Already installed as an app!');
+                      } else if (window.matchMedia('(display-mode: standalone)').matches) {
+                        alert('Already installed as an app!');
+                      } else {
+                        alert('To install: Use your browser menu (⋮ or Share) and select "Add to Home Screen" or "Install App"');
+                      }
+                    }}
+                    className="w-full py-4 bg-[#3e73ff] rounded-xl font-bold text-lg hover:opacity-90"
+                    data-testid="button-install-pwa"
+                  >
+                    Install Web App
+                  </button>
+                  <p className="text-xs text-[#9aa0a6] text-center">
+                    Tap "Add to Home Screen" in your browser menu
+                  </p>
+                </div>
+                <div className="mt-6 p-4 bg-[#1f2125] rounded-lg">
+                  <p className="text-sm font-bold mb-2">Features:</p>
+                  <ul className="text-sm text-[#9aa0a6] space-y-1">
+                    <li>Offline generation cache</li>
+                    <li>Push notifications</li>
+                    <li>Native app feel</li>
+                    <li>Works on all platforms</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div className="bg-[#141517] p-8 rounded-2xl border border-[#2a2d33]">
+                <div className="flex items-center gap-4 mb-6">
+                  <Monitor className="w-12 h-12 text-green-500" />
+                  <div>
+                    <h3 className="text-2xl font-bold">Desktop App</h3>
+                    <p className="text-[#9aa0a6]">Windows, macOS, Linux</p>
+                  </div>
+                </div>
+                <p className="text-[#9aa0a6] mb-6">
+                  Native desktop application for air-gapped environments with hardware security module support.
+                </p>
+                <div className="space-y-3">
+                  <a 
+                    href="/downloads/PacAI-v5-Admin-5.0.0-x86_64.AppImage"
+                    className="block w-full py-4 bg-green-600 hover:bg-green-700 rounded-xl font-bold text-lg text-center transition"
+                    data-testid="link-download-linux"
+                  >
+                    Download for Linux (AppImage)
+                  </a>
+                  <button 
+                    disabled
+                    className="w-full py-4 bg-[#2a2d33] rounded-xl font-bold text-lg text-[#9aa0a6] cursor-not-allowed"
+                    data-testid="button-download-windows"
+                  >
+                    Windows (Coming Soon)
+                  </button>
+                  <button 
+                    disabled
+                    className="w-full py-4 bg-[#2a2d33] rounded-xl font-bold text-lg text-[#9aa0a6] cursor-not-allowed"
+                    data-testid="button-download-macos"
+                  >
+                    macOS (Coming Soon)
+                  </button>
+                </div>
+                <div className="mt-6 p-4 bg-[#1f2125] rounded-lg">
+                  <p className="text-sm font-bold mb-2">Enterprise Features:</p>
+                  <ul className="text-sm text-[#9aa0a6] space-y-1">
+                    <li>YubiHSM2 / Nitrokey3 support</li>
+                    <li>USB license renewal</li>
+                    <li>Full offline operation</li>
+                    <li>SCIF/air-gap compatible</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-br from-purple-900/50 to-blue-900/50 p-8 rounded-2xl border border-[#3e73ff]/30">
+              <div className="flex items-start gap-6">
+                <Shield className="w-16 h-16 text-[#3e73ff] flex-shrink-0" />
+                <div>
+                  <h3 className="text-2xl font-bold mb-2">Enterprise Deployment</h3>
+                  <p className="text-[#9aa0a6] mb-4">
+                    Need custom deployment for your organization? We offer on-premise installations, 
+                    custom HSM configurations, and air-gapped network deployments.
+                  </p>
+                  <div className="flex gap-4 flex-wrap">
+                    <a href="mailto:enterprise@pacai.dev" className="px-6 py-3 bg-[#3e73ff] rounded-lg font-bold hover:opacity-90">
+                      Contact Sales
+                    </a>
+                    <a href="/docs/deployment" className="px-6 py-3 bg-[#1f2125] rounded-lg font-bold hover:bg-[#2a2d33]">
+                      Deployment Guide
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         )}
 

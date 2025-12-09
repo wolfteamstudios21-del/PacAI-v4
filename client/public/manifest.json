@@ -1,11 +1,13 @@
 {
-  "name": "AI Brain App",
-  "short_name": "AI Brain",
-  "description": "Testing companion for AI Brain Core (Godot addon)",
+  "name": "PacAI v5 - Defense Simulation Platform",
+  "short_name": "PacAI",
+  "description": "Enterprise offline-first defense simulation platform with deterministic procedural generation for air-gapped environments",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#2563eb",
+  "background_color": "#0b0d0f",
+  "theme_color": "#3e73ff",
+  "orientation": "any",
+  "categories": ["simulation", "defense", "enterprise", "productivity"],
   "icons": [
     {
       "src": "/favicon.png",
@@ -13,5 +15,6 @@
       "type": "image/png",
       "purpose": "any maskable"
     }
-  ]
+  ],
+  "prefer_related_applications": false
 }
