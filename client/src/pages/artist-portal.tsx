@@ -7,7 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Upload, DollarSign, TrendingUp, Award, Image as ImageIcon, Sparkles } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Upload, DollarSign, TrendingUp, Award, Image as ImageIcon, Sparkles, Globe, Mail, Twitter, MessageCircle } from "lucide-react";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
@@ -24,6 +26,11 @@ interface ArtistRef {
   total_earned: number;
   usage_count: number;
   is_featured: boolean;
+  is_public: boolean;
+  contact_email: string | null;
+  contact_website: string | null;
+  contact_twitter: string | null;
+  contact_discord: string | null;
   created_at: number;
 }
 
@@ -64,6 +71,14 @@ export default function ArtistPortal({ username, sessionToken }: ArtistPortalPro
   const [license, setLicense] = useState("commercial");
   const [artistName, setArtistName] = useState(`@${username}`);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  
+  // Contact fields for public showcase
+  const [isPublic, setIsPublic] = useState(false);
+  const [contactEmail, setContactEmail] = useState("");
+  const [contactWebsite, setContactWebsite] = useState("");
+  const [contactTwitter, setContactTwitter] = useState("");
+  const [contactDiscord, setContactDiscord] = useState("");
+  
   const { toast } = useToast();
 
   // Create auth headers for authenticated requests
@@ -104,6 +119,11 @@ export default function ArtistPortal({ username, sessionToken }: ArtistPortalPro
       formData.append("royaltyPercent", royaltyPercent);
       formData.append("license", license);
       formData.append("artistName", artistName);
+      formData.append("isPublic", isPublic.toString());
+      if (contactEmail) formData.append("contactEmail", contactEmail);
+      if (contactWebsite) formData.append("contactWebsite", contactWebsite);
+      if (contactTwitter) formData.append("contactTwitter", contactTwitter);
+      if (contactDiscord) formData.append("contactDiscord", contactDiscord);
 
       const res = await fetch("/v5/refs/artist", {
         method: "POST",
@@ -121,10 +141,16 @@ export default function ArtistPortal({ username, sessionToken }: ArtistPortalPro
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/v5/artist/stats"] });
       queryClient.invalidateQueries({ queryKey: ["/v5/artist/leaderboard"] });
+      queryClient.invalidateQueries({ queryKey: ["/v5/artist/showcase"] });
       setFile(null);
       setTitle("");
       setDescription("");
       setPreviewUrl(null);
+      setIsPublic(false);
+      setContactEmail("");
+      setContactWebsite("");
+      setContactTwitter("");
+      setContactDiscord("");
       toast({
         title: "Art uploaded!",
         description: data.message,
@@ -316,6 +342,72 @@ export default function ArtistPortal({ username, sessionToken }: ArtistPortalPro
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+
+            <div className="border-t border-[#2a2d33] pt-4 mt-4">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Globe className="w-5 h-5 text-[#3e73ff]" />
+                  <Label htmlFor="public-toggle" className="text-white font-medium">
+                    Showcase Publicly
+                  </Label>
+                </div>
+                <Switch
+                  id="public-toggle"
+                  checked={isPublic}
+                  onCheckedChange={setIsPublic}
+                  data-testid="switch-public"
+                />
+              </div>
+              
+              {isPublic && (
+                <div className="space-y-3 animate-in slide-in-from-top-2">
+                  <p className="text-sm text-[#9aa0a6] mb-2">
+                    Add contact info so developers can reach you for commissions & credits
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <Mail className="w-4 h-4 text-[#9aa0a6]" />
+                    <Input
+                      placeholder="Email (optional)"
+                      type="email"
+                      value={contactEmail}
+                      onChange={(e) => setContactEmail(e.target.value)}
+                      className="bg-[#1f2125] border-[#2a2d33] text-white flex-1"
+                      data-testid="input-contact-email"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Globe className="w-4 h-4 text-[#9aa0a6]" />
+                    <Input
+                      placeholder="Website URL (optional)"
+                      value={contactWebsite}
+                      onChange={(e) => setContactWebsite(e.target.value)}
+                      className="bg-[#1f2125] border-[#2a2d33] text-white flex-1"
+                      data-testid="input-contact-website"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Twitter className="w-4 h-4 text-[#9aa0a6]" />
+                    <Input
+                      placeholder="Twitter/X handle (optional)"
+                      value={contactTwitter}
+                      onChange={(e) => setContactTwitter(e.target.value)}
+                      className="bg-[#1f2125] border-[#2a2d33] text-white flex-1"
+                      data-testid="input-contact-twitter"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <MessageCircle className="w-4 h-4 text-[#9aa0a6]" />
+                    <Input
+                      placeholder="Discord username (optional)"
+                      value={contactDiscord}
+                      onChange={(e) => setContactDiscord(e.target.value)}
+                      className="bg-[#1f2125] border-[#2a2d33] text-white flex-1"
+                      data-testid="input-contact-discord"
+                    />
+                  </div>
+                </div>
+              )}
             </div>
 
             <Button
