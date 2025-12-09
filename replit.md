@@ -30,6 +30,13 @@ PacAI v5 employs a robust, security-focused architecture. The user interface is 
 - **WebSocket Bridge for Live Overrides**: Real-time override syncing between the dashboard and exported game servers, secured with JWT authentication, session binding, and tier-based rate limiting.
 - **Mobile Exports, Direct Links & Constant Engine Draw**: Supports mobile ZIP exports with engine-specific scripts, generates shareable JWT-based short URLs with QR codes, and provides real-time random generation via WebSocket events or polling. SDK stubs are provided for various engines.
 
+**v5.5 New Modules (December 2025):**
+- **Voice Synthesis Module** (`/v5/voice`): POST for generation, GET for previews. Supports 10 voice styles (gritty, calm, urgent, robotic, tactical, commander, civilian, hostile, friendly, neutral) and 9 languages. Tier limits: Free=1 style, Pro=5, Enterprise=unlimited. Mock audio output ready for Ollama/local TTS integration.
+- **Animation/Rigging Module** (`/v5/animate`): Procedural skeletal rigging for humanoid/creature/vehicle/prop assets. 24 motion types across locomotion, combat, emotes, and reactions. Generates rig JSON and FBX base64. Tier limits: Free=1 animation, Pro=5 with layers.
+- **Texture/Style Module** (`/v5/style`): 15 style filters (gritty, cyberpunk, military, noir, etc.) with 2x/4x/8x upscaling. License-aware remixing with CC-BY, proprietary, and PacAI-exclusive license support. Integrates with gallery remix system.
+- **Offline-First Enhancements** (`server/lib/offline.ts`): USB license renewal via JWT validation with 30-day grace period. Server-side asset caching with LRU eviction. IndexedDB schema for SDK client-side caching.
+- **Tier Middleware** (`server/middleware/tiers.ts`): Centralized tier enforcement for all v5.5 modules. Limits for voices, animations, styles, exports, refs, and generations per tier (free/creator/pro/lifetime/enterprise).
+
 **System Design Choices:**
 - **Frontend**: React application (`client/`) for the main dashboard, integrated with Next.js for SSR and NextAuth authentication.
 - **Backend**: Rust Axum Gateway (`pacai-gateway/`) for production, with modules for routes, security (RBAC, HSM), engine (narrative, world, packager), and utilities.

@@ -2,7 +2,16 @@ import jwt from 'jsonwebtoken';
 import { promises as fs } from 'fs';
 import path from 'path';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'offline-license-secret-change-in-production';
+function getJwtSecret(): string | null {
+  const secret = process.env.JWT_SECRET || process.env.SESSION_SECRET;
+  if (!secret) {
+    console.warn('[OFFLINE] WARNING: No JWT_SECRET or SESSION_SECRET set. Offline license features disabled.');
+    return null;
+  }
+  return secret;
+}
+
+const ALLOWED_USB_PATHS = ['/dev/usb0', '/dev/usb1', '/media', '/mnt/usb', '/tmp/licenses'];
 
 interface LicensePayload {
   userId: string;
@@ -20,9 +29,30 @@ interface OfflineLicenseResult {
   remainingGraceDays?: number;
 }
 
+function isAllowedPath(inputPath: string): boolean {
+  const normalized = path.normalize(inputPath);
+  if (normalized.includes('..')) return false;
+  return ALLOWED_USB_PATHS.some(allowed => normalized.startsWith(allowed));
+}
+
 export async function offlineRenewLicense(usbPath?: string): Promise<OfflineLicenseResult> {
   try {
+    const jwtSecret = getJwtSecret();
+    if (!jwtSecret) {
+      return {
+        valid: false,
+        error: 'Offline licensing disabled: No JWT_SECRET or SESSION_SECRET configured.'
+      };
+    }
+    
     const licensePath = usbPath || process.env.USB_LICENSE_PATH || '/dev/usb0/pacai_license.jwt';
+    
+    if (!isAllowedPath(licensePath)) {
+      return {
+        valid: false,
+        error: 'Invalid license path. Path must be within allowed USB directories.'
+      };
+    }
     
     let licenseToken: string;
     try {
@@ -35,7 +65,7 @@ export async function offlineRenewLicense(usbPath?: string): Promise<OfflineLice
       };
     }
     
-    const decoded = jwt.verify(licenseToken, JWT_SECRET) as LicensePayload;
+    const decoded = jwt.verify(licenseToken, jwtSecret) as unknown as LicensePayload;
     
     const now = Date.now();
     if (decoded.expiresAt < now) {
@@ -84,7 +114,13 @@ export function generateOfflineLicense(
   machineId: string,
   validDays: number = 365,
   features: string[] = ['generation', 'export', 'override']
-): string {
+): string | null {
+  const jwtSecret = getJwtSecret();
+  if (!jwtSecret) {
+    console.error('[OFFLINE] Cannot generate license: No JWT_SECRET or SESSION_SECRET configured.');
+    return null;
+  }
+  
   const payload: LicensePayload = {
     userId,
     tier,
@@ -94,7 +130,7 @@ export function generateOfflineLicense(
     offlineGraceDays: 30
   };
   
-  return jwt.sign(payload, JWT_SECRET, { algorithm: 'HS256' });
+  return jwt.sign(payload, jwtSecret, { algorithm: 'HS256' });
 }
 
 export interface CachedAsset {

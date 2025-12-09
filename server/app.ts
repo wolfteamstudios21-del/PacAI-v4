@@ -18,8 +18,12 @@ import sessionsRoutes from "./sessions";
 import mobileRoutes from "./v5-mobile";
 import linksRoutes from "./v5-links";
 import galleryRoutes from "./gallery";
+import voiceRoutes from "./routes/voice";
+import animateRoutes from "./routes/animate";
+import styleRoutes from "./routes/style";
 import { v3Proxy } from "./middleware/v3-proxy";
 import { initWebSocket } from "./websocket";
+import { tierMiddleware } from "./middleware/tiers";
 
 // Fix __dirname for ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -91,6 +95,18 @@ app.use(linksRoutes);
 
 // v5.4: Gallery with community remix + offline cache
 app.use(galleryRoutes);
+
+// v5.5: Apply tier middleware for new modules
+app.use(tierMiddleware);
+
+// v5.5: Voice Synthesis Module
+app.use(voiceRoutes);
+
+// v5.5: Animation/Rigging Module
+app.use(animateRoutes);
+
+// v5.5: Texture/Style Module
+app.use(styleRoutes);
 
 // Serve uploads directory for ref images
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
