@@ -3,12 +3,25 @@
   "short_name": "PacAI",
   "description": "Enterprise offline-first defense simulation platform with deterministic procedural generation for air-gapped environments",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#0b0d0f",
   "theme_color": "#3e73ff",
   "orientation": "any",
   "categories": ["simulation", "defense", "enterprise", "productivity"],
   "icons": [
+    {
+      "src": "/favicon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon.png",
+      "sizes": "256x256",
+      "type": "image/png",
+      "purpose": "any"
+    },
     {
       "src": "/favicon.png",
       "sizes": "512x512",

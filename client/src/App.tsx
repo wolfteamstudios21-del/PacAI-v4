@@ -38,11 +38,38 @@ export default function App() {
   const [exporting, setExporting] = useState(false);
   const [exportResult, setExportResult] = useState<any>(null);
   const [selectedRefs, setSelectedRefs] = useState<string[]>([]);
+  
+  // PWA install prompt state
+  const [installPrompt, setInstallPrompt] = useState<any>(null);
+  const [isInstalled, setIsInstalled] = useState(false);
 
   // Load user
   useEffect(() => {
     const saved = localStorage.getItem("pacai_user");
     if (saved) setUser(JSON.parse(saved));
+  }, []);
+  
+  // PWA install prompt handler
+  useEffect(() => {
+    const checkInstalled = () => {
+      if (window.matchMedia('(display-mode: standalone)').matches || 
+          ('standalone' in window.navigator && (window.navigator as any).standalone)) {
+        setIsInstalled(true);
+      }
+    };
+    checkInstalled();
+    
+    const handleBeforeInstall = (e: Event) => {
+      e.preventDefault();
+      setInstallPrompt(e);
+    };
+    
+    window.addEventListener('beforeinstallprompt', handleBeforeInstall);
+    window.addEventListener('appinstalled', () => setIsInstalled(true));
+    
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
+    };
   }, []);
 
   // Load projects when user logs in
@@ -734,23 +761,32 @@ export default function App() {
                   Install as a Progressive Web App (PWA) for offline access. Works on any device with a modern browser.
                 </p>
                 <div className="space-y-4">
-                  <button 
-                    onClick={() => {
-                      if ('standalone' in window.navigator && (window.navigator as any).standalone) {
-                        alert('Already installed as an app!');
-                      } else if (window.matchMedia('(display-mode: standalone)').matches) {
-                        alert('Already installed as an app!');
-                      } else {
-                        alert('To install: Use your browser menu (⋮ or Share) and select "Add to Home Screen" or "Install App"');
-                      }
-                    }}
-                    className="w-full py-4 bg-[#3e73ff] rounded-xl font-bold text-lg hover:opacity-90"
-                    data-testid="button-install-pwa"
-                  >
-                    Install Web App
-                  </button>
+                  {isInstalled ? (
+                    <div className="w-full py-4 bg-green-600 rounded-xl font-bold text-lg text-center">
+                      Installed
+                    </div>
+                  ) : (
+                    <button 
+                      onClick={async () => {
+                        if (installPrompt) {
+                          installPrompt.prompt();
+                          const result = await installPrompt.userChoice;
+                          if (result.outcome === 'accepted') {
+                            setIsInstalled(true);
+                          }
+                          setInstallPrompt(null);
+                        } else {
+                          alert('To install: Use your browser menu (⋮ or Share) and select "Add to Home Screen" or "Install App"');
+                        }
+                      }}
+                      className="w-full py-4 bg-[#3e73ff] rounded-xl font-bold text-lg hover:opacity-90"
+                      data-testid="button-install-pwa"
+                    >
+                      {installPrompt ? 'Install Now' : 'Install Web App'}
+                    </button>
+                  )}
                   <p className="text-xs text-[#9aa0a6] text-center">
-                    Tap "Add to Home Screen" in your browser menu
+                    {isInstalled ? 'PacAI is installed on this device' : (installPrompt ? 'Click to install PacAI' : 'Use browser menu to "Add to Home Screen"')}
                   </p>
                 </div>
                 <div className="mt-6 p-4 bg-[#1f2125] rounded-lg">
