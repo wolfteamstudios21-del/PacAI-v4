@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import {
   Zap, Shield, Download, LogOut, Menu, X, Crown, Search, UserCheck,
-  Brain, Sparkles, Send, Package, Smartphone, Monitor, BookOpen, BarChart3, Image, Radio
+  Brain, Sparkles, Send, Package, Smartphone, Monitor, BookOpen, BarChart3, Image, Radio, Palette
 } from "lucide-react";
 import RefUploader from "./components/RefUploader";
 import { SessionManager } from "./components/LiveOverrides";
 import GalleryPage from "./pages/gallery";
+import ArtistPortal from "./pages/artist-portal";
 import heroImage from "@assets/generated_images/defense_command_center_tactical_display.png";
 
 // API base URL configuration - use relative URLs in production (Vercel rewrites handle proxy)
@@ -253,6 +254,7 @@ export default function App() {
     { id: "home", icon: Brain, label: "Home" },
     { id: "generate", icon: Sparkles, label: "Generation Lab" },
     { id: "gallery", icon: Image, label: "3dRender Gallery" },
+    { id: "artist", icon: Palette, label: "Artist Portal" },
     { id: "override", icon: Send, label: "Override" },
     { id: "live", icon: Radio, label: "Live Overrides" },
     { id: "export", icon: Package, label: "Export" },
@@ -465,6 +467,10 @@ export default function App() {
 
         {activeTab === "gallery" && (
           <GalleryPage />
+        )}
+
+        {activeTab === "artist" && (
+          <ArtistPortal username={user?.name || "anonymous"} />
         )}
 
         {activeTab === "override" && (

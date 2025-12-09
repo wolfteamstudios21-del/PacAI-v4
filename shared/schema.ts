@@ -88,6 +88,35 @@ export interface SessionEvent {
   clientCount?: number;
 }
 
+// Artist reference uploads with royalty tracking
+export const artistRefs = pgTable("artist_refs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  user_id: varchar("user_id").notNull(),
+  artist_name: text("artist_name").notNull(),
+  image_url: text("image_url").notNull(),
+  thumbnail_url: text("thumbnail_url"),
+  title: text("title").notNull(),
+  description: text("description"),
+  royalty_percent: integer("royalty_percent").notNull().default(30),
+  license: text("license").notNull().default("commercial"), // cc-by, cc-by-nc, commercial, pacai-exclusive
+  total_earned: integer("total_earned").notNull().default(0), // in cents
+  usage_count: integer("usage_count").notNull().default(0),
+  is_featured: integer("is_featured").notNull().default(0),
+  metadata: jsonb("metadata").$type<Record<string, any>>(),
+  created_at: timestamp("created_at").defaultNow(),
+});
+
+export const insertArtistRefSchema = createInsertSchema(artistRefs).omit({
+  id: true,
+  total_earned: true,
+  usage_count: true,
+  is_featured: true,
+  created_at: true,
+});
+
+export type InsertArtistRef = z.infer<typeof insertArtistRefSchema>;
+export type ArtistRef = typeof artistRefs.$inferSelect;
+
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,
