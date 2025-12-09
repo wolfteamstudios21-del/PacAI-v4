@@ -91,8 +91,12 @@ export default function App() {
       if (!res.ok) throw new Error(`Login failed: HTTP ${res.status}`);
       const data = await res.json();
       if (data.success) {
-        // Store auth token for subsequent requests
-        const u = { name: loginUser, tier: data.tier || "free", token: data.token || "" };
+        // Store session token for authenticated API requests
+        const u = { 
+          name: loginUser, 
+          tier: data.tier || "free", 
+          sessionToken: data.sessionToken || "" 
+        };
         localStorage.setItem("pacai_user", JSON.stringify(u));
         setUser(u);
       } else {
@@ -470,7 +474,10 @@ export default function App() {
         )}
 
         {activeTab === "artist" && (
-          <ArtistPortal username={user?.name || "anonymous"} />
+          <ArtistPortal 
+            username={user?.name || "anonymous"} 
+            sessionToken={user?.sessionToken}
+          />
         )}
 
         {activeTab === "override" && (

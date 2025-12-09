@@ -3,7 +3,7 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import crypto from "crypto";
-import { getUser, type User } from "../auth";
+import { getUser, requireAuth, validateSessionToken, type User } from "../auth";
 
 const router = Router();
 
@@ -70,11 +70,21 @@ function getEarningsPerUse(userTier: string): number {
 
 router.post("/v5/refs/artist", upload.single("file"), async (req: Request, res: Response) => {
   try {
-    const username = req.body.username || req.headers["x-username"] as string;
-    if (!username) {
-      return res.status(401).json({ error: "Authentication required" });
+    // Validate session token from Authorization header
+    const authHeader = req.headers.authorization;
+    const token = authHeader?.replace("Bearer ", "") || req.headers["x-session-token"] as string;
+    
+    if (!token) {
+      return res.status(401).json({ error: "Authentication required - session token missing" });
     }
-
+    
+    const session = validateSessionToken(token);
+    if (!session) {
+      return res.status(401).json({ error: "Invalid or expired session" });
+    }
+    
+    // Derive username from validated session (not from request body)
+    const username = session.username;
     const user = getUser(username);
     if (!user) {
       return res.status(401).json({ error: "User not found" });
@@ -244,10 +254,21 @@ router.get("/v5/artist/leaderboard", async (req: Request, res: Response) => {
 
 router.get("/v5/artist/stats", async (req: Request, res: Response) => {
   try {
-    const username = req.query.username as string || req.headers["x-username"] as string;
-    if (!username) {
-      return res.status(401).json({ error: "Authentication required" });
+    // Validate session token from Authorization header
+    const authHeader = req.headers.authorization;
+    const token = authHeader?.replace("Bearer ", "") || req.headers["x-session-token"] as string;
+    
+    if (!token) {
+      return res.status(401).json({ error: "Authentication required - session token missing" });
     }
+    
+    const session = validateSessionToken(token);
+    if (!session) {
+      return res.status(401).json({ error: "Invalid or expired session" });
+    }
+    
+    // Derive username from validated session (not from query params)
+    const username = session.username;
 
     const userRefIds = artistIndex.get(username);
     if (!userRefIds || userRefIds.size === 0) {

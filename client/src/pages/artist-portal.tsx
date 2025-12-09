@@ -51,7 +51,12 @@ const LICENSE_LABELS: Record<string, string> = {
   "pacai-exclusive": "PacAI Exclusive",
 };
 
-export default function ArtistPortal({ username }: { username: string }) {
+interface ArtistPortalProps {
+  username: string;
+  sessionToken?: string;
+}
+
+export default function ArtistPortal({ username, sessionToken }: ArtistPortalProps) {
   const [file, setFile] = useState<File | null>(null);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -61,15 +66,25 @@ export default function ArtistPortal({ username }: { username: string }) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const { toast } = useToast();
 
+  // Create auth headers for authenticated requests
+  const getAuthHeaders = () => {
+    const headers: HeadersInit = {};
+    if (sessionToken) {
+      headers["Authorization"] = `Bearer ${sessionToken}`;
+    }
+    return headers;
+  };
+
   const { data: stats, isLoading: statsLoading } = useQuery<ArtistStats>({
     queryKey: ["/v5/artist/stats", username],
     queryFn: async () => {
-      const res = await fetch(`/v5/artist/stats?username=${username}`, {
-        headers: { "x-username": username },
+      const res = await fetch(`/v5/artist/stats`, {
+        headers: getAuthHeaders(),
       });
       if (!res.ok) throw new Error("Failed to fetch stats");
       return res.json();
     },
+    enabled: !!sessionToken, // Only fetch when authenticated
   });
 
   const { data: leaderboard, isLoading: leaderboardLoading } = useQuery<{ leaderboard: LeaderboardEntry[] }>({
@@ -80,10 +95,10 @@ export default function ArtistPortal({ username }: { username: string }) {
     mutationFn: async () => {
       if (!file) throw new Error("No file selected");
       if (!title.trim()) throw new Error("Title is required");
+      if (!sessionToken) throw new Error("Authentication required");
 
       const formData = new FormData();
       formData.append("file", file);
-      formData.append("username", username);
       formData.append("title", title);
       formData.append("description", description);
       formData.append("royaltyPercent", royaltyPercent);
@@ -92,6 +107,9 @@ export default function ArtistPortal({ username }: { username: string }) {
 
       const res = await fetch("/v5/refs/artist", {
         method: "POST",
+        headers: {
+          "Authorization": `Bearer ${sessionToken}`,
+        },
         body: formData,
       });
       if (!res.ok) {
