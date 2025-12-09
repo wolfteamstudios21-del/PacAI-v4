@@ -29,6 +29,7 @@ PacAI v5 employs a robust, security-focused architecture. The user interface is 
 - **Image Reference System**: Enables style-guided generation with image references, supporting tier-based limits and AI source detection.
 - **WebSocket Bridge for Live Overrides**: Real-time override syncing between the dashboard and exported game servers, secured with JWT authentication, session binding, and tier-based rate limiting.
 - **Mobile Exports, Direct Links & Constant Engine Draw**: Supports mobile ZIP exports with engine-specific scripts, generates shareable JWT-based short URLs with QR codes, and provides real-time random generation via WebSocket events or polling. SDK stubs are provided for various engines.
+- **PWA Support** (v5.6): Progressive Web App with manifest.json, service worker for offline caching, and beforeinstallprompt handling. Download page offers PWA install for mobile/web and desktop AppImage downloads.
 
 **v5.5 New Modules (December 2025):**
 - **Voice Synthesis Module** (`/v5/voice`): POST for generation, GET for previews. Supports 10 voice styles (gritty, calm, urgent, robotic, tactical, commander, civilian, hostile, friendly, neutral) and 9 languages. Tier limits: Free=1 style, Pro=5, Enterprise=unlimited. Mock audio output ready for Ollama/local TTS integration.
