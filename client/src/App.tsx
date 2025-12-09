@@ -6,6 +6,7 @@ import {
 import RefUploader from "./components/RefUploader";
 import { SessionManager } from "./components/LiveOverrides";
 import GalleryPage from "./pages/gallery";
+import heroImage from "@assets/generated_images/defense_command_center_tactical_display.png";
 
 // API base URL configuration - use relative URLs in production (Vercel rewrites handle proxy)
 // Use VITE_API_URL only for development pointing to external backends
@@ -745,8 +746,19 @@ export default function App() {
 
         {activeTab === "download" && (
           <div className="max-w-4xl">
-            <h2 className="text-4xl font-black mb-8">Download PacAI App</h2>
-            <p className="text-[#9aa0a6] mb-8 text-lg">Install PacAI on your device for offline access and native performance.</p>
+            <div className="relative mb-10 rounded-2xl overflow-hidden">
+              <img 
+                src={heroImage} 
+                alt="PacAI Command Center" 
+                className="w-full h-64 object-cover"
+                data-testid="img-download-hero"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0b0d0f] via-[#0b0d0f]/50 to-transparent" />
+              <div className="absolute bottom-6 left-6">
+                <h2 className="text-4xl font-black mb-2">Download PacAI App</h2>
+                <p className="text-[#9aa0a6] text-lg">Install on your device for offline access and native performance.</p>
+              </div>
+            </div>
             
             <div className="grid md:grid-cols-2 gap-8 mb-10">
               <div className="bg-[#141517] p-8 rounded-2xl border border-[#2a2d33]">
