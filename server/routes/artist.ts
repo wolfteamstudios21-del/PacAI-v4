@@ -49,6 +49,11 @@ interface ArtistRefRecord {
   total_earned: number;
   usage_count: number;
   is_featured: boolean;
+  is_public: boolean;
+  contact_email: string | null;
+  contact_website: string | null;
+  contact_twitter: string | null;
+  contact_discord: string | null;
   created_at: number;
 }
 
@@ -114,6 +119,18 @@ router.post("/v5/refs/artist", upload.single("file"), async (req: Request, res: 
     const refId = crypto.randomUUID();
     const imageUrl = `/uploads/${req.file.filename}`;
 
+    // Parse contact fields
+    const contactEmail = req.body.contactEmail?.trim() || null;
+    const contactWebsite = req.body.contactWebsite?.trim() || null;
+    const contactTwitter = req.body.contactTwitter?.trim() || null;
+    const contactDiscord = req.body.contactDiscord?.trim() || null;
+    const isPublic = req.body.isPublic === "true" || req.body.isPublic === true;
+
+    // Basic email validation if provided
+    if (contactEmail && !contactEmail.includes("@")) {
+      return res.status(400).json({ error: "Invalid email format" });
+    }
+
     const artistRef: ArtistRefRecord = {
       id: refId,
       user_id: username,
@@ -127,6 +144,11 @@ router.post("/v5/refs/artist", upload.single("file"), async (req: Request, res: 
       total_earned: 0,
       usage_count: 0,
       is_featured: false,
+      is_public: isPublic,
+      contact_email: contactEmail,
+      contact_website: contactWebsite,
+      contact_twitter: contactTwitter,
+      contact_discord: contactDiscord,
       created_at: Date.now(),
     };
 
@@ -187,6 +209,59 @@ router.get("/v5/refs/artist/:id", async (req: Request, res: Response) => {
     return res.status(404).json({ error: "Artist reference not found" });
   }
   res.json(ref);
+});
+
+// Public gallery endpoint - no authentication required
+// Returns only art that artists have opted to make public
+router.get("/v5/artist/showcase", async (req: Request, res: Response) => {
+  try {
+    const featured = req.query.featured === "true";
+    const limit = parseInt(req.query.limit as string) || 20;
+    
+    let refs = Array.from(artistRefsStore.values())
+      .filter(r => r.is_public); // Only show public art
+    
+    if (featured) {
+      refs = refs.filter(r => r.is_featured);
+    }
+    
+    // Sort by usage count (popularity) then by creation date
+    refs.sort((a, b) => {
+      if (b.usage_count !== a.usage_count) {
+        return b.usage_count - a.usage_count;
+      }
+      return b.created_at - a.created_at;
+    });
+    
+    // Limit results
+    refs = refs.slice(0, limit);
+    
+    // Return public-safe data (includes contact info since user opted in)
+    const publicRefs = refs.map(ref => ({
+      id: ref.id,
+      artist_name: ref.artist_name,
+      image_url: ref.image_url,
+      thumbnail_url: ref.thumbnail_url,
+      title: ref.title,
+      description: ref.description,
+      license: ref.license,
+      usage_count: ref.usage_count,
+      is_featured: ref.is_featured,
+      contact_email: ref.contact_email,
+      contact_website: ref.contact_website,
+      contact_twitter: ref.contact_twitter,
+      contact_discord: ref.contact_discord,
+      created_at: ref.created_at,
+    }));
+    
+    res.json({
+      showcase: publicRefs,
+      count: publicRefs.length,
+      total_public: Array.from(artistRefsStore.values()).filter(r => r.is_public).length,
+    });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch artist showcase" });
+  }
 });
 
 router.post("/v5/refs/artist/:id/use", async (req: Request, res: Response) => {
