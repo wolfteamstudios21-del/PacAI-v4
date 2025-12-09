@@ -113,6 +113,17 @@ router.post("/v5/style", async (req: TierRequest, res: Response) => {
       });
     }
     
+    if (upscale > limits.maxUpscale) {
+      return res.status(403).json({
+        error: `Upscale factor ${upscale}x exceeds tier limit`,
+        limit: limits.maxUpscale,
+        requested: upscale,
+        tier,
+        upgrade: tier === 'free' ? 'Upgrade to Pro for 4x upscaling' : 
+                 tier === 'pro' ? 'Upgrade to Enterprise for 8x upscaling' : undefined
+      });
+    }
+    
     const filterEffect = applyMockFilter(filter, brightness);
     
     const polishedId = uuidv4();

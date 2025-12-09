@@ -11,6 +11,7 @@ export interface TierLimits {
   voices: number;
   animations: number;
   styles: number;
+  maxUpscale: number;
   exports: number;
   refs: number;
   generations: number;
@@ -29,6 +30,7 @@ const TIER_LIMITS: Record<string, TierLimits> = {
     voices: 1,
     animations: 1,
     styles: 1,
+    maxUpscale: 2,
     exports: 3,
     refs: 1,
     generations: 2
@@ -37,6 +39,7 @@ const TIER_LIMITS: Record<string, TierLimits> = {
     voices: 5,
     animations: 5,
     styles: 5,
+    maxUpscale: 4,
     exports: 9,
     refs: 5,
     generations: 20
@@ -45,6 +48,7 @@ const TIER_LIMITS: Record<string, TierLimits> = {
     voices: 5,
     animations: 5,
     styles: 5,
+    maxUpscale: 4,
     exports: 9,
     refs: 5,
     generations: 20
@@ -53,6 +57,7 @@ const TIER_LIMITS: Record<string, TierLimits> = {
     voices: MAX_LIMIT,
     animations: MAX_LIMIT,
     styles: MAX_LIMIT,
+    maxUpscale: 8,
     exports: 9,
     refs: MAX_LIMIT,
     generations: MAX_LIMIT
@@ -61,6 +66,7 @@ const TIER_LIMITS: Record<string, TierLimits> = {
     voices: MAX_LIMIT,
     animations: MAX_LIMIT,
     styles: MAX_LIMIT,
+    maxUpscale: 8,
     exports: 9,
     refs: MAX_LIMIT,
     generations: MAX_LIMIT
