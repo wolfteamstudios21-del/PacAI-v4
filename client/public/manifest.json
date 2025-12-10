@@ -1,7 +1,7 @@
 {
-  "name": "PacAI v5 - Defense Simulation Platform",
+  "name": "PacAI v5 - Dev Companion",
   "short_name": "PacAI",
-  "description": "Enterprise offline-first defense simulation platform with deterministic procedural generation for air-gapped environments",
+  "description": "Offline-first deterministic world & NPC generator. Dev Companion for creators and teams.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

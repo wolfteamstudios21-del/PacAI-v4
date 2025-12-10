@@ -1,4 +1,4 @@
-# PacAI v5 - Enterprise Defense Simulation Platform
+# PacAI v5 - Dev Companion
 
 ## Overview
 PacAI v5 (AI Brain v5) is an enterprise offline-first defense simulation platform for air-gapped environments. Its primary purpose is deterministic procedural generation for simulation scenarios. Key capabilities include hardware-root licensing, SSO + X.509 authentication, tamper-proof hash-chained audit logs, and multi-engine exports (UE5, Unity, Godot, Roblox, visionOS, Blender, WebGPU, CryEngine, Source2). The platform aims to be the leading offline world generator, targeting a ship date of April 2026.
