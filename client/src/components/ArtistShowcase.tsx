@@ -44,6 +44,11 @@ export default function ArtistShowcase({
 }: ArtistShowcaseProps) {
   const { data, isLoading } = useQuery<ShowcaseResponse>({
     queryKey: ["/v5/artist/showcase"],
+    queryFn: async () => {
+      const res = await fetch("/v5/artist/showcase");
+      if (!res.ok) throw new Error("Failed to fetch showcase");
+      return res.json();
+    },
     staleTime: 60000,
   });
 

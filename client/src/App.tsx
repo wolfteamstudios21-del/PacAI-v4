@@ -7,6 +7,7 @@ import RefUploader from "./components/RefUploader";
 import { SessionManager } from "./components/LiveOverrides";
 import GalleryPage from "./pages/gallery";
 import ArtistPortal from "./pages/artist-portal";
+import ArtistShowcase from "./components/ArtistShowcase";
 import heroImage from "@assets/generated_images/defense_command_center_tactical_display.png";
 
 // API base URL configuration - use relative URLs in production (Vercel rewrites handle proxy)
@@ -242,13 +243,21 @@ export default function App() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-[#0b0d0f] flex items-center justify-center p-8">
-        <div className="bg-[#141517] rounded-2xl p-10 w-full max-w-md border border-[#2a2d33]">
+      <div className="min-h-screen bg-[#0b0d0f] flex flex-col items-center justify-center p-8">
+        <div className="bg-[#141517] rounded-2xl p-10 w-full max-w-md border border-[#2a2d33] mb-8">
           <h1 className="text-5xl font-black text-center mb-8 text-[#3e73ff]">PacAI v5 – Dev Companion</h1>
-          <input placeholder="Username" className="w-full px-4 py-3 bg-[#1f2125] rounded-lg mb-4 text-white placeholder-[#9aa0a6]" value={loginUser} onChange={e => setLoginUser(e.target.value)} />
-          <input type="password" placeholder="Password" className="w-full px-4 py-3 bg-[#1f2125] rounded-lg mb-6 text-white placeholder-[#9aa0a6]" value={loginPass} onChange={e => setLoginPass(e.target.value)} />
-          <button onClick={login} className="w-full py-4 bg-[#3e73ff] rounded-xl font-bold text-lg hover:opacity-90">Login / Register</button>
+          <input placeholder="Username" className="w-full px-4 py-3 bg-[#1f2125] rounded-lg mb-4 text-white placeholder-[#9aa0a6]" value={loginUser} onChange={e => setLoginUser(e.target.value)} data-testid="input-login-username" />
+          <input type="password" placeholder="Password" className="w-full px-4 py-3 bg-[#1f2125] rounded-lg mb-6 text-white placeholder-[#9aa0a6]" value={loginPass} onChange={e => setLoginPass(e.target.value)} data-testid="input-login-password" />
+          <button onClick={login} className="w-full py-4 bg-[#3e73ff] rounded-xl font-bold text-lg hover:opacity-90" data-testid="button-login">Login / Register</button>
           <p className="text-center text-xs text-[#9aa0a6] mt-6">New users start on Free tier</p>
+        </div>
+        
+        <div className="w-full max-w-4xl">
+          <ArtistShowcase 
+            maxItems={3} 
+            title="Featured Community Artists" 
+            showContactInfo={true}
+          />
         </div>
       </div>
     );
@@ -335,6 +344,14 @@ export default function App() {
                 </div>
               </div>
             )}
+
+            <div className="mt-10">
+              <ArtistShowcase 
+                maxItems={6} 
+                title="Community Artist Showcase" 
+                showContactInfo={true}
+              />
+            </div>
           </div>
         )}
 

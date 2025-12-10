@@ -255,9 +255,8 @@ router.get("/v5/artist/showcase", async (req: Request, res: Response) => {
     }));
     
     res.json({
-      showcase: publicRefs,
-      count: publicRefs.length,
-      total_public: Array.from(artistRefsStore.values()).filter(r => r.is_public).length,
+      gallery: publicRefs,
+      total: Array.from(artistRefsStore.values()).filter(r => r.is_public).length,
     });
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch artist showcase" });
