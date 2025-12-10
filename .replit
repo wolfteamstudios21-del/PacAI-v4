@@ -105,6 +105,4 @@ integrations = ["javascript_openai:1.0.0", "javascript_mem_db:1.0.0"]
 
 [userenv.shared]
 NEXTAUTH_SECRET = "pacai-v5-enterprise-auth-secret-2025"
-NEXTAUTH_URL = "http://localhost:3000"
 JWT_SECRET = "pacai-v5-jwt-secret-2025"
-API_URL = "http://localhost:5000"
