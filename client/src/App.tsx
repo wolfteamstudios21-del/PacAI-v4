@@ -249,21 +249,185 @@ export default function App() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-[#0b0d0f] flex flex-col items-center justify-center p-8">
-        <div className="bg-[#141517] rounded-2xl p-10 w-full max-w-md border border-[#2a2d33] mb-8">
-          <h1 className="text-5xl font-black text-center mb-8 text-[#3e73ff]">PacAI v5 – Dev Companion</h1>
-          <input placeholder="Username" className="w-full px-4 py-3 bg-[#1f2125] rounded-lg mb-4 text-white placeholder-[#9aa0a6]" value={loginUser} onChange={e => setLoginUser(e.target.value)} data-testid="input-login-username" />
-          <input type="password" placeholder="Password" className="w-full px-4 py-3 bg-[#1f2125] rounded-lg mb-6 text-white placeholder-[#9aa0a6]" value={loginPass} onChange={e => setLoginPass(e.target.value)} data-testid="input-login-password" />
-          <button onClick={login} className="w-full py-4 bg-[#3e73ff] rounded-xl font-bold text-lg hover:opacity-90" data-testid="button-login">Login / Register</button>
-          <p className="text-center text-xs text-[#9aa0a6] mt-6">New users start on Free tier</p>
+      <div className="min-h-screen bg-[#0b0d0f] text-white">
+        {/* Hero Section with Background Image */}
+        <div className="relative min-h-[80vh] flex flex-col items-center justify-center p-8">
+          {/* Background Image with Dark Gradient Overlay */}
+          <div 
+            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+            style={{ backgroundImage: `url(${heroImage})` }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#0b0d0f]/80 via-[#0b0d0f]/70 to-[#0b0d0f]" />
+          
+          {/* Header with Logo - increased icon size by 15% */}
+          <div className="relative z-10 flex items-center gap-4 mb-8">
+            <div className="w-16 h-16 bg-[#3e73ff] rounded-2xl flex items-center justify-center">
+              <Brain className="w-9 h-9 text-white" />
+            </div>
+            <h1 className="text-6xl font-black text-white drop-shadow-lg">
+              PacAI <span className="text-[#3e73ff]">v5</span>
+            </h1>
+          </div>
+          
+          {/* Tagline with enhanced readability */}
+          <p className="relative z-10 text-xl text-center text-white/90 mb-12 max-w-2xl drop-shadow-md">
+            Enterprise Offline-First Dev Companion for Air-Gapped Environments
+          </p>
+          
+          {/* Login Form */}
+          <div className="relative z-10 bg-[#141517]/95 backdrop-blur-sm rounded-2xl p-10 w-full max-w-md border border-[#2a2d33]">
+            <input placeholder="Username" className="w-full px-4 py-3 bg-[#1f2125] rounded-lg mb-4 text-white placeholder-[#9aa0a6]" value={loginUser} onChange={e => setLoginUser(e.target.value)} data-testid="input-login-username" />
+            <input type="password" placeholder="Password" className="w-full px-4 py-3 bg-[#1f2125] rounded-lg mb-6 text-white placeholder-[#9aa0a6]" value={loginPass} onChange={e => setLoginPass(e.target.value)} data-testid="input-login-password" />
+            <button onClick={login} className="w-full py-4 bg-[#3e73ff] rounded-xl font-bold text-lg hover:opacity-90" data-testid="button-login">Login / Register</button>
+            <p className="text-center text-xs text-[#9aa0a6] mt-6">New users start on Free tier</p>
+          </div>
         </div>
         
-        <div className="w-full max-w-4xl">
-          <ArtistShowcase 
-            maxItems={3} 
-            title="Featured Community Artists" 
-            showContactInfo={true}
-          />
+        {/* What PacAI Does Section */}
+        <div className="bg-[#0b0d0f] py-20 px-8">
+          <div className="max-w-6xl mx-auto">
+            <h2 className="text-4xl font-black text-center mb-4">What PacAI Does</h2>
+            <p className="text-center text-[#9aa0a6] mb-12 max-w-3xl mx-auto">
+              Build worlds, generate AI systems, create story logic, design missions, simulate NPCs, test environments — all in one platform.
+            </p>
+            
+            {/* Feature Grid */}
+            <div className="grid md:grid-cols-3 gap-6 mb-16">
+              <div className="bg-[#141517] p-6 rounded-2xl border border-[#2a2d33]">
+                <div className="w-12 h-12 bg-[#3e73ff]/20 rounded-xl flex items-center justify-center mb-4">
+                  <Sparkles className="w-6 h-6 text-[#3e73ff]" />
+                </div>
+                <h3 className="text-xl font-bold mb-2">9-Second World Generation</h3>
+                <p className="text-[#9aa0a6] text-sm">Generate complete worlds with terrain, NPCs, missions, and narrative in under 10 seconds. 100% deterministic — same seed, same world, every time.</p>
+              </div>
+              
+              <div className="bg-[#141517] p-6 rounded-2xl border border-[#2a2d33]">
+                <div className="w-12 h-12 bg-purple-500/20 rounded-xl flex items-center justify-center mb-4">
+                  <Package className="w-6 h-6 text-purple-400" />
+                </div>
+                <h3 className="text-xl font-bold mb-2">Multi-Engine Export</h3>
+                <p className="text-[#9aa0a6] text-sm">Export to 9+ engines: Unreal Engine 5, Unity, Godot, Roblox, visionOS, Blender, WebGPU, CryEngine, and Source2. One click, ready to import.</p>
+              </div>
+              
+              <div className="bg-[#141517] p-6 rounded-2xl border border-[#2a2d33]">
+                <div className="w-12 h-12 bg-green-500/20 rounded-xl flex items-center justify-center mb-4">
+                  <Shield className="w-6 h-6 text-green-400" />
+                </div>
+                <h3 className="text-xl font-bold mb-2">Air-Gapped Security</h3>
+                <p className="text-[#9aa0a6] text-sm">Hardware-root licensing with YubiHSM2, zero outbound calls, local LLM support via Ollama. Built for defense and enterprise environments.</p>
+              </div>
+              
+              <div className="bg-[#141517] p-6 rounded-2xl border border-[#2a2d33]">
+                <div className="w-12 h-12 bg-orange-500/20 rounded-xl flex items-center justify-center mb-4">
+                  <Radio className="w-6 h-6 text-orange-400" />
+                </div>
+                <h3 className="text-xl font-bold mb-2">Live Override System</h3>
+                <p className="text-[#9aa0a6] text-sm">Real-time WebSocket bridge syncs overrides between dashboard and game servers. Change weather, spawn NPCs, trigger events — instantly.</p>
+              </div>
+              
+              <div className="bg-[#141517] p-6 rounded-2xl border border-[#2a2d33]">
+                <div className="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center mb-4">
+                  <BarChart3 className="w-6 h-6 text-blue-400" />
+                </div>
+                <h3 className="text-xl font-bold mb-2">Tamper-Proof Audit</h3>
+                <p className="text-[#9aa0a6] text-sm">Hash-chained SHA256 audit logs with Ed25519 signatures. Every generation, override, and export is cryptographically verified.</p>
+              </div>
+              
+              <div className="bg-[#141517] p-6 rounded-2xl border border-[#2a2d33]">
+                <div className="w-12 h-12 bg-pink-500/20 rounded-xl flex items-center justify-center mb-4">
+                  <Palette className="w-6 h-6 text-pink-400" />
+                </div>
+                <h3 className="text-xl font-bold mb-2">Artist Marketplace</h3>
+                <p className="text-[#9aa0a6] text-sm">Upload concept art, earn 10-30% royalties when developers use your style. Stripe Connect payments with transparent earnings tracking.</p>
+              </div>
+            </div>
+            
+            {/* Use Cases */}
+            <div className="bg-[#141517] rounded-2xl p-8 border border-[#2a2d33] mb-16">
+              <h3 className="text-2xl font-bold mb-6 text-center">Built For</h3>
+              <div className="grid md:grid-cols-4 gap-4 text-center">
+                <div className="p-4">
+                  <div className="w-12 h-12 bg-red-500/20 rounded-xl flex items-center justify-center mx-auto mb-3">
+                    <Zap className="w-6 h-6 text-red-400" />
+                  </div>
+                  <p className="font-semibold">Game Studios</p>
+                  <p className="text-xs text-[#9aa0a6]">Rapid prototyping & procedural content</p>
+                </div>
+                <div className="p-4">
+                  <div className="w-12 h-12 bg-green-500/20 rounded-xl flex items-center justify-center mx-auto mb-3">
+                    <Shield className="w-6 h-6 text-green-400" />
+                  </div>
+                  <p className="font-semibold">Defense & Simulation</p>
+                  <p className="text-xs text-[#9aa0a6]">Offline training environments</p>
+                </div>
+                <div className="p-4">
+                  <div className="w-12 h-12 bg-yellow-500/20 rounded-xl flex items-center justify-center mx-auto mb-3">
+                    <Monitor className="w-6 h-6 text-yellow-400" />
+                  </div>
+                  <p className="font-semibold">Film & Animation</p>
+                  <p className="text-xs text-[#9aa0a6]">Virtual production worlds</p>
+                </div>
+                <div className="p-4">
+                  <div className="w-12 h-12 bg-cyan-500/20 rounded-xl flex items-center justify-center mx-auto mb-3">
+                    <BookOpen className="w-6 h-6 text-cyan-400" />
+                  </div>
+                  <p className="font-semibold">Architecture & VR</p>
+                  <p className="text-xs text-[#9aa0a6]">Immersive environment design</p>
+                </div>
+              </div>
+            </div>
+            
+            {/* Workflow Preview */}
+            <div className="text-center mb-16">
+              <h3 className="text-2xl font-bold mb-6">Simple 5-Step Workflow</h3>
+              <div className="flex flex-wrap justify-center gap-4 text-sm">
+                <div className="bg-[#1f2125] px-6 py-3 rounded-full flex items-center gap-2">
+                  <span className="w-6 h-6 bg-[#3e73ff] rounded-full flex items-center justify-center text-xs font-bold">1</span>
+                  <span>Create Project</span>
+                </div>
+                <div className="text-[#9aa0a6] flex items-center">→</div>
+                <div className="bg-[#1f2125] px-6 py-3 rounded-full flex items-center gap-2">
+                  <span className="w-6 h-6 bg-[#3e73ff] rounded-full flex items-center justify-center text-xs font-bold">2</span>
+                  <span>Write Prompt</span>
+                </div>
+                <div className="text-[#9aa0a6] flex items-center">→</div>
+                <div className="bg-[#1f2125] px-6 py-3 rounded-full flex items-center gap-2">
+                  <span className="w-6 h-6 bg-[#3e73ff] rounded-full flex items-center justify-center text-xs font-bold">3</span>
+                  <span>Generate</span>
+                </div>
+                <div className="text-[#9aa0a6] flex items-center">→</div>
+                <div className="bg-[#1f2125] px-6 py-3 rounded-full flex items-center gap-2">
+                  <span className="w-6 h-6 bg-[#3e73ff] rounded-full flex items-center justify-center text-xs font-bold">4</span>
+                  <span>Export</span>
+                </div>
+                <div className="text-[#9aa0a6] flex items-center">→</div>
+                <div className="bg-[#1f2125] px-6 py-3 rounded-full flex items-center gap-2">
+                  <span className="w-6 h-6 bg-[#3e73ff] rounded-full flex items-center justify-center text-xs font-bold">5</span>
+                  <span>Play</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        {/* Artist Showcase */}
+        <div className="bg-[#0b0d0f] py-12 px-8">
+          <div className="max-w-4xl mx-auto">
+            <ArtistShowcase 
+              maxItems={3} 
+              title="Featured Community Artists" 
+              showContactInfo={true}
+            />
+          </div>
+        </div>
+        
+        {/* Footer CTA */}
+        <div className="bg-gradient-to-r from-[#3e73ff]/20 to-purple-900/20 py-16 px-8 text-center">
+          <h2 className="text-3xl font-bold mb-4">Ready to Build Worlds?</h2>
+          <p className="text-[#9aa0a6] mb-8">Join 300+ creators using PacAI to generate game-ready content.</p>
+          <button onClick={() => document.getElementById('input-login-username')?.focus()} className="px-8 py-4 bg-[#3e73ff] rounded-xl font-bold text-lg hover:opacity-90" data-testid="button-get-started">
+            Get Started Free
+          </button>
         </div>
       </div>
     );
@@ -288,8 +452,18 @@ export default function App() {
       {/* SIDEBAR */}
       <div className={`${sidebarOpen ? "w-64" : "w-20"} bg-[#141517] border-r border-[#2a2d33] transition-all`}>
         <div className="p-6 flex justify-between items-center">
-          <h1 className={`font-black text-2xl ${sidebarOpen ? "block" : "hidden"}`}>PacAI v5</h1>
-          <button onClick={() => setSidebarOpen(!sidebarOpen)}>{sidebarOpen ? <X size={24} /> : <Menu size={24} />}</button>
+          <div className={`flex items-center gap-3 ${sidebarOpen ? "flex" : "hidden"}`}>
+            <div className="w-10 h-10 bg-[#3e73ff] rounded-xl flex items-center justify-center flex-shrink-0">
+              <Brain className="w-6 h-6 text-white" />
+            </div>
+            <h1 className="font-black text-xl">PacAI v5</h1>
+          </div>
+          {!sidebarOpen && (
+            <button onClick={() => setSidebarOpen(true)} className="w-10 h-10 bg-[#3e73ff] rounded-xl flex items-center justify-center mx-auto hover:opacity-90">
+              <Brain className="w-6 h-6 text-white" />
+            </button>
+          )}
+          {sidebarOpen && <button onClick={() => setSidebarOpen(false)}><X size={24} /></button>}
         </div>
         <nav className="mt-8">
           {menu.map(i => (
