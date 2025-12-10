@@ -3,6 +3,8 @@
   "outputDirectory": "dist/public",
   "framework": null,
   "rewrites": [
+    { "source": "/api/:path*", "destination": "https://pacai-v5.fly.dev/api/:path*" },
+    { "source": "/v5/:path*", "destination": "https://pacai-v5.fly.dev/v5/:path*" },
     { "source": "/(.*)", "destination": "/index.html" }
   ],
   "headers": [
