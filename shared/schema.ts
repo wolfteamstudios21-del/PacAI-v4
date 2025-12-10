@@ -3,10 +3,18 @@ import { pgTable, text, varchar, jsonb, timestamp, integer } from "drizzle-orm/p
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
+// User tiers for PacAI licensing
+export type UserTier = "free" | "creator" | "pro" | "lifetime" | "enterprise";
+
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
+  tier: text("tier").notNull().default("free"), // free, creator, pro, lifetime, enterprise
+  stripe_customer_id: text("stripe_customer_id"),
+  stripe_subscription_id: text("stripe_subscription_id"),
+  license_expires_at: timestamp("license_expires_at"),
+  is_verified: integer("is_verified").notNull().default(0),
 });
 
 // Reference images for generation
@@ -124,6 +132,15 @@ export const insertUserSchema = createInsertSchema(users).pick({
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
+
+// Tier pricing configuration
+export const TIER_CONFIG = {
+  free: { name: "Free", price: 0, generations: 5, refs: 1, voices: 1, animations: 1 },
+  creator: { name: "Creator", price: 999, generations: 50, refs: 5, voices: 5, animations: 5 },
+  pro: { name: "Pro", price: 2999, generations: 200, refs: 20, voices: 10, animations: 10 },
+  lifetime: { name: "Lifetime", price: 29999, generations: -1, refs: -1, voices: -1, animations: -1 },
+  enterprise: { name: "Enterprise", price: 99999, generations: -1, refs: -1, voices: -1, animations: -1 },
+} as const;
 
 export interface UserWithCredits extends User {
   credits: number;

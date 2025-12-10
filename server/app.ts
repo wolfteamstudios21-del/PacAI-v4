@@ -22,6 +22,7 @@ import voiceRoutes from "./routes/voice";
 import animateRoutes from "./routes/animate";
 import styleRoutes from "./routes/style";
 import artistRoutes from "./routes/artist";
+import billingRoutes from "./routes/billing";
 import { v3Proxy } from "./middleware/v3-proxy";
 import { initWebSocket } from "./websocket";
 import { tierMiddleware } from "./middleware/tiers";
@@ -111,6 +112,9 @@ app.use(styleRoutes);
 
 // v5.6: Artist Portal with royalty tracking
 app.use(artistRoutes);
+
+// v5.7: Billing and tier upgrades
+app.use(billingRoutes);
 
 // Serve uploads directory for ref images
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));

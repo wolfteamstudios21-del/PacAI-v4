@@ -1,5 +1,8 @@
 import { Router, type Request, type Response, type NextFunction } from "express";
 import crypto from "crypto";
+import { db } from "./drizzle";
+import { users as usersTable } from "@shared/schema";
+import { eq } from "drizzle-orm";
 
 const router = Router();
 
@@ -115,7 +118,7 @@ function getWeekStart() {
   return weekStart.getTime();
 }
 
-// Login / Register
+// Login / Register - checks database first for persistent tier
 router.post("/api/login", async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -124,6 +127,42 @@ router.post("/api/login", async (req, res) => {
       return res.status(400).json({ error: "Missing username or password" });
     }
 
+    // First check database for existing user with tier
+    let dbUser = null;
+    try {
+      const [foundUser] = await db.select().from(usersTable).where(eq(usersTable.username, username));
+      dbUser = foundUser;
+    } catch (e) {
+      // Database might not be ready, fall back to in-memory
+    }
+
+    if (dbUser) {
+      // User exists in database - check password and use DB tier
+      if (dbUser.password !== password) {
+        return res.status(401).json({ error: "Wrong password" });
+      }
+      
+      // Sync in-memory store with database
+      users[username] = {
+        password: dbUser.password,
+        tier: (dbUser.tier || "free") as "free" | "creator" | "lifetime",
+        verified: dbUser.is_verified === 1,
+        generationsThisWeek: 0,
+        lastGenerationReset: getWeekStart()
+      };
+      
+      const tier = dbUser.tier || "free";
+      const sessionToken = createSessionToken(username, tier);
+      
+      return res.json({ 
+        success: true, 
+        tier, 
+        verified: dbUser.is_verified === 1,
+        sessionToken,
+      });
+    }
+
+    // Fall back to in-memory store
     let user = users[username];
     
     // Auto-register new user on first login
@@ -136,6 +175,18 @@ router.post("/api/login", async (req, res) => {
         lastGenerationReset: getWeekStart()
       };
       user = users[username];
+      
+      // Also insert into database for persistence
+      try {
+        await db.insert(usersTable).values({
+          username,
+          password,
+          tier: "free",
+          is_verified: 0,
+        });
+      } catch (e) {
+        // Database insert failed, continue with in-memory only
+      }
     }
     
     // Check password
@@ -150,7 +201,7 @@ router.post("/api/login", async (req, res) => {
       success: true, 
       tier: user.tier || "free", 
       verified: user.verified || false,
-      sessionToken, // Client should store and use this for authenticated requests
+      sessionToken,
     });
   } catch (error) {
     res.status(500).json({ error: "Login failed" });

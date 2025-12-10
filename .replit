@@ -14,66 +14,6 @@ run = ["npm", "run", "start"]
 localPort = 5000
 externalPort = 80
 
-[[ports]]
-localPort = 33115
-externalPort = 5000
-
-[[ports]]
-localPort = 34227
-externalPort = 6800
-
-[[ports]]
-localPort = 35581
-externalPort = 6000
-
-[[ports]]
-localPort = 36191
-externalPort = 4200
-
-[[ports]]
-localPort = 36385
-externalPort = 8080
-
-[[ports]]
-localPort = 36633
-externalPort = 8000
-
-[[ports]]
-localPort = 39559
-externalPort = 3003
-
-[[ports]]
-localPort = 39629
-externalPort = 5173
-
-[[ports]]
-localPort = 40023
-externalPort = 3000
-
-[[ports]]
-localPort = 40483
-externalPort = 8008
-
-[[ports]]
-localPort = 42093
-externalPort = 3002
-
-[[ports]]
-localPort = 43313
-externalPort = 8081
-
-[[ports]]
-localPort = 43627
-externalPort = 8099
-
-[[ports]]
-localPort = 45257
-externalPort = 3001
-
-[[ports]]
-localPort = 46823
-externalPort = 9000
-
 [env]
 PORT = "5000"
 
@@ -99,7 +39,7 @@ args = "npm run dev"
 waitForPort = 5000
 
 [agent]
-integrations = ["javascript_openai:1.0.0", "javascript_mem_db:1.0.0"]
+integrations = ["javascript_openai:1.0.0", "javascript_mem_db:1.0.0", "stripe:2.0.0"]
 
 [userenv]
 

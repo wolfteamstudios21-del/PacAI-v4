@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
 import {
   Zap, Shield, Download, LogOut, Menu, X, Crown, Search, UserCheck,
-  Brain, Sparkles, Send, Package, Smartphone, Monitor, BookOpen, BarChart3, Image, Radio, Palette
+  Brain, Sparkles, Send, Package, Smartphone, Monitor, BookOpen, BarChart3, Image, Radio, Palette, CreditCard
 } from "lucide-react";
 import RefUploader from "./components/RefUploader";
 import { SessionManager } from "./components/LiveOverrides";
 import GalleryPage from "./pages/gallery";
 import ArtistPortal from "./pages/artist-portal";
+import Pricing from "./pages/pricing";
 import ArtistShowcase from "./components/ArtistShowcase";
 import heroImage from "@assets/generated_images/defense_command_center_tactical_display.png";
 
@@ -99,6 +100,9 @@ export default function App() {
           sessionToken: data.sessionToken || "" 
         };
         localStorage.setItem("pacai_user", JSON.stringify(u));
+        // Also store individual keys for billing pages
+        localStorage.setItem("sessionToken", data.sessionToken || "");
+        localStorage.setItem("userTier", data.tier || "free");
         setUser(u);
       } else {
         alert(data.error || "Login failed");
@@ -236,6 +240,8 @@ export default function App() {
 
   const logout = () => {
     localStorage.removeItem("pacai_user");
+    localStorage.removeItem("sessionToken");
+    localStorage.removeItem("userTier");
     setUser(null);
     setLoginUser("");
     setLoginPass("");
@@ -268,6 +274,7 @@ export default function App() {
     { id: "generate", icon: Sparkles, label: "Generation Lab" },
     { id: "gallery", icon: Image, label: "3dRender Gallery" },
     { id: "artist", icon: Palette, label: "Artist Portal" },
+    { id: "pricing", icon: CreditCard, label: "Upgrade Plan" },
     { id: "override", icon: Send, label: "Override" },
     { id: "live", icon: Radio, label: "Live Overrides" },
     { id: "export", icon: Package, label: "Export" },
@@ -495,6 +502,10 @@ export default function App() {
             username={user?.name || "anonymous"} 
             sessionToken={user?.sessionToken}
           />
+        )}
+
+        {activeTab === "pricing" && (
+          <Pricing />
         )}
 
         {activeTab === "override" && (
