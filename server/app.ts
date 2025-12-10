@@ -23,6 +23,7 @@ import animateRoutes from "./routes/animate";
 import styleRoutes from "./routes/style";
 import artistRoutes from "./routes/artist";
 import billingRoutes from "./routes/billing";
+import connectRoutes from "./routes/connect";
 import { v3Proxy } from "./middleware/v3-proxy";
 import { initWebSocket } from "./websocket";
 import { tierMiddleware } from "./middleware/tiers";
@@ -115,6 +116,9 @@ app.use(artistRoutes);
 
 // v5.7: Billing and tier upgrades
 app.use(billingRoutes);
+
+// v5.7: Stripe Connect marketplace for creators
+app.use("/api/connect", connectRoutes);
 
 // Serve uploads directory for ref images
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));

@@ -13,9 +13,33 @@ export const users = pgTable("users", {
   tier: text("tier").notNull().default("free"), // free, creator, pro, lifetime, enterprise
   stripe_customer_id: text("stripe_customer_id"),
   stripe_subscription_id: text("stripe_subscription_id"),
+  stripe_account_id: text("stripe_account_id"), // Stripe Connect account for marketplace sellers
+  stripe_onboarding_complete: integer("stripe_onboarding_complete").default(0), // 0 = incomplete, 1 = complete
   license_expires_at: timestamp("license_expires_at"),
   is_verified: integer("is_verified").notNull().default(0),
 });
+
+// Creator marketplace products (sold via Stripe Connect)
+export const creatorProducts = pgTable("creator_products", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  user_id: varchar("user_id").notNull(),
+  stripe_price_id: text("stripe_price_id").notNull(),
+  stripe_product_id: text("stripe_product_id").notNull(),
+  name: text("name").notNull(),
+  description: text("description"),
+  price_cents: integer("price_cents").notNull(),
+  currency: text("currency").notNull().default("usd"),
+  is_active: integer("is_active").notNull().default(1),
+  created_at: timestamp("created_at").defaultNow(),
+});
+
+export const insertCreatorProductSchema = createInsertSchema(creatorProducts).omit({
+  id: true,
+  created_at: true,
+});
+
+export type InsertCreatorProduct = z.infer<typeof insertCreatorProductSchema>;
+export type CreatorProduct = typeof creatorProducts.$inferSelect;
 
 // Reference images for generation
 export const refs = pgTable("refs", {

@@ -41,6 +41,15 @@ PacAI v5 employs a robust, security-focused architecture. The user interface is 
 - **Billing Success Page** (`client/src/pages/billing-success.tsx`): Post-checkout confirmation with tier update.
 - **Dev Team Lifetime Licenses**: WolfTeamstudio2 and AdminTeam15 assigned lifetime tier for testing/production use.
 
+**v5.7 Stripe Connect Marketplace (December 2025):**
+- **Creator Marketplace**: Full Stripe Connect integration enabling creators to sell products with platform fees (10% + $0.30).
+- **Connected Accounts**: Creators create Stripe Standard accounts via `/api/connect/connect/create`, complete onboarding via `/api/connect/connect/onboard`.
+- **Onboarding Status**: Real-time status checking via `/api/connect/connect/status` (not_started, started, pending, complete).
+- **Product Creation**: Creators can create products on their connected accounts via `/api/connect/products/create`.
+- **Public Storefronts**: Each creator has a public store at `/api/connect/store/:accountId` with PacAI dark theme styling.
+- **Direct Charges**: Checkout sessions use direct charges with application fees, routed through `/api/connect/checkout`.
+- **Database Schema**: `users` table extended with `stripe_account_id`, `stripe_onboarding_complete`; new `creator_products` table for product catalog.
+
 **v5.5 New Modules (December 2025):**
 - **Voice Synthesis Module** (`/v5/voice`): POST for generation, GET for previews. Supports 10 voice styles (gritty, calm, urgent, robotic, tactical, commander, civilian, hostile, friendly, neutral) and 9 languages. Tier limits: Free=1 style, Pro=5, Enterprise=unlimited. Mock audio output ready for Ollama/local TTS integration.
 - **Animation/Rigging Module** (`/v5/animate`): Procedural skeletal rigging for humanoid/creature/vehicle/prop assets. 24 motion types across locomotion, combat, emotes, and reactions. Generates rig JSON and FBX base64. Tier limits: Free=1 animation, Pro=5 with layers.
