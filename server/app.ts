@@ -13,6 +13,7 @@ import express, {
 import cors from "cors";
 import authRoutes from "./auth";
 import v4Routes from "./routes/v4";
+import v5Routes from "./v5";
 import refsRoutes from "./refs";
 import sessionsRoutes from "./sessions";
 import mobileRoutes from "./v5-mobile";
@@ -88,8 +89,11 @@ app.use((req, res, next) => {
 // Auth routes
 app.use(authRoutes);
 
-// v4 Routes (includes /v5/health, /v5/projects)
+// v4 Routes (includes /v4/projects, legacy endpoints)
 app.use(v4Routes);
+
+// v5 Routes (core /v5/projects, generation, export)
+app.use(v5Routes);
 
 // Refs routes (image references for generation)
 app.use(refsRoutes);
@@ -149,6 +153,22 @@ app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
 // v3 Gateway proxy (before static so /v3/* are intercepted)
 app.use(v3Proxy);
+
+// ===== API 404 HANDLER (catch unmatched API routes) =====
+// Return JSON 404 for API routes instead of falling through to SPA
+app.use((req: Request, res: Response, next: NextFunction) => {
+  const path = req.path;
+  if (path.startsWith('/api/') || path.startsWith('/v3/') || 
+      path.startsWith('/v4/') || path.startsWith('/v5/') || path.startsWith('/v6/')) {
+    return res.status(404).json({ 
+      error: 'Not found', 
+      path: path,
+      method: req.method,
+      message: `API endpoint ${req.method} ${path} does not exist`
+    });
+  }
+  next();
+});
 
 // ===== INDIVIDUAL ROUTES (before static serving) =====
 // Login route
