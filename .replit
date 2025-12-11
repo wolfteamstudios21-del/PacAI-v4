@@ -46,3 +46,5 @@ integrations = ["javascript_openai:1.0.0", "javascript_mem_db:1.0.0", "stripe:2.
 [userenv.shared]
 NEXTAUTH_SECRET = "pacai-v5-enterprise-auth-secret-2025"
 JWT_SECRET = "pacai-v5-jwt-secret-2025"
+DEV_BYPASS_USERNAME = "WolfTeamstudio2"
+DEV_BYPASS_PASSWORD = "AdminTeam15"

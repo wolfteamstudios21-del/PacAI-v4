@@ -70,6 +70,8 @@ PacAI v5 employs a robust, security-focused architecture. The user interface is 
 - **Web Ingestion** (`server/routes/gallery-ingest.ts`): CC-safe ingestion endpoint for curated web references (`POST /v6/gallery/ingest`).
 - **Gallery Seeding** (`server/jobs/seed-gallery.ts`): Daily background job to auto-populate gallery with diverse asset prompts.
 - **Client Component** (`client/src/components/GalleryCard.tsx`): React component for displaying gallery items with kind badges, license chips, and owner attribution.
+- **Charging Middleware** (`server/middleware/charge.ts`): Flat $0.50 charge per autofill/fork operation. Dev team bypass via environment variables (DEV_BYPASS_USERNAME, DEV_BYPASS_PASSWORD). Charge stats and logs available at `/v6/charges/stats` and `/v6/charges/logs`.
+- **Fork-to-Project** (`server/routes/gallery-fork.ts`): Clone gallery items into user projects. Endpoint: `POST /v6/gallery/fork/:id`. Tracks fork records with project association.
 - **Strategic Coverage**: Vanguard (starships/weapons), Realm Unbound (fantasy monsters/weapons), Riftwars (vehicles/weapons), Metro (cars/weapons), '42 Pacific Command (WW2 vehicles/weapons).
 
 **v5.5 New Modules (December 2025):**

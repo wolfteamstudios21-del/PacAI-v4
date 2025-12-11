@@ -27,6 +27,8 @@ import connectRoutes from "./routes/connect";
 import v6Routes from "./routes/v6";
 import galleryAutofillRoutes from "./routes/gallery-autofill";
 import galleryIngestRoutes from "./routes/gallery-ingest";
+import galleryForkRoutes from "./routes/gallery-fork";
+import chargeStatsRoutes from "./routes/charge-stats";
 import { v3Proxy } from "./middleware/v3-proxy";
 import { initWebSocket } from "./websocket";
 import { tierMiddleware } from "./middleware/tiers";
@@ -129,6 +131,8 @@ app.use("/v6", v6Routes);
 // v6.1: Gallery auto-fill for vehicles, weapons, creatures
 app.use("/v6", galleryAutofillRoutes);
 app.use("/v6", galleryIngestRoutes);
+app.use("/v6", galleryForkRoutes);
+app.use("/v6", chargeStatsRoutes);
 
 // Serve uploads directory for ref images
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
