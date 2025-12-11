@@ -57,8 +57,14 @@ PacAI v5 employs a robust, security-focused architecture. The user interface is 
 - **NPC Control Layer v2** (`server/generation/npc-v6.ts`): Advanced NPC generation with motivation systems (primary/secondary goals), emotional state (mood, intensity, triggers), behavior hooks, faction alignment (loyalty, biases), routines, and personality traits.
 - **Fauna Ecosystem Intelligence** (`server/generation/fauna-v6.ts`): Trophic layer classification (predator/herbivore/scavenger/microfauna), environmental dependencies, behavior models (herding, aggression, activity cycles, territory), pack dynamics.
 - **Simulation Hooks** (`server/generation/simulation-v6.ts`): Racing and gameplay fabric including car tuning, street density, traffic flows, race hotspots, NPC driving profiles, event triggers, and city state hour cycles.
-- **v6 API Routes** (`server/routes/v6.ts`): New endpoints at `/v6/generate`, `/v6/generate/npc`, `/v6/generate/fauna`, `/v6/generate/simulation`, `/v6/generate/image`, `/v6/health`.
+- **v6 API Routes** (`server/routes/v6.ts`): Endpoints at `/v6/generate`, `/v6/generate/npc`, `/v6/generate/fauna`, `/v6/generate/simulation`, `/v6/generate/image`, `/v6/health`.
 - **Environment Variables**: `PACAI_LLM_MODEL` (default: llama3.1), `AZURE_VISION_KEY`, `AZURE_VISION_ENDPOINT` (optional for image parsing).
+
+**v6.1 Asset Generators (December 2025):**
+- **Vehicle Generator** (`server/generation/vehicle-v6.ts`): Generates vehicles (car/tank/starship/aircraft/boat) with faction, stats (speed/armor/fuel), visuals (palette/silhouette), and abilities. Endpoint: `POST /v6/generate/vehicle`.
+- **Weapon Generator** (`server/generation/weapon-v6.ts`): Generates weapons (melee/ranged/energy/explosive) with material, damage, reload time, style, faction, and special effects. Endpoint: `POST /v6/generate/weapon`.
+- **Creature Generator** (`server/generation/creature-v6.ts`): Generates creatures/monsters (beast/demon/alien/mutant) with biome, abilities, weaknesses, aggression, visuals, and narrative hooks. Endpoint: `POST /v6/generate/creature`.
+- **Strategic Coverage**: Vanguard (starships/weapons), Realm Unbound (fantasy monsters/weapons), Riftwars (vehicles/weapons), Metro (cars/weapons), '42 Pacific Command (WW2 vehicles/weapons).
 
 **v5.5 New Modules (December 2025):**
 - **Voice Synthesis Module** (`/v5/voice`): POST for generation, GET for previews. Supports 10 voice styles (gritty, calm, urgent, robotic, tactical, commander, civilian, hostile, friendly, neutral) and 9 languages. Tier limits: Free=1 style, Pro=5, Enterprise=unlimited. Mock audio output ready for Ollama/local TTS integration.
