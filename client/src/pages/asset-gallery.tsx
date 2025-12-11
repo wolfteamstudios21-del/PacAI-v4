@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Car, Sword, Bug, GitFork, Sparkles, CreditCard, Shield, Loader2, ExternalLink } from "lucide-react";
+import { Car, Sword, Bug, GitFork, Sparkles, CreditCard, Shield, Loader2, ExternalLink, Paintbrush, Box, Download } from "lucide-react";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
@@ -15,12 +15,13 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || "";
 
 interface GalleryItem {
   id: string;
-  kind: "vehicle" | "weapon" | "creature";
+  kind: "vehicle" | "weapon" | "creature" | "concept" | "model";
   title: string;
   tags: string[];
   license: "cc0" | "cc-by" | "commercial";
   owner: string;
   imageBase64?: string;
+  modelUrl?: string;
   meta: Record<string, any>;
   createdAt: number;
 }
@@ -35,12 +36,16 @@ const KIND_ICONS: Record<string, typeof Car> = {
   vehicle: Car,
   weapon: Sword,
   creature: Bug,
+  concept: Paintbrush,
+  model: Box,
 };
 
 const KIND_COLORS: Record<string, string> = {
   vehicle: "bg-blue-600",
   weapon: "bg-red-600",
   creature: "bg-green-600",
+  concept: "bg-purple-600",
+  model: "bg-orange-600",
 };
 
 const LICENSE_BADGES: Record<string, { label: string; color: string }> = {
@@ -162,6 +167,8 @@ export default function AssetGalleryPage() {
       vehicle: "futuristic military transport with hover capabilities",
       weapon: "plasma rifle with energy cells",
       creature: "armored jungle predator with camouflage",
+      concept: "cyberpunk fortress with neon lights and flying vehicles",
+      model: "sci-fi prop weapon rack with modular attachments",
     };
     autofillMutation.mutate({
       kind,
@@ -178,7 +185,7 @@ export default function AssetGalleryPage() {
             PacAI Asset Gallery
           </h1>
           <p className="text-xl text-[#9aa0a6] mb-2">
-            Browse vehicles, weapons, and creatures.
+            Browse vehicles, weapons, creatures, concept art, and 3D models.
           </p>
           <p className="text-lg">
             Fork any asset to your project for{" "}
@@ -207,6 +214,14 @@ export default function AssetGalleryPage() {
               <TabsTrigger value="creature" data-testid="tab-creatures">
                 <Bug className="w-4 h-4 mr-1" />
                 Creatures
+              </TabsTrigger>
+              <TabsTrigger value="concept" data-testid="tab-concepts">
+                <Paintbrush className="w-4 h-4 mr-1" />
+                Concept Art
+              </TabsTrigger>
+              <TabsTrigger value="model" data-testid="tab-models">
+                <Box className="w-4 h-4 mr-1" />
+                3D Models
               </TabsTrigger>
             </TabsList>
           </Tabs>
@@ -238,6 +253,26 @@ export default function AssetGalleryPage() {
             >
               <Sparkles className="w-4 h-4 mr-2" />
               Generate Creature
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => generateAsset("concept")}
+              disabled={autofillMutation.isPending}
+              data-testid="button-generate-concept"
+              className="border-purple-500 text-purple-400 hover:bg-purple-500/10"
+            >
+              <Paintbrush className="w-4 h-4 mr-2" />
+              Concept Art
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => generateAsset("model")}
+              disabled={autofillMutation.isPending}
+              data-testid="button-generate-model"
+              className="border-orange-500 text-orange-400 hover:bg-orange-500/10"
+            >
+              <Box className="w-4 h-4 mr-2" />
+              3D Model
             </Button>
           </div>
         </div>
@@ -281,7 +316,20 @@ export default function AssetGalleryPage() {
                   data-testid={`card-asset-${item.id}`}
                 >
                   <div className="h-48 bg-[#0b0d0f] flex items-center justify-center relative">
-                    {item.imageBase64 ? (
+                    {item.kind === "concept" && item.meta?.imageUrl ? (
+                      <img
+                        src={item.meta.imageUrl}
+                        alt={item.title}
+                        className="w-full h-full object-cover"
+                        data-testid={`img-concept-${item.id}`}
+                      />
+                    ) : item.kind === "model" && item.meta?.modelUrl ? (
+                      <div className="text-center">
+                        <Box className="w-16 h-16 mx-auto text-orange-400 mb-2" />
+                        <p className="text-sm text-[#9aa0a6]">{item.meta.format?.toUpperCase() || "GLB"}</p>
+                        <p className="text-xs text-[#9aa0a6]">{item.meta.polyCount || "N/A"}</p>
+                      </div>
+                    ) : item.imageBase64 ? (
                       <img
                         src={`data:image/svg+xml;base64,${item.imageBase64}`}
                         alt={item.title}
@@ -325,18 +373,32 @@ export default function AssetGalleryPage() {
                       )}
                     </div>
 
-                    <Button
-                      className="w-full"
-                      onClick={() => handleFork(item)}
-                      disabled={forkMutation.isPending}
-                      data-testid={`button-fork-${item.id}`}
-                    >
-                      <GitFork className="w-4 h-4 mr-2" />
-                      Fork to Project
-                      {!isDevTeam && (
-                        <span className="ml-2 text-xs opacity-75">$0.50</span>
+                    <div className="flex gap-2">
+                      {item.kind === "model" && item.meta?.modelUrl && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          asChild
+                          data-testid={`button-download-${item.id}`}
+                        >
+                          <a href={item.meta.modelUrl} download>
+                            <Download className="w-4 h-4" />
+                          </a>
+                        </Button>
                       )}
-                    </Button>
+                      <Button
+                        className="flex-1"
+                        onClick={() => handleFork(item)}
+                        disabled={forkMutation.isPending}
+                        data-testid={`button-fork-${item.id}`}
+                      >
+                        <GitFork className="w-4 h-4 mr-2" />
+                        Fork
+                        {!isDevTeam && (
+                          <span className="ml-2 text-xs opacity-75">$0.50</span>
+                        )}
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
               );

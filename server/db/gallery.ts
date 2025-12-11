@@ -2,7 +2,7 @@ import { randomUUID } from "crypto";
 
 export interface GalleryItem {
   id: string;
-  kind: "vehicle" | "weapon" | "creature";
+  kind: "vehicle" | "weapon" | "creature" | "concept" | "model";
   title: string;
   tags: string[];
   license: "cc0" | "cc-by" | "commercial";

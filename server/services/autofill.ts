@@ -10,7 +10,7 @@ function resolveLicense(source: "system" | "user" | "web"): License {
 }
 
 export async function addToGallery(
-  kind: "vehicle" | "weapon" | "creature",
+  kind: "vehicle" | "weapon" | "creature" | "concept" | "model",
   title: string,
   meta: any,
   owner = "system",
