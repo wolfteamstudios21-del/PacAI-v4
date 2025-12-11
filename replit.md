@@ -64,6 +64,12 @@ PacAI v5 employs a robust, security-focused architecture. The user interface is 
 - **Vehicle Generator** (`server/generation/vehicle-v6.ts`): Generates vehicles (car/tank/starship/aircraft/boat) with faction, stats (speed/armor/fuel), visuals (palette/silhouette), and abilities. Endpoint: `POST /v6/generate/vehicle`.
 - **Weapon Generator** (`server/generation/weapon-v6.ts`): Generates weapons (melee/ranged/energy/explosive) with material, damage, reload time, style, faction, and special effects. Endpoint: `POST /v6/generate/weapon`.
 - **Creature Generator** (`server/generation/creature-v6.ts`): Generates creatures/monsters (beast/demon/alien/mutant) with biome, abilities, weaknesses, aggression, visuals, and narrative hooks. Endpoint: `POST /v6/generate/creature`.
+- **Gallery Auto-Fill** (`server/routes/gallery-autofill.ts`): Auto-populates gallery with procedurally generated vehicles, weapons, and creatures. Includes silhouette preview generation, license-aware storage (cc0/cc-by/commercial), and bulk operations. Endpoints: `POST /v6/gallery/autofill/vehicle`, `/weapon`, `/creature`, `/bulk`. List: `GET /v6/gallery`.
+- **Gallery Data Model** (`server/db/gallery.ts`): In-memory gallery storage with kind filtering, license tracking, and owner attribution (system/user/web).
+- **Preview Generation** (`server/lib/preview.ts`): Deterministic SVG silhouettes from tags for offline-first placeholder previews.
+- **Web Ingestion** (`server/routes/gallery-ingest.ts`): CC-safe ingestion endpoint for curated web references (`POST /v6/gallery/ingest`).
+- **Gallery Seeding** (`server/jobs/seed-gallery.ts`): Daily background job to auto-populate gallery with diverse asset prompts.
+- **Client Component** (`client/src/components/GalleryCard.tsx`): React component for displaying gallery items with kind badges, license chips, and owner attribution.
 - **Strategic Coverage**: Vanguard (starships/weapons), Realm Unbound (fantasy monsters/weapons), Riftwars (vehicles/weapons), Metro (cars/weapons), '42 Pacific Command (WW2 vehicles/weapons).
 
 **v5.5 New Modules (December 2025):**
