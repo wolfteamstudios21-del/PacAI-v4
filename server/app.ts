@@ -31,6 +31,7 @@ import galleryIngestRoutes from "./routes/gallery-ingest";
 import galleryForkRoutes from "./routes/gallery-fork";
 import chargeStatsRoutes from "./routes/charge-stats";
 import chargeSuccessRoutes from "./routes/charge-success";
+import ragSearchRoutes from "./routes/rag-search";
 import { freeTierLimiter, generationLimiter } from "./middleware/rate-limit";
 import { v3Proxy } from "./middleware/v3-proxy";
 import { initWebSocket } from "./websocket";
@@ -147,6 +148,9 @@ app.use("/api/v6", chargeSuccessRoutes);
 
 // Apply rate limiting to v6 generation endpoints
 app.use("/v6/generate", freeTierLimiter, generationLimiter);
+
+// v6.2: RAG Search augmentation for enhanced LLM generation
+app.use("/v6", ragSearchRoutes);
 
 // Serve uploads directory for ref images
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));

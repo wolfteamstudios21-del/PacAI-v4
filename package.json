@@ -67,6 +67,7 @@
     "express-rate-limit": "^8.2.1",
     "express-session": "^1.18.1",
     "framer-motion": "^11.13.1",
+    "googleapis": "^168.0.0",
     "input-otp": "^1.4.2",
     "ioredis": "^5.8.2",
     "jsonwebtoken": "^9.0.2",
