@@ -1,7 +1,7 @@
-# PacAI v5 - Dev Companion
+# PacAI v6 - Dev Companion
 
 ## Overview
-PacAI v5 (AI Brain v5) is an enterprise offline-first defense simulation platform for air-gapped environments. Its primary purpose is deterministic procedural generation for simulation scenarios. Key capabilities include hardware-root licensing, SSO + X.509 authentication, tamper-proof hash-chained audit logs, and multi-engine exports (UE5, Unity, Godot, Roblox, visionOS, Blender, WebGPU, CryEngine, Source2). The platform aims to be the leading offline world generator, targeting a ship date of April 2026.
+PacAI v6 (AI Brain v6) is an enterprise offline-first defense simulation platform for air-gapped environments. Its primary purpose is deterministic procedural generation for simulation scenarios. Key capabilities include hardware-root licensing, SSO + X.509 authentication, tamper-proof hash-chained audit logs, and multi-engine exports (UE5, Unity, Godot, Roblox, visionOS, Blender, WebGPU, CryEngine, Source2). The platform aims to be the leading offline world generator, targeting a ship date of April 2026.
 
 ## User Preferences
 I prefer detailed explanations.
@@ -49,6 +49,16 @@ PacAI v5 employs a robust, security-focused architecture. The user interface is 
 - **Public Storefronts**: Each creator has a public store at `/api/connect/store/:accountId` with PacAI dark theme styling.
 - **Direct Charges**: Checkout sessions use direct charges with application fees, routed through `/api/connect/checkout`.
 - **Database Schema**: `users` table extended with `stripe_account_id`, `stripe_onboarding_complete`; new `creator_products` table for product catalog.
+
+**v6.0 AI Core Upgrades (December 2025):**
+- **Reasoning Engine** (`server/lib/reasoning.ts`): Ollama-powered LLM integration with interpret→plan→expand pipeline. Internal reasoning steps not exposed to users; output compressed and normalized. Falls back to procedural generation when Ollama unavailable.
+- **Detail Compression** (`server/lib/compression.ts`): Confidence-based pruning, description truncation, seed quantization, and coordinate normalization for engine-ready output.
+- **Azure Vision Parsing** (`server/lib/vision.ts`): Optional image-aware generation extracting style, palette, biome, tone, lighting from reference images. Graceful fallback when Azure Vision credentials not configured.
+- **NPC Control Layer v2** (`server/generation/npc-v6.ts`): Advanced NPC generation with motivation systems (primary/secondary goals), emotional state (mood, intensity, triggers), behavior hooks, faction alignment (loyalty, biases), routines, and personality traits.
+- **Fauna Ecosystem Intelligence** (`server/generation/fauna-v6.ts`): Trophic layer classification (predator/herbivore/scavenger/microfauna), environmental dependencies, behavior models (herding, aggression, activity cycles, territory), pack dynamics.
+- **Simulation Hooks** (`server/generation/simulation-v6.ts`): Racing and gameplay fabric including car tuning, street density, traffic flows, race hotspots, NPC driving profiles, event triggers, and city state hour cycles.
+- **v6 API Routes** (`server/routes/v6.ts`): New endpoints at `/v6/generate`, `/v6/generate/npc`, `/v6/generate/fauna`, `/v6/generate/simulation`, `/v6/generate/image`, `/v6/health`.
+- **Environment Variables**: `PACAI_LLM_MODEL` (default: llama3.1), `AZURE_VISION_KEY`, `AZURE_VISION_ENDPOINT` (optional for image parsing).
 
 **v5.5 New Modules (December 2025):**
 - **Voice Synthesis Module** (`/v5/voice`): POST for generation, GET for previews. Supports 10 voice styles (gritty, calm, urgent, robotic, tactical, commander, civilian, hostile, friendly, neutral) and 9 languages. Tier limits: Free=1 style, Pro=5, Enterprise=unlimited. Mock audio output ready for Ollama/local TTS integration.
