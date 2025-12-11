@@ -13,9 +13,13 @@ const FREE_TIER_LIMITER = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
+  validate: { xForwardedForHeader: false },
   keyGenerator: (req: Request) => {
-    const user = (req as any).user?.username || req.body?.username || req.ip || "anonymous";
-    return user;
+    const user = (req as any).user?.username || req.body?.username;
+    if (user) return user;
+    const forwarded = req.headers['x-forwarded-for'];
+    const ip = forwarded ? (Array.isArray(forwarded) ? forwarded[0] : forwarded.split(',')[0]) : req.socket?.remoteAddress;
+    return ip || "anonymous";
   },
   skip: (req: Request) => {
     const username = (req as any).user?.username || req.body?.username;
@@ -33,9 +37,13 @@ const GENERATION_LIMITER = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
+  validate: { xForwardedForHeader: false },
   keyGenerator: (req: Request) => {
-    const user = (req as any).user?.username || req.body?.username || req.ip || "anonymous";
-    return `gen_${user}`;
+    const user = (req as any).user?.username || req.body?.username;
+    if (user) return `gen_${user}`;
+    const forwarded = req.headers['x-forwarded-for'];
+    const ip = forwarded ? (Array.isArray(forwarded) ? forwarded[0] : forwarded.split(',')[0]) : req.socket?.remoteAddress;
+    return `gen_${ip || "anonymous"}`;
   },
   skip: (req: Request) => {
     const username = (req as any).user?.username || req.body?.username;
