@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { getGalleryItem, insertGalleryItem } from "../db/gallery";
-import { chargeMiddleware, isDevTeam } from "../middleware/charge";
+import { realChargeMiddleware, isDevTeam } from "../middleware/real-charge";
 
 const router = Router();
 
@@ -14,7 +14,7 @@ interface ForkRecord {
 
 const forkRecords: ForkRecord[] = [];
 
-router.post("/gallery/fork/:id", chargeMiddleware, async (req, res) => {
+router.post("/gallery/fork/:id", realChargeMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
     const { projectId, username = "anonymous", password } = req.body;
@@ -53,7 +53,7 @@ router.post("/gallery/fork/:id", chargeMiddleware, async (req, res) => {
     };
     forkRecords.push(forkRecord);
 
-    const charged = !isDevTeam(username, password);
+    const charged = !isDevTeam(username);
 
     console.log(`[gallery/fork] User ${username} forked ${item.title} to project ${projectId} (charged: ${charged})`);
 

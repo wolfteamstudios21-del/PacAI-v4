@@ -6,6 +6,7 @@ import {
 import RefUploader from "./components/RefUploader";
 import { SessionManager } from "./components/LiveOverrides";
 import GalleryPage from "./pages/gallery";
+import AssetGalleryPage from "./pages/asset-gallery";
 import ArtistPortal from "./pages/artist-portal";
 import Pricing from "./pages/pricing";
 import ArtistShowcase from "./components/ArtistShowcase";
@@ -436,13 +437,14 @@ export default function App() {
   const menu = [
     { id: "home", icon: Brain, label: "Home" },
     { id: "generate", icon: Sparkles, label: "Generation Lab" },
+    { id: "assets", icon: Package, label: "Asset Gallery" },
     { id: "gallery", icon: Image, label: "3dRender Gallery" },
     { id: "artist", icon: Palette, label: "Artist Portal" },
     { id: "pricing", icon: CreditCard, label: "Upgrade Plan" },
     { id: "override", icon: Send, label: "Override" },
     { id: "live", icon: Radio, label: "Live Overrides" },
-    { id: "export", icon: Package, label: "Export" },
-    { id: "download", icon: Download, label: "Download App" },
+    { id: "export", icon: Download, label: "Export" },
+    { id: "download", icon: Smartphone, label: "Download App" },
     { id: "audit", icon: BarChart3, label: "Audit Log" },
     { id: "verify", icon: UserCheck, label: "Verify" },
   ];
@@ -665,6 +667,10 @@ export default function App() {
               </div>
             )}
           </div>
+        )}
+
+        {activeTab === "assets" && (
+          <AssetGalleryPage />
         )}
 
         {activeTab === "gallery" && (

@@ -29,6 +29,8 @@ import galleryAutofillRoutes from "./routes/gallery-autofill";
 import galleryIngestRoutes from "./routes/gallery-ingest";
 import galleryForkRoutes from "./routes/gallery-fork";
 import chargeStatsRoutes from "./routes/charge-stats";
+import chargeSuccessRoutes from "./routes/charge-success";
+import { freeTierLimiter, generationLimiter } from "./middleware/rate-limit";
 import { v3Proxy } from "./middleware/v3-proxy";
 import { initWebSocket } from "./websocket";
 import { tierMiddleware } from "./middleware/tiers";
@@ -128,11 +130,19 @@ app.use("/api/connect", connectRoutes);
 // v6.0: AI Core Upgrades - Reasoning engine, NPC/Fauna/Simulation generation
 app.use("/v6", v6Routes);
 
-// v6.1: Gallery auto-fill for vehicles, weapons, creatures
+// v6.1: Gallery auto-fill for vehicles, weapons, creatures (with rate limiting)
+app.use("/v6/gallery/autofill", freeTierLimiter);
+app.use("/v6/gallery/fork", freeTierLimiter);
 app.use("/v6", galleryAutofillRoutes);
 app.use("/v6", galleryIngestRoutes);
 app.use("/v6", galleryForkRoutes);
 app.use("/v6", chargeStatsRoutes);
+
+// v6.2: Real Stripe charges + rate limiting
+app.use("/api/v6", chargeSuccessRoutes);
+
+// Apply rate limiting to v6 generation endpoints
+app.use("/v6/generate", freeTierLimiter, generationLimiter);
 
 // Serve uploads directory for ref images
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));

@@ -4,11 +4,11 @@ import { generateWeapon } from "../generation/weapon-v6";
 import { generateCreature } from "../generation/creature-v6";
 import { addToGallery } from "../services/autofill";
 import { listGalleryItems, getGalleryItem, countGalleryItems } from "../db/gallery";
-import { chargeMiddleware, isDevTeam } from "../middleware/charge";
+import { realChargeMiddleware, isDevTeam } from "../middleware/real-charge";
 
 const router = Router();
 
-router.post("/gallery/autofill/vehicle", chargeMiddleware, async (req, res) => {
+router.post("/gallery/autofill/vehicle", realChargeMiddleware, async (req, res) => {
   try {
     const { prompt = "default armored transport", title = "System Vehicle" } = req.body;
     const meta = await generateVehicle(prompt);
@@ -20,7 +20,7 @@ router.post("/gallery/autofill/vehicle", chargeMiddleware, async (req, res) => {
   }
 });
 
-router.post("/gallery/autofill/weapon", chargeMiddleware, async (req, res) => {
+router.post("/gallery/autofill/weapon", realChargeMiddleware, async (req, res) => {
   try {
     const { prompt = "default rifle", title = "System Weapon" } = req.body;
     const meta = await generateWeapon(prompt);
@@ -32,7 +32,7 @@ router.post("/gallery/autofill/weapon", chargeMiddleware, async (req, res) => {
   }
 });
 
-router.post("/gallery/autofill/creature", chargeMiddleware, async (req, res) => {
+router.post("/gallery/autofill/creature", realChargeMiddleware, async (req, res) => {
   try {
     const { prompt = "default jungle predator", title = "System Creature" } = req.body;
     const meta = await generateCreature(prompt);
@@ -44,7 +44,7 @@ router.post("/gallery/autofill/creature", chargeMiddleware, async (req, res) => 
   }
 });
 
-router.post("/gallery/autofill/bulk", chargeMiddleware, async (req, res) => {
+router.post("/gallery/autofill/bulk", realChargeMiddleware, async (req, res) => {
   try {
     const { vehicles = [], weapons = [], creatures = [] } = req.body as {
       vehicles: { prompt: string; title?: string }[];
