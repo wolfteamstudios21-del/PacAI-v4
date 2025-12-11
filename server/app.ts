@@ -24,6 +24,7 @@ import styleRoutes from "./routes/style";
 import artistRoutes from "./routes/artist";
 import billingRoutes from "./routes/billing";
 import connectRoutes from "./routes/connect";
+import v6Routes from "./routes/v6";
 import { v3Proxy } from "./middleware/v3-proxy";
 import { initWebSocket } from "./websocket";
 import { tierMiddleware } from "./middleware/tiers";
@@ -119,6 +120,9 @@ app.use(billingRoutes);
 
 // v5.7: Stripe Connect marketplace for creators
 app.use("/api/connect", connectRoutes);
+
+// v6.0: AI Core Upgrades - Reasoning engine, NPC/Fauna/Simulation generation
+app.use("/v6", v6Routes);
 
 // Serve uploads directory for ref images
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));

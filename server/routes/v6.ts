@@ -107,6 +107,7 @@ router.post("/generate/image", async (req, res) => {
 });
 
 router.get("/health", (req, res) => {
+  const llmModel = process.env.PACAI_LLM_MODEL || "llama3.1";
   res.json({
     status: "operational",
     version: "v6.0.0",
@@ -116,7 +117,7 @@ router.get("/health", (req, res) => {
       fauna_generation: true,
       simulation_hooks: true,
       image_parsing: !!process.env.AZURE_VISION_KEY,
-      local_llm: !!process.env.PACAI_LLM_MODEL || "llama3.1 (default)",
+      local_llm: llmModel,
     },
     engines: ["UE5", "Unity", "Godot", "Roblox", "Blender", "CryEngine", "Source2", "WebGPU", "visionOS"],
   });
