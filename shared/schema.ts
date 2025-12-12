@@ -149,6 +149,24 @@ export const insertArtistRefSchema = createInsertSchema(artistRefs).omit({
 export type InsertArtistRef = z.infer<typeof insertArtistRefSchema>;
 export type ArtistRef = typeof artistRefs.$inferSelect;
 
+// Dev console command audit logs
+export const devCommandLogs = pgTable("dev_command_logs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  username: text("username").notNull(),
+  command: text("command").notNull(),
+  success: integer("success").notNull().default(1),
+  output: text("output"),
+  created_at: timestamp("created_at").defaultNow(),
+});
+
+export const insertDevCommandLogSchema = createInsertSchema(devCommandLogs).omit({
+  id: true,
+  created_at: true,
+});
+
+export type InsertDevCommandLog = z.infer<typeof insertDevCommandLogSchema>;
+export type DevCommandLog = typeof devCommandLogs.$inferSelect;
+
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,

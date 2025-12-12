@@ -34,6 +34,7 @@ import chargeSuccessRoutes from "./routes/charge-success";
 import ragSearchRoutes from "./routes/rag-search";
 import pipelineRoutes from "./routes/pipelines";
 import healthRoutes from "./routes/health";
+import devConsoleRoutes from "./routes/dev-console";
 import "./lib/pipeline-registry";
 import { freeTierLimiter, generationLimiter } from "./middleware/rate-limit";
 import { v3Proxy } from "./middleware/v3-proxy";
@@ -161,6 +162,9 @@ app.use("/api", pipelineRoutes);
 
 // v6.4: Health check endpoints for Vercel
 app.use("/api", healthRoutes);
+
+// v6.5: Dev Command & Control Console (requires auth + dev tier)
+app.use(devConsoleRoutes);
 
 // Serve uploads directory for ref images
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));

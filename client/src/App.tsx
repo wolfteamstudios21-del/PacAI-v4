@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import {
   Zap, Shield, Download, LogOut, Menu, X, Crown, Search, UserCheck,
-  Brain, Sparkles, Send, Package, Smartphone, Monitor, BookOpen, BarChart3, Image, Radio, Palette, CreditCard
+  Brain, Sparkles, Send, Package, Smartphone, Monitor, BookOpen, BarChart3, Image, Radio, Palette, CreditCard, Terminal
 } from "lucide-react";
 import RefUploader from "./components/RefUploader";
 import { SessionManager } from "./components/LiveOverrides";
@@ -9,6 +9,7 @@ import GalleryPage from "./pages/gallery";
 import AssetGalleryPage from "./pages/asset-gallery";
 import ArtistPortal from "./pages/artist-portal";
 import Pricing from "./pages/pricing";
+import DevConsole from "./pages/dev-console";
 import ArtistShowcase from "./components/ArtistShowcase";
 import heroImage from "@assets/generated_images/defense_command_center_tactical_display.png";
 
@@ -447,6 +448,7 @@ export default function App() {
     { id: "download", icon: Smartphone, label: "Download App" },
     { id: "audit", icon: BarChart3, label: "Audit Log" },
     { id: "verify", icon: UserCheck, label: "Verify" },
+    { id: "devconsole", icon: Terminal, label: "Dev Console" },
   ];
 
   return (
@@ -1135,6 +1137,8 @@ export default function App() {
             </div>
           </div>
         )}
+
+        {activeTab === "devconsole" && <DevConsole />}
       </div>
     </div>
   );
