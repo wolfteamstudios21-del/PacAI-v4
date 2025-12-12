@@ -57,6 +57,11 @@ PacAI v6 employs a robust, security-focused, and offline-first architecture. The
     - Available Pipelines: `image.concept`, `model.3d`, `gallery.autofill`, `gallery.ingest`, `npc.generate`, `fauna.generate`
     - Project-scoped runs with history: `/api/projects/:projectId/runs`
 - **RAG Search Integration (v6.2)**: Google Custom Search API integration for enhanced LLM outputs with web knowledge
+- **Vercel Optimizations (v6.4)**:
+    - **Circuit Breaker** (`server/lib/circuit-breaker.ts`): p-retry wrapper for external API calls with automatic retry logic
+    - **Health Check Endpoints** (`server/routes/health.ts`): `/api/health`, `/api/health/ready`, `/api/health/live` for Kubernetes/Vercel probes
+    - **Prompt Cache** (`server/lib/prompt-cache.ts`): In-memory cache with 1-hour TTL, 500 entry limit, LRU eviction
+    - **Heap Monitoring**: Memory usage logging at pipeline start/end, warnings when RSS exceeds 500MB
 
 **System Design Choices:**
 - **Frontend**: React with Next.js for SSR.
