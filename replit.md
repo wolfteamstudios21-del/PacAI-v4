@@ -50,6 +50,13 @@ PacAI v6 employs a robust, security-focused, and offline-first architecture. The
     - **Texture/Style Module** (`/v5/style`): Style filters and upscaling for assets.
     - **Offline-First Enhancements** (`server/lib/offline.ts`): USB license renewal and server-side asset caching.
 - **Tier Middleware** (`server/middleware/tiers.ts`): Centralized enforcement of tier limits for all modules.
+- **Pipeline Engine (v6.3)**: Modular AI workflow system with:
+    - **Engine Core** (`server/lib/pipeline-engine.ts`): Pipeline registration, sync/async execution, run history tracking
+    - **Pipeline Registry** (`server/lib/pipeline-registry.ts`): Pre-built pipelines wrapping existing services
+    - **API Routes** (`server/routes/pipelines.ts`): RESTful pipeline execution with auth, validation, rate limiting
+    - Available Pipelines: `image.concept`, `model.3d`, `gallery.autofill`, `gallery.ingest`, `npc.generate`, `fauna.generate`
+    - Project-scoped runs with history: `/api/projects/:projectId/runs`
+- **RAG Search Integration (v6.2)**: Google Custom Search API integration for enhanced LLM outputs with web knowledge
 
 **System Design Choices:**
 - **Frontend**: React with Next.js for SSR.
