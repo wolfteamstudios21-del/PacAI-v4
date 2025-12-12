@@ -33,6 +33,7 @@ import chargeStatsRoutes from "./routes/charge-stats";
 import chargeSuccessRoutes from "./routes/charge-success";
 import ragSearchRoutes from "./routes/rag-search";
 import pipelineRoutes from "./routes/pipelines";
+import healthRoutes from "./routes/health";
 import "./lib/pipeline-registry";
 import { freeTierLimiter, generationLimiter } from "./middleware/rate-limit";
 import { v3Proxy } from "./middleware/v3-proxy";
@@ -157,6 +158,9 @@ app.use("/v6", ragSearchRoutes);
 // v6.3: Pipeline Engine for modular AI workflows (with rate limiting)
 app.use("/api/pipelines", freeTierLimiter);
 app.use("/api", pipelineRoutes);
+
+// v6.4: Health check endpoints for Vercel
+app.use("/api", healthRoutes);
 
 // Serve uploads directory for ref images
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));

@@ -1,4 +1,6 @@
 import crypto from "crypto";
+import { getCached, setCached, createCacheKey } from "./prompt-cache";
+import { logHeapUsage } from "./circuit-breaker";
 
 export type PipelineInput = Record<string, unknown>;
 export type PipelineOutput = unknown;
@@ -55,15 +57,31 @@ export function getRecentRuns(limit = 50): PipelineRun[] {
     .slice(0, limit);
 }
 
+const CACHEABLE_PIPELINES = ["npc.generate", "fauna.generate"];
+
 export async function runPipeline(
   pipelineName: string,
   input: PipelineInput,
-  options: { projectId?: string; userId?: string } = {}
+  options: { projectId?: string; userId?: string; skipCache?: boolean } = {}
 ): Promise<PipelineRun> {
   const pipeline = pipelineRegistry.get(pipelineName);
   
   if (!pipeline) {
     throw new Error(`Pipeline not found: ${pipelineName}`);
+  }
+
+  logHeapUsage(`pipeline:${pipelineName}:start`);
+
+  const cacheKey = CACHEABLE_PIPELINES.includes(pipelineName) && !options.skipCache
+    ? createCacheKey("pipeline", pipelineName, JSON.stringify(input))
+    : null;
+
+  if (cacheKey) {
+    const cached = getCached<PipelineRun>(cacheKey);
+    if (cached) {
+      console.log(`[pipeline-engine] Cache hit for ${pipelineName}`);
+      return { ...cached, id: `cached_${Date.now()}` };
+    }
   }
 
   const runId = `run_${Date.now()}_${crypto.randomBytes(4).toString("hex")}`;
@@ -103,6 +121,11 @@ export async function runPipeline(
     run.output = output;
     run.completedAt = Date.now();
     context.log(`Pipeline completed successfully in ${run.completedAt - startedAt}ms`);
+
+    if (cacheKey) {
+      setCached(cacheKey, run);
+      console.log(`[pipeline-engine] Cached result for ${pipelineName}`);
+    }
     
   } catch (error: unknown) {
     run.status = "failed";
@@ -111,6 +134,8 @@ export async function runPipeline(
     context.log(`Pipeline failed: ${run.error}`);
     console.error(`[pipeline-engine] ${pipelineName} failed:`, error);
   }
+
+  logHeapUsage(`pipeline:${pipelineName}:end`);
 
   return run;
 }

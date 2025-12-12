@@ -2,6 +2,7 @@ import OpenAI from "openai";
 import * as fs from "fs";
 import * as path from "path";
 import { v4 as uuidv4 } from "uuid";
+import { withRetry, logHeapUsage } from "../lib/circuit-breaker";
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
@@ -29,19 +30,28 @@ export async function generateConceptArt(
   const fullPrompt = `${prompt}, ${style}, high-detail, professional game asset concept, dramatic lighting`;
 
   try {
-    const response = await openai.images.generate({
-      model: "dall-e-3",
-      prompt: fullPrompt,
-      n: 1,
-      size: "1024x1024",
-      quality: "standard",
-      response_format: "b64_json",
-    });
+    logHeapUsage("generation-image:start");
+
+    const response = await withRetry(
+      async () => {
+        return openai.images.generate({
+          model: "dall-e-3",
+          prompt: fullPrompt,
+          n: 1,
+          size: "1024x1024",
+          quality: "standard",
+          response_format: "b64_json",
+        });
+      },
+      { retries: 2, minTimeout: 2000 }
+    );
 
     const imageData = response.data?.[0];
     if (!imageData?.b64_json) {
       throw new Error("No image data returned from DALL-E");
     }
+
+    logHeapUsage("generation-image:complete");
 
     const filename = `${id}.png`;
     const filepath = path.join(UPLOADS_DIR, filename);

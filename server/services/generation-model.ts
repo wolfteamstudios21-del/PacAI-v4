@@ -2,6 +2,7 @@ import Replicate from "replicate";
 import * as fs from "fs";
 import * as path from "path";
 import { v4 as uuidv4 } from "uuid";
+import { withRetry, logHeapUsage } from "../lib/circuit-breaker";
 
 const UPLOADS_DIR = path.join(process.cwd(), "uploads", "3d-models");
 
@@ -51,16 +52,24 @@ export async function generate3DModel(
 
   try {
     console.log(`[generation-model] Generating 3D model for: "${prompt.slice(0, 50)}..."`);
+    logHeapUsage("generation-model:start");
 
-    const output = await client.run(
-      "stability-ai/triposr:e91b24f793da1f2a2e4f08a73c47cc98a9dd9c19c33f1a08a04b22fbeb46cfd0",
-      {
-        input: {
-          image: await generateInputImage(prompt),
-          mc_resolution: 256,
-          output_format: format,
-        },
-      }
+    const inputImage = await generateInputImage(prompt);
+
+    const output = await withRetry(
+      async () => {
+        return client.run(
+          "stability-ai/triposr:e91b24f793da1f2a2e4f08a73c47cc98a9dd9c19c33f1a08a04b22fbeb46cfd0",
+          {
+            input: {
+              image: inputImage,
+              mc_resolution: 256,
+              output_format: format,
+            },
+          }
+        );
+      },
+      { retries: 2, minTimeout: 3000 }
     ) as any;
 
     const modelUrl = typeof output === "string" ? output : output?.mesh_url || output?.[0];
@@ -68,6 +77,8 @@ export async function generate3DModel(
     if (!modelUrl) {
       throw new Error("No model URL returned from Replicate");
     }
+
+    logHeapUsage("generation-model:complete");
 
     const filename = `${id}.${format}`;
     const filepath = path.join(UPLOADS_DIR, filename);
