@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Car, Sword, Bug, GitFork, Sparkles, CreditCard, Shield, Loader2, ExternalLink, Paintbrush, Box, Download } from "lucide-react";
+import { Car, Sword, Bug, GitFork, Sparkles, CreditCard, Shield, Loader2, ExternalLink, Paintbrush, Box, Download, X, ZoomIn, Calendar, User, Tag } from "lucide-react";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
@@ -57,6 +57,7 @@ const LICENSE_BADGES: Record<string, { label: string; color: string }> = {
 export default function AssetGalleryPage() {
   const [activeKind, setActiveKind] = useState<string>("all");
   const [forkDialogOpen, setForkDialogOpen] = useState(false);
+  const [previewDialogOpen, setPreviewDialogOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<GalleryItem | null>(null);
   const [projectId, setProjectId] = useState("");
   const [checkoutUrl, setCheckoutUrl] = useState<string | null>(null);
@@ -152,9 +153,21 @@ export default function AssetGalleryPage() {
     },
   });
 
-  const handleFork = (item: GalleryItem) => {
+  const handlePreview = (item: GalleryItem) => {
+    setSelectedItem(item);
+    setPreviewDialogOpen(true);
+  };
+
+  const handleForkFromCard = (item: GalleryItem) => {
     setSelectedItem(item);
     setForkDialogOpen(true);
+  };
+
+  const handleForkFromPreview = () => {
+    setPreviewDialogOpen(false);
+    setTimeout(() => {
+      setForkDialogOpen(true);
+    }, 100);
   };
 
   const confirmFork = () => {
@@ -312,8 +325,9 @@ export default function AssetGalleryPage() {
               return (
                 <Card
                   key={item.id}
-                  className="bg-[#141517] border-[#2a2d33] overflow-hidden hover-elevate group"
+                  className="bg-[#141517] border-[#2a2d33] overflow-hidden hover-elevate group cursor-pointer"
                   data-testid={`card-asset-${item.id}`}
+                  onClick={() => handlePreview(item)}
                 >
                   <div className="h-48 bg-[#0b0d0f] flex items-center justify-center relative">
                     {item.kind === "concept" && item.meta?.imageUrl ? (
@@ -373,7 +387,7 @@ export default function AssetGalleryPage() {
                       )}
                     </div>
 
-                    <div className="flex gap-2">
+                    <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
                       {item.kind === "model" && item.meta?.modelUrl && (
                         <Button
                           variant="outline"
@@ -388,7 +402,7 @@ export default function AssetGalleryPage() {
                       )}
                       <Button
                         className="flex-1"
-                        onClick={() => handleFork(item)}
+                        onClick={() => handleForkFromCard(item)}
                         disabled={forkMutation.isPending}
                         data-testid={`button-fork-${item.id}`}
                       >
@@ -412,6 +426,164 @@ export default function AssetGalleryPage() {
           </div>
         )}
       </div>
+
+      <Dialog open={previewDialogOpen} onOpenChange={setPreviewDialogOpen}>
+        <DialogContent className="bg-[#141517] border-[#2a2d33] text-white max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3 text-xl">
+              {selectedItem && (
+                <>
+                  {(() => {
+                    const KindIcon = KIND_ICONS[selectedItem.kind] || Car;
+                    return <KindIcon className="w-6 h-6" />;
+                  })()}
+                  <span data-testid="text-preview-title">{selectedItem.title}</span>
+                  <Badge className={`${KIND_COLORS[selectedItem.kind]} ml-2`}>
+                    {selectedItem.kind}
+                  </Badge>
+                </>
+              )}
+            </DialogTitle>
+          </DialogHeader>
+
+          {selectedItem && (
+            <div className="space-y-6">
+              <div className="bg-[#0b0d0f] rounded-xl overflow-hidden flex items-center justify-center min-h-[300px] max-h-[500px]">
+                {selectedItem.kind === "concept" && selectedItem.meta?.imageUrl ? (
+                  <img
+                    src={selectedItem.meta.imageUrl}
+                    alt={selectedItem.title}
+                    className="max-w-full max-h-[500px] object-contain"
+                    data-testid="img-preview-full"
+                  />
+                ) : selectedItem.kind === "model" && selectedItem.meta?.modelUrl ? (
+                  <div className="text-center p-8">
+                    <Box className="w-24 h-24 mx-auto text-orange-400 mb-4" />
+                    <p className="text-lg font-semibold mb-2">3D Model</p>
+                    <p className="text-[#9aa0a6] mb-1">Format: {selectedItem.meta.format?.toUpperCase() || "GLB"}</p>
+                    <p className="text-[#9aa0a6] mb-4">Polygons: {selectedItem.meta.polyCount || "N/A"}</p>
+                    <Button asChild variant="outline">
+                      <a href={selectedItem.meta.modelUrl} download data-testid="link-preview-download">
+                        <Download className="w-4 h-4 mr-2" />
+                        Download Model
+                      </a>
+                    </Button>
+                  </div>
+                ) : selectedItem.imageBase64 ? (
+                  <img
+                    src={`data:image/svg+xml;base64,${selectedItem.imageBase64}`}
+                    alt={selectedItem.title}
+                    className="max-w-full max-h-[500px] object-contain p-4"
+                    data-testid="img-preview-svg"
+                  />
+                ) : (
+                  <div className="text-center p-8">
+                    {(() => {
+                      const KindIcon = KIND_ICONS[selectedItem.kind] || Car;
+                      return <KindIcon className="w-24 h-24 mx-auto text-[#3e73ff]/50 mb-4" />;
+                    })()}
+                    <p className="text-[#9aa0a6]">No preview available</p>
+                  </div>
+                )}
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-[#0b0d0f] rounded-lg p-4">
+                  <div className="flex items-center gap-2 text-[#9aa0a6] text-sm mb-1">
+                    <User className="w-4 h-4" />
+                    Owner
+                  </div>
+                  <p className="font-semibold" data-testid="text-preview-owner">{selectedItem.owner}</p>
+                </div>
+                <div className="bg-[#0b0d0f] rounded-lg p-4">
+                  <div className="flex items-center gap-2 text-[#9aa0a6] text-sm mb-1">
+                    <Calendar className="w-4 h-4" />
+                    Created
+                  </div>
+                  <p className="font-semibold" data-testid="text-preview-date">
+                    {new Date(selectedItem.createdAt).toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    })}
+                  </p>
+                </div>
+              </div>
+
+              <div className="bg-[#0b0d0f] rounded-lg p-4">
+                <div className="flex items-center gap-2 text-[#9aa0a6] text-sm mb-2">
+                  <Tag className="w-4 h-4" />
+                  Tags
+                </div>
+                <div className="flex flex-wrap gap-2" data-testid="container-preview-tags">
+                  {selectedItem.tags.map((tag) => (
+                    <Badge key={tag} variant="outline" className="bg-[#1f2125] border-[#2a2d33]">
+                      {tag}
+                    </Badge>
+                  ))}
+                  {selectedItem.tags.length === 0 && (
+                    <span className="text-[#9aa0a6] text-sm">No tags</span>
+                  )}
+                </div>
+              </div>
+
+              <div className="bg-[#0b0d0f] rounded-lg p-4">
+                <div className="flex items-center gap-2 text-[#9aa0a6] text-sm mb-2">
+                  <Shield className="w-4 h-4" />
+                  License
+                </div>
+                <Badge className={`${LICENSE_BADGES[selectedItem.license]?.color || "bg-zinc-600"} text-sm px-3 py-1`}>
+                  {LICENSE_BADGES[selectedItem.license]?.label || selectedItem.license}
+                </Badge>
+              </div>
+
+              {selectedItem.meta && Object.keys(selectedItem.meta).length > 0 && (
+                <div className="bg-[#0b0d0f] rounded-lg p-4">
+                  <p className="text-[#9aa0a6] text-sm mb-2">Generation Metadata</p>
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    {Object.entries(selectedItem.meta)
+                      .filter(([key]) => !["imageUrl", "modelUrl"].includes(key))
+                      .slice(0, 6)
+                      .map(([key, value]) => (
+                        <div key={key} className="flex justify-between">
+                          <span className="text-[#9aa0a6]">{key}:</span>
+                          <span className="font-mono">{String(value).substring(0, 30)}</span>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          <DialogFooter className="mt-6 gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setPreviewDialogOpen(false)}
+              data-testid="button-close-preview"
+            >
+              Close
+            </Button>
+            {selectedItem?.kind === "model" && selectedItem.meta?.modelUrl && (
+              <Button variant="outline" asChild>
+                <a href={selectedItem.meta.modelUrl} download data-testid="button-preview-download">
+                  <Download className="w-4 h-4 mr-2" />
+                  Download
+                </a>
+              </Button>
+            )}
+            <Button
+              onClick={handleForkFromPreview}
+              disabled={forkMutation.isPending}
+              data-testid="button-preview-fork"
+            >
+              <GitFork className="w-4 h-4 mr-2" />
+              Fork to Project
+              {!isDevTeam && <span className="ml-2 text-xs opacity-75">$0.50</span>}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={forkDialogOpen} onOpenChange={setForkDialogOpen}>
         <DialogContent className="bg-[#141517] border-[#2a2d33] text-white">
