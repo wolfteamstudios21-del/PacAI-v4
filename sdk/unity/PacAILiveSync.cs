@@ -1,4 +1,4 @@
-// PacAI v5.3 Unity SDK - Live Sync Module
+// PacAI v6.3 Unity SDK - Live Sync Module
 // Connects to PacAI WebSocket for real-time override sync and continuous generation
 
 using System;

@@ -1,5 +1,5 @@
 --[[
-    PacAI v5 Generated NPC AI Controller
+    PacAI v6.3 Generated NPC AI Controller
     Handles behavior trees, patrol systems, and combat logic
 ]]
 

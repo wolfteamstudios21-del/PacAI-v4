@@ -1,12 +1,12 @@
 {
-  "version": "5.0.0",
-  "format": "pacai_cryengine_v5",
+  "version": "6.3.0",
+  "format": "pacai_cryengine_v6",
   "engine": "CryEngine",
   "engine_version": "5.7",
   "generated_at": "2024-11-30T00:00:00Z",
   "project": {
     "name": "PacAI Generated World",
-    "description": "Procedurally generated world from PacAI v5"
+    "description": "Procedurally generated world from PacAI v6.3"
   },
   "world": {
     "id": "placeholder",
@@ -28,7 +28,7 @@
   },
   "entities": [],
   "metadata": {
-    "generator": "PacAI v5 Gateway",
+    "generator": "PacAI v6.3 Gateway",
     "deterministic": true,
     "checksum": ""
   }

@@ -1,4 +1,4 @@
-// PacAI v5.3 WebGPU/Browser SDK - Live Sync Module
+// PacAI v6.3 WebGPU/Browser SDK - Live Sync Module
 // Connects to PacAI WebSocket for real-time override sync and continuous generation
 
 import { io, Socket } from 'socket.io-client';

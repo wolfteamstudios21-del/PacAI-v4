@@ -1,5 +1,5 @@
 /**
- * PacAI v5 Live Override Bridge for WebGPU/JavaScript
+ * PacAI v6.3 Live Override Bridge for WebGPU/JavaScript
  * 
  * This module connects your web-based game to PacAI's live override system,
  * allowing real-time tweaks from the dashboard without page reload.

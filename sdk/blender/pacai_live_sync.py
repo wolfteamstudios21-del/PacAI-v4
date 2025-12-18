@@ -1,5 +1,5 @@
 """
-PacAI v5.3 Blender SDK - Live Sync Module
+PacAI v6.3 Blender SDK - Live Sync Module
 Connects to PacAI WebSocket for real-time override sync and continuous generation
 """
 

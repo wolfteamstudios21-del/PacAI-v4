@@ -1,5 +1,5 @@
 /**
- * PacAI v5 Live Override Bridge for Unity
+ * PacAI v6.3 Live Override Bridge for Unity
  * 
  * This script connects your Unity game to PacAI's live override system,
  * allowing real-time tweaks from the dashboard without restarting the game.
