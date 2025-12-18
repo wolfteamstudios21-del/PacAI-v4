@@ -55,7 +55,7 @@ async fn check_gateway_status() -> Result<GatewayStatus, String> {
                 Ok(GatewayStatus {
                     running: true,
                     url: "http://localhost:3000".into(),
-                    version: "5.0.0".into(),
+                    version: "6.3.0".into(),
                 })
             } else {
                 Ok(GatewayStatus {
@@ -159,8 +159,8 @@ async fn export_bundle(request: ExportRequest) -> Result<serde_json::Value, Stri
 #[tauri::command]
 fn get_app_info() -> serde_json::Value {
     serde_json::json!({
-        "name": "PacAI v5 Desktop",
-        "version": "5.0.0",
+        "name": "PacAI v6.3 Desktop",
+        "version": "6.3.0",
         "build": "production",
         "platform": std::env::consts::OS,
         "arch": std::env::consts::ARCH,
@@ -178,7 +178,7 @@ fn main() {
         .setup(|app| {
             let window = app.get_window("main").unwrap();
             
-            window.set_title("PacAI v5 — Enterprise Defense Simulation").unwrap();
+            window.set_title("PacAI v6.3 — Enterprise Defense Simulation").unwrap();
             
             app.listen_global("restart-gateway", |_| {
                 println!("Gateway restart requested");

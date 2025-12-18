@@ -1,14 +1,14 @@
 #!/bin/bash
-# PacAI v5 Linux AppImage Builder
+# PacAI v6.3 Linux AppImage Builder
 # Prerequisites: linuxdeploy, appimagetool
 
 set -e
 
-APP_NAME="PacAI-v5-Admin"
-VERSION="5.0.0"
+APP_NAME="PacAI-v6-Admin"
+VERSION="6.3.0"
 ARCH="x86_64"
 
-echo "Building PacAI v5 AppImage..."
+echo "Building PacAI v6.3 AppImage..."
 
 # Create AppDir structure
 mkdir -p AppDir/usr/bin
@@ -35,7 +35,7 @@ SELF=$(readlink -f "$0")
 HERE=${SELF%/*}
 export PATH="${HERE}/usr/bin:${PATH}"
 export LD_LIBRARY_PATH="${HERE}/usr/lib:${LD_LIBRARY_PATH}"
-exec "${HERE}/usr/bin/PacAI-v5-Admin" "$@"
+exec "${HERE}/usr/bin/PacAI-v6-Admin" "$@"
 EOF
 chmod +x AppDir/AppRun
 

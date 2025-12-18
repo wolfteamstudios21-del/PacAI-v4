@@ -1,7 +1,7 @@
 [package]
 name = "pacai-desktop"
-version = "5.0.0"
-description = "PacAI v5 Desktop Admin Console - Offline Operator Interface"
+version = "6.3.0"
+description = "PacAI v6.3 Desktop Admin Console - Offline Operator Interface"
 authors = ["Wolf Team Studios <wolfteamstudios21@gmail.com>"]
 license = "Proprietary"
 edition = "2021"

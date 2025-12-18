@@ -9,7 +9,7 @@ export default async function handler(req, res) {
     status: "queued",
     engines: engines,
     manifest: {
-      version: "5.0.0",
+      version: "6.3.0",
       engines_included: engines.length,
       deterministic_seed: Math.random().toString(36).slice(2, 15),
       created_at: new Date().toISOString()

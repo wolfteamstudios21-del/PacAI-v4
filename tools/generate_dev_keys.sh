@@ -1,5 +1,5 @@
 #!/bin/bash
-# PacAI v5 Development Key Generator
+# PacAI v6.3 Development Key Generator
 # Generates Ed25519 keypair for signing export manifests
 
 set -e
@@ -8,7 +8,7 @@ KEY_DIR="${HOME}/.pacai/keys"
 KEY_NAME="pacai_dev_ed25519"
 
 echo "========================================"
-echo "PacAI v5 Development Key Generator"
+echo "PacAI v6.3 Development Key Generator"
 echo "========================================"
 echo
 

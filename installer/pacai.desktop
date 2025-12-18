@@ -1,11 +1,11 @@
 [Desktop Entry]
-Name=PacAI v5 Admin
+Name=PacAI v6.3 Admin
 Comment=Enterprise Defense Simulation Admin Console
-Exec=PacAI-v5-Admin
+Exec=PacAI-v6-Admin
 Icon=pacai
 Terminal=false
 Type=Application
 Categories=Development;Game;
 Keywords=simulation;defense;ai;worldgen;
 StartupNotify=true
-StartupWMClass=pacai-v5-admin
+StartupWMClass=pacai-v6-admin

@@ -6,8 +6,8 @@
     "distDir": "../ui"
   },
   "package": {
-    "productName": "PacAI v5",
-    "version": "5.0.0"
+    "productName": "PacAI v6.3",
+    "version": "6.3.0"
   },
   "tauri": {
     "allowlist": {
@@ -35,7 +35,7 @@
         "icons/icon.ico"
       ],
       "identifier": "com.wolfteamstudios.pacai",
-      "longDescription": "PacAI v5 - Enterprise offline-first defense simulation platform for air-gapped environments. Features hardware-root licensing, deterministic procedural generation, and multi-engine exports.",
+      "longDescription": "PacAI v6.3 - Enterprise offline-first defense simulation platform for air-gapped environments. Features hardware-root licensing, deterministic procedural generation, and multi-engine exports.",
       "macOS": {
         "entitlements": null,
         "exceptionDomain": "",
@@ -44,7 +44,7 @@
         "signingIdentity": null
       },
       "resources": [],
-      "shortDescription": "PacAI v5 Defense Simulation Platform",
+      "shortDescription": "PacAI v6.3 Defense Simulation Platform",
       "targets": "all",
       "windows": {
         "certificateThumbprint": null,
@@ -63,7 +63,7 @@
         "fullscreen": false,
         "height": 900,
         "resizable": true,
-        "title": "PacAI v5 — Enterprise Defense Simulation",
+        "title": "PacAI v6.3 — Enterprise Defense Simulation",
         "width": 1400,
         "minWidth": 1024,
         "minHeight": 768

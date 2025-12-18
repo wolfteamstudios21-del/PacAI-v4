@@ -1,8 +1,8 @@
-# PacAI v5 Security Architecture
+# PacAI v6.3 Security Architecture
 
 ## Overview
 
-PacAI v5 implements defense-grade security for air-gapped environments:
+PacAI v6.3 implements defense-grade security for air-gapped environments:
 
 - **Hardware-Root Licensing**: YubiHSM2 / Nitrokey3
 - **Ed25519 Signatures**: Manifest and audit log signing

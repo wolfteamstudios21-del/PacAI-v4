@@ -27,7 +27,7 @@ async function buildBundle(job: Job) {
       generated: new Date().toISOString(), 
       engine: job.data.engine,
       scenario_id: job.data.scenario_id,
-      version: job.data.version || '5.0.0'
+      version: job.data.version || '6.3.0'
     };
     await fs.writeFile(path.join(tmp, 'manifest.json'), JSON.stringify(manifest, null, 2));
 

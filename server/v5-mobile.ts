@@ -196,7 +196,7 @@ router.post("/v5/export/mobile", async (req: Request, res: Response) => {
     zip.append(generateWebGPUSDK(), { name: "js/pacai-sdk.js" });
   }
 
-  zip.append(`# PacAI v5 Export - ${displayName}
+  zip.append(`# PacAI v6.3 Export - ${displayName}
 
 ## Quick Start
 1. Extract this ZIP to your project folder

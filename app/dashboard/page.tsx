@@ -74,7 +74,7 @@ export default function DashboardPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
             </svg>
           </div>
-          <p className="text-gray-400">Loading PacAI v5...</p>
+          <p className="text-gray-400">Loading PacAI v6.3...</p>
         </div>
       </div>
     );
@@ -96,7 +96,7 @@ export default function DashboardPage() {
               </svg>
             </div>
             <div>
-              <h1 className="text-xl font-bold text-white">PacAI v5</h1>
+              <h1 className="text-xl font-bold text-white">PacAI v6.3</h1>
               <p className="text-xs text-gray-500">Enterprise Defense Simulation</p>
             </div>
           </div>

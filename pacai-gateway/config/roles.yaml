@@ -1,5 +1,5 @@
 # config/roles.yaml
-# PacAI v5 RBAC Role Definitions
+# PacAI v6.3 RBAC Role Definitions
 # Load at gateway startup into memory; check requireHSM + check_permission(role, action) in middleware
 
 roles:

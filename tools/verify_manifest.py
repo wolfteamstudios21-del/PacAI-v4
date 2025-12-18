@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-PacAI v5 Export Bundle Verification Tool
+PacAI v6.3 Export Bundle Verification Tool
 
 Verifies the Ed25519 signature and SHA-384 checksums of export bundles.
 
@@ -177,7 +177,7 @@ def verify_bundle(zip_path: str, public_key: Ed25519PublicKey = None, verbose: b
 
 def main():
     parser = argparse.ArgumentParser(
-        description='Verify PacAI v5 export bundle signature and checksums'
+        description='Verify PacAI v6.3 export bundle signature and checksums'
     )
     parser.add_argument('zip_path', help='Path to export .zip file')
     parser.add_argument('--pubkey', '-p', help='Path to PEM public key file')

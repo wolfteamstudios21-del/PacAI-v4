@@ -272,7 +272,7 @@ export function generateWorldJson(world: World, entities: Entity[], narrative: N
   const biomeSet = new Set(world.tiles.flat().map(t => t.biome));
   
   return {
-    version: '5.0.0',
+    version: '6.3.0',
     generated: new Date().toISOString(),
     world: {
       width: world.dimensions.width,

@@ -1,4 +1,4 @@
-# PacAI v5 – Dual Deployment Guide
+# PacAI v6.3 – Dual Deployment Guide
 
 ## Option A: Replit Publishing (2 minutes)
 
@@ -37,7 +37,7 @@ git config --global user.email "your@email.com"
 **Push code:**
 ```bash
 git add .
-git commit -m "PacAI v5 – Production ready with full dashboard, generation, exports"
+git commit -m "PacAI v6.3 – Production ready with full dashboard, generation, exports"
 git push origin main
 ```
 
@@ -115,7 +115,7 @@ curl https://pac-ai--yourusername.replit.app/v5/health
 curl https://pacaiwolfstudio.com/v5/health
 
 # Both should return:
-# {"status":"operational","version":"v5.0.0",...}
+# {"status":"operational","version":"v6.3.0",...}
 ```
 
 ---
@@ -146,4 +146,4 @@ SESSION_SECRET=your-session-secret
 3. **In 5 min**: Push to GitHub + link Vercel
 4. **In 10 min**: Both are live and tested
 
-Your full PacAI v5 SaaS is production-ready! 🚀
+Your full PacAI v6.3 SaaS is production-ready!

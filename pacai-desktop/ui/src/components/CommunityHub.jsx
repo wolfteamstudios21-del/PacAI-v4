@@ -12,18 +12,29 @@ function CommunityHub() {
 
   const changelog = [
     {
-      version: '5.0.0',
+      version: '6.3.0',
+      date: 'December 2025',
+      changes: [
+        'Pipeline Engine with modular AI workflow system',
+        'Vercel optimizations with circuit breaker',
+        'Health check endpoints for Kubernetes/Vercel probes',
+        'Prompt cache with LRU eviction',
+        'Heap monitoring and memory usage logging',
+      ],
+    },
+    {
+      version: '6.0.0',
       date: 'November 2024',
       changes: [
         'Rust Axum gateway (50-100× performance)',
         'Hardware-root licensing (YubiHSM2/Nitrokey3)',
-        '7-engine export system',
+        '9-engine export system',
         'Hash-chained audit logs',
         'Tauri desktop admin console',
       ],
     },
     {
-      version: '4.0.0',
+      version: '5.0.0',
       date: 'October 2024',
       changes: [
         'Universal schema v2.0',
@@ -35,7 +46,7 @@ function CommunityHub() {
   ];
 
   const docs = [
-    { title: 'Getting Started', desc: 'Quick start guide for PacAI v5' },
+    { title: 'Getting Started', desc: 'Quick start guide for PacAI v6.3' },
     { title: 'API Reference', desc: 'Complete REST API documentation' },
     { title: 'Export Formats', desc: 'Supported engines and file formats' },
     { title: 'Licensing', desc: 'Hardware-root licensing guide' },

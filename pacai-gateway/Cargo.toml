@@ -1,9 +1,9 @@
 [package]
 name = "pacai-gateway"
-version = "5.0.0"
+version = "6.3.0"
 edition = "2021"
 authors = ["Wolf Team Studios <wolfteamstudios21@gmail.com>"]
-description = "PacAI v5 Enterprise Defense Simulation Gateway - Production Rust Backend"
+description = "PacAI v6.3 Enterprise Defense Simulation Gateway - Production Rust Backend"
 license = "Proprietary"
 
 [dependencies]

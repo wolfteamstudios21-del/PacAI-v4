@@ -34,7 +34,7 @@ async fn main() {
         .layer(cors);
 
     let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
-    tracing::info!("PacAI v5 Gateway — Production Ready • SCIF-Compatible • Hardware-Root Secure");
+    tracing::info!("PacAI v6.3 Gateway — Production Ready • SCIF-Compatible • Hardware-Root Secure");
     tracing::info!("Listening on {}", addr);
 
     let listener = tokio::net::TcpListener::bind(addr).await.unwrap();

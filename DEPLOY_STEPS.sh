@@ -1,10 +1,10 @@
 #!/bin/bash
 
-# PacAI v5 – Dual Deployment Script
+# PacAI v6.3 – Dual Deployment Script
 # Run this to deploy to both Replit and Vercel
 
 echo "================================"
-echo "PacAI v5 – Deployment Steps"
+echo "PacAI v6.3 – Deployment Steps"
 echo "================================"
 echo ""
 
@@ -18,7 +18,7 @@ echo ""
 echo "✅ STEP 2: Push to GitHub"
 echo "Command:"
 echo "  git add ."
-echo "  git commit -m 'PacAI v5 – Production ready with full dashboard'"
+echo "  git commit -m 'PacAI v6.3 – Production ready with full dashboard'"
 echo "  git push origin main"
 echo ""
 

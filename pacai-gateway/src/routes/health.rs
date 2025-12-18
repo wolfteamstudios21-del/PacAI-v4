@@ -18,7 +18,7 @@ pub struct HealthResponse {
 pub async fn health() -> Json<HealthResponse> {
     Json(HealthResponse {
         status: "operational".into(),
-        version: "5.0.0".into(),
+        version: "6.3.0".into(),
         mode: "production".into(),
         uptime_seconds: 0,
         features: vec![

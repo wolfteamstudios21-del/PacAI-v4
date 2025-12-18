@@ -1,4 +1,4 @@
-# PacAI v5 Production Readiness Checklist
+# PacAI v6.3 Production Readiness Checklist
 
 ## Security Hardening ✅
 - [x] Removed hardcoded dev credentials from client

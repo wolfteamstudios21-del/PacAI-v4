@@ -1,4 +1,4 @@
-# PacAI v5.3 - Fly.io Configuration
+# PacAI v6.3 - Fly.io Configuration
 # Enterprise deployment with auto-scaling and multi-region support
 
 app = "pacai-v5"

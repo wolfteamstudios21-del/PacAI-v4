@@ -1,4 +1,4 @@
-# PacAI v5.3 - Production Dockerfile for Fly.io
+# PacAI v6.3 - Production Dockerfile for Fly.io
 # Multi-stage build optimized for enterprise deployment
 
 FROM node:20-alpine AS builder

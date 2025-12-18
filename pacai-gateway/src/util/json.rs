@@ -69,8 +69,8 @@ pub fn create_world_json(
     terrain: &Value,
 ) -> Value {
     json!({
-        "version": "5.0.0",
-        "format": "pacai_world_v5",
+        "version": "6.3.0",
+        "format": "pacai_world_v6",
         "id": id,
         "name": name,
         "seed": seed,
@@ -78,7 +78,7 @@ pub fn create_world_json(
         "entities": entities,
         "terrain": terrain,
         "metadata": {
-            "generator": "PacAI v5 Gateway",
+            "generator": "PacAI v6.3 Gateway",
             "deterministic": true
         }
     })

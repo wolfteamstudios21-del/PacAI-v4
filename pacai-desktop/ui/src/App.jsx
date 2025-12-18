@@ -62,7 +62,7 @@ function App() {
       <aside className="sidebar">
         <div className="sidebar-header">
           <div className="logo">PacAI</div>
-          <div className="version">v5.0.0 — Enterprise</div>
+          <div className="version">v6.3.0 — Enterprise</div>
         </div>
         
         <nav className="nav-items">

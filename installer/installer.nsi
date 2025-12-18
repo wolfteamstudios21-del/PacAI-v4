@@ -1,12 +1,12 @@
-; PacAI v5 Admin Console - NSIS Installer Script
+; PacAI v6.3 Admin Console - NSIS Installer Script
 ; Build with: makensis installer.nsi
 
-!define APP_NAME "PacAI v5 Admin"
-!define APP_EXE "PacAI-v5-Admin.exe"
-!define VERSION "5.0.0"
+!define APP_NAME "PacAI v6.3 Admin"
+!define APP_EXE "PacAI-v6-Admin.exe"
+!define VERSION "6.3.0"
 !define PUBLISHER "Wolf Team Studios"
 !define WEB_SITE "https://discord.gg/TtfHgfCQMY"
-!define OUTFILE "PacAI-v5-Admin-Setup.exe"
+!define OUTFILE "PacAI-v6-Admin-Setup.exe"
 !define INSTALLDIR "$PROGRAMFILES\PacAI"
 
 ; Compression
@@ -47,7 +47,7 @@ VIProductVersion "${VERSION}.0"
 VIAddVersionKey "ProductName" "${APP_NAME}"
 VIAddVersionKey "CompanyName" "${PUBLISHER}"
 VIAddVersionKey "LegalCopyright" "Copyright (c) 2024-2026 ${PUBLISHER}"
-VIAddVersionKey "FileDescription" "PacAI v5 Enterprise Defense Simulation Admin Console"
+VIAddVersionKey "FileDescription" "PacAI v6.3 Enterprise Defense Simulation Admin Console"
 VIAddVersionKey "FileVersion" "${VERSION}"
 VIAddVersionKey "ProductVersion" "${VERSION}"
 
