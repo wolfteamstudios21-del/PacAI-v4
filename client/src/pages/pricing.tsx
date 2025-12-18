@@ -118,7 +118,7 @@ export default function Pricing() {
       <div className="max-w-6xl mx-auto px-6 py-8">
         <div className="text-center mb-12">
           <h1 className="text-5xl font-black mb-4" data-testid="text-pricing-title">
-            PacAI v5 – Upgrade Your Plan
+            PacAI v6.3 – Upgrade Your Plan
           </h1>
           <p className="text-xl text-muted-foreground">
             The final AI that builds full games & cinematics in seconds.

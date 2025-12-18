@@ -19,7 +19,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || "";
 
 export default function App() {
   if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
-    console.log("PacAI v5 - Development mode");
+    console.log("PacAI v6.3 - Development mode");
     console.log("API URL:", API_BASE_URL);
   }
   const [user, setUser] = useState<any>(null);
@@ -460,7 +460,7 @@ export default function App() {
             <div className="w-10 h-10 bg-[#3e73ff] rounded-xl flex items-center justify-center flex-shrink-0">
               <Brain className="w-6 h-6 text-white" />
             </div>
-            <h1 className="font-black text-xl">PacAI v5</h1>
+            <h1 className="font-black text-xl">PacAI v6.3</h1>
           </div>
           {!sidebarOpen && (
             <button onClick={() => setSidebarOpen(true)} className="w-10 h-10 bg-[#3e73ff] rounded-xl flex items-center justify-center mx-auto hover:opacity-90">

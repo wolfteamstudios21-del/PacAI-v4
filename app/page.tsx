@@ -25,7 +25,7 @@ export default function HomePage() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
           </svg>
         </div>
-        <h1 className="text-3xl font-bold text-white mb-2">PacAI v5</h1>
+        <h1 className="text-3xl font-bold text-white mb-2">PacAI v6.3</h1>
         <p className="text-gray-400">Loading enterprise simulation platform...</p>
       </div>
     </div>

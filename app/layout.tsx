@@ -11,7 +11,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <head>
-        <title>PacAI v5 - Enterprise Defense Simulation Platform</title>
+        <title>PacAI v6.3 - Enterprise Defense Simulation Platform</title>
         <meta name="description" content="Offline-first procedural world generator for games, simulations, and training" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
