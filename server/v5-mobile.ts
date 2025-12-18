@@ -43,7 +43,7 @@ function generateGLTF(world: any): string {
   }
 
   return JSON.stringify({
-    asset: { version: "2.0", generator: "PacAI v5" },
+    asset: { version: "2.0", generator: "PacAI v6.3" },
     scene: 0,
     scenes: [{ name: "PacAI World", nodes: [0] }],
     nodes: [{ name: "Terrain", mesh: 0 }],
@@ -71,7 +71,7 @@ function generateBlenderImportScript(project: any): string {
   const seed = project?.state?.seed || project?.seed || 12345;
   return `#!/usr/bin/env python3
 """
-PacAI v5 - Blender Mobile Import Script
+PacAI v6.3 - Blender Mobile Import Script
 Generated: ${new Date().toISOString()}
 Project: ${project?.id || 'unknown'}
 """
@@ -152,7 +152,7 @@ router.post("/v5/export/mobile", async (req: Request, res: Response) => {
   zip.pipe(res);
 
   zip.append(JSON.stringify({
-    pacai: "v5.3",
+    pacai: "v6.3",
     engine: engineLower,
     engine_display: displayName,
     project_id: projectId,

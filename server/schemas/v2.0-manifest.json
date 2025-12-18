@@ -1,6 +1,6 @@
 {
   "$schema": "https://pacai.ai/schema/v2.0",
-  "title": "PacAI v5 Universal JSON Schema v2.0",
+  "title": "PacAI v6.3 Universal JSON Schema v2.0",
   "description": "The frozen, engine-agnostic format that works everywhere forever",
   "type": "object",
   "properties": {

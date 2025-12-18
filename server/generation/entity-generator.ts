@@ -1,5 +1,5 @@
 /**
- * PacAI v5 Entity Generator
+ * PacAI v6.3 Entity Generator
  * Creates NPCs, vehicles, and other entities with behaviors
  */
 

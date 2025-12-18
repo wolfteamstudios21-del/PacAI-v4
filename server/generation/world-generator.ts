@@ -1,5 +1,5 @@
 /**
- * PacAI v5 World Generator
+ * PacAI v6.3 World Generator
  * Deterministic procedural world generation from seed
  */
 
@@ -94,7 +94,7 @@ export function generateWorld(seed: string, options: {
   const world: World = {
     id: `world_${rng.getSeed().substring(0, 8)}`,
     seed: rng.getSeed(),
-    version: 'v5.0.0',
+    version: 'v6.3.0',
     generated_at: new Date().toISOString(),
     dimensions: { width, height },
     tiles,

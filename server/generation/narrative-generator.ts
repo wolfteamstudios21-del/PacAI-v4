@@ -1,5 +1,5 @@
 /**
- * PacAI v5 Narrative & Mission Generator
+ * PacAI v6.3 Narrative & Mission Generator
  * Creates factions, missions, objectives, and storylines
  * Integrates with OpenAI for enhanced narrative generation
  */

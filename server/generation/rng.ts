@@ -1,5 +1,5 @@
 /**
- * PacAI v5 Deterministic Random Number Generator
+ * PacAI v6.3 Deterministic Random Number Generator
  * 
  * Uses SplitMix64 algorithm for fast, reproducible random generation.
  * Same seed always produces identical sequence - critical for testable worlds.

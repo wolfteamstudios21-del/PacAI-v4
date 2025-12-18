@@ -1,5 +1,5 @@
 /**
- * PacAI v5 Generation Engine
+ * PacAI v6.3 Generation Engine
  * Main entry point for deterministic world, entity, and narrative generation
  */
 

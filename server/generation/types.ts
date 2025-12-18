@@ -1,5 +1,5 @@
 /**
- * PacAI v5 Core Generation Types
+ * PacAI v6.3 Core Generation Types
  * These define the structure of generated worlds, entities, and narratives
  */
 

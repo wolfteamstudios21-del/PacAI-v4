@@ -1,4 +1,4 @@
-// PacAI v5.4 - Gallery Module with Community Remix + Offline Cache
+// PacAI v6.3 - Gallery Module with Community Remix + Offline Cache
 import { Router, Request, Response } from "express";
 import { getProject, listProjects, saveProject } from "./db";
 import { createProject } from "./projects";

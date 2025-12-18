@@ -1,5 +1,5 @@
 export function generateUnitySDK(): string {
-  return `// PacAI v5 Unity SDK - Constant Draw & Live Overrides
+  return `// PacAI v6.3 Unity SDK - Constant Draw & Live Overrides
 // Generated: ${new Date().toISOString()}
 // Documentation: https://pacaiwolfstudio.com/docs/unity
 
@@ -147,7 +147,7 @@ namespace PacAI
 }
 
 export function generateGodotSDK(): string {
-  return `# PacAI v5 Godot SDK - Constant Draw & Live Overrides
+  return `# PacAI v6.3 Godot SDK - Constant Draw & Live Overrides
 # Generated: ${new Date().toISOString()}
 # Documentation: https://pacaiwolfstudio.com/docs/godot
 
@@ -174,122 +174,122 @@ var _pending_data: Array = []
 @export var entity_scene: PackedScene
 
 func _ready() -> void:
-	_setup_poll_timer()
-	_connect_websocket()
+        _setup_poll_timer()
+        _connect_websocket()
 
 func _setup_poll_timer() -> void:
-	_poll_timer = Timer.new()
-	_poll_timer.wait_time = poll_interval
-	_poll_timer.autostart = true
-	_poll_timer.timeout.connect(_on_poll_timeout)
-	add_child(_poll_timer)
+        _poll_timer = Timer.new()
+        _poll_timer.wait_time = poll_interval
+        _poll_timer.autostart = true
+        _poll_timer.timeout.connect(_on_poll_timeout)
+        add_child(_poll_timer)
 
 func _connect_websocket() -> void:
-	if pacai_url.is_empty() or session_token.is_empty():
-		push_warning("[PacAI] Missing URL or token - using poll mode")
-		return
-	
-	_ws = WebSocketPeer.new()
-	var err = _ws.connect_to_url(pacai_url)
-	if err != OK:
-		push_error("[PacAI] WebSocket connection failed: ", err)
+        if pacai_url.is_empty() or session_token.is_empty():
+                push_warning("[PacAI] Missing URL or token - using poll mode")
+                return
+        
+        _ws = WebSocketPeer.new()
+        var err = _ws.connect_to_url(pacai_url)
+        if err != OK:
+                push_error("[PacAI] WebSocket connection failed: ", err)
 
 func _process(_delta: float) -> void:
-	if _ws:
-		_ws.poll()
-		match _ws.get_ready_state():
-			WebSocketPeer.STATE_OPEN:
-				if not _is_connected:
-					_is_connected = true
-					connected.emit()
-					_send_auth()
-				while _ws.get_available_packet_count():
-					_handle_message(_ws.get_packet().get_string_from_utf8())
-			WebSocketPeer.STATE_CLOSED:
-				if _is_connected:
-					_is_connected = false
-					disconnected.emit()
+        if _ws:
+                _ws.poll()
+                match _ws.get_ready_state():
+                        WebSocketPeer.STATE_OPEN:
+                                if not _is_connected:
+                                        _is_connected = true
+                                        connected.emit()
+                                        _send_auth()
+                                while _ws.get_available_packet_count():
+                                        _handle_message(_ws.get_packet().get_string_from_utf8())
+                        WebSocketPeer.STATE_CLOSED:
+                                if _is_connected:
+                                        _is_connected = false
+                                        disconnected.emit()
 
 func _send_auth() -> void:
-	var auth_msg = JSON.stringify({
-		"type": "auth",
-		"token": session_token
-	})
-	_ws.send_text(auth_msg)
+        var auth_msg = JSON.stringify({
+                "type": "auth",
+                "token": session_token
+        })
+        _ws.send_text(auth_msg)
 
 func _handle_message(msg: String) -> void:
-	var data = JSON.parse_string(msg)
-	if data == null:
-		return
-	
-	match data.get("type", ""):
-		"gen-pull":
-			_apply_gen(data.get("data", {}))
-			gen_received.emit(data)
-		"apply-override", "apply-event":
-			override_received.emit(data)
+        var data = JSON.parse_string(msg)
+        if data == null:
+                return
+        
+        match data.get("type", ""):
+                "gen-pull":
+                        _apply_gen(data.get("data", {}))
+                        gen_received.emit(data)
+                "apply-override", "apply-event":
+                        override_received.emit(data)
 
 func _on_poll_timeout() -> void:
-	if _is_connected:
-		return
-	_poll_random_gen()
+        if _is_connected:
+                return
+        _poll_random_gen()
 
 func _poll_random_gen() -> void:
-	var http = HTTPRequest.new()
-	add_child(http)
-	http.request_completed.connect(_on_poll_complete.bind(http))
-	
-	var url = "https://pacaiwolfstudio.com/v5/gen/random?type=%s&projectId=%s" % [generation_type, project_id]
-	var headers = ["Authorization: Bearer " + session_token]
-	http.request(url, headers)
+        var http = HTTPRequest.new()
+        add_child(http)
+        http.request_completed.connect(_on_poll_complete.bind(http))
+        
+        var url = "https://pacaiwolfstudio.com/v5/gen/random?type=%s&projectId=%s" % [generation_type, project_id]
+        var headers = ["Authorization: Bearer " + session_token]
+        http.request(url, headers)
 
 func _on_poll_complete(result: int, code: int, headers: PackedStringArray, body: PackedByteArray, http: HTTPRequest) -> void:
-	http.queue_free()
-	
-	if code == 200:
-		var data = JSON.parse_string(body.get_string_from_utf8())
-		if data:
-			_apply_gen(data)
-			gen_received.emit(data)
+        http.queue_free()
+        
+        if code == 200:
+                var data = JSON.parse_string(body.get_string_from_utf8())
+                if data:
+                        _apply_gen(data)
+                        gen_received.emit(data)
 
 func _apply_gen(data: Dictionary) -> void:
-	print("[PacAI] Applying gen: ", data.get("type", "unknown"))
-	
-	var positions = data.get("positions", [])
-	if terrain_scene and positions.size() > 0:
-		for pos in positions:
-			var instance = terrain_scene.instantiate()
-			instance.position = Vector3(pos.x, pos.y, pos.z)
-			get_tree().root.add_child(instance)
+        print("[PacAI] Applying gen: ", data.get("type", "unknown"))
+        
+        var positions = data.get("positions", [])
+        if terrain_scene and positions.size() > 0:
+                for pos in positions:
+                        var instance = terrain_scene.instantiate()
+                        instance.position = Vector3(pos.x, pos.y, pos.z)
+                        get_tree().root.add_child(instance)
 
 func send_override(command: String) -> void:
-	if not _is_connected:
-		push_warning("[PacAI] Not connected - override queued")
-		return
-	
-	var msg = JSON.stringify({
-		"type": "push-override",
-		"command": command,
-		"timestamp": Time.get_unix_time_from_system()
-	})
-	_ws.send_text(msg)
+        if not _is_connected:
+                push_warning("[PacAI] Not connected - override queued")
+                return
+        
+        var msg = JSON.stringify({
+                "type": "push-override",
+                "command": command,
+                "timestamp": Time.get_unix_time_from_system()
+        })
+        _ws.send_text(msg)
 
 func subscribe_gen(type: String = "world", frequency: float = 30.0) -> void:
-	if not _is_connected:
-		return
-	
-	var msg = JSON.stringify({
-		"type": "subscribe-gen",
-		"genType": type,
-		"frequency": frequency * 1000,
-		"projectId": project_id
-	})
-	_ws.send_text(msg)
+        if not _is_connected:
+                return
+        
+        var msg = JSON.stringify({
+                "type": "subscribe-gen",
+                "genType": type,
+                "frequency": frequency * 1000,
+                "projectId": project_id
+        })
+        _ws.send_text(msg)
 `;
 }
 
 export function generateBlenderScript(): string {
-  return `# PacAI v5 Blender Add-on - Live Override Client
+  return `# PacAI v6.3 Blender Add-on - Live Override Client
 # Generated: ${new Date().toISOString()}
 # Documentation: https://pacaiwolfstudio.com/docs/blender
 
@@ -423,7 +423,7 @@ if __name__ == "__main__":
 }
 
 export function generateWebGPUSDK(): string {
-  return `// PacAI v5 WebGPU SDK - Constant Draw & Live Overrides
+  return `// PacAI v6.3 WebGPU SDK - Constant Draw & Live Overrides
 // Generated: ${new Date().toISOString()}
 // Documentation: https://pacaiwolfstudio.com/docs/webgpu
 

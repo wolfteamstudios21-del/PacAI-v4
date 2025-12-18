@@ -367,7 +367,7 @@ export async function exportToEngines(
   }
 
   const manifest: ExportManifest = {
-    pacai: 'v5.0.0',
+    pacai: 'v6.3.0',
     generated: new Date().toISOString(),
     seed,
     project_id: projectId,

@@ -1,5 +1,5 @@
 /**
- * PacAI v5 Override Handler
+ * PacAI v6.3 Override Handler
  * Validates and applies runtime behavior modifications
  */
 

@@ -402,7 +402,7 @@ router.get("/v5/audit", async (req, res) => {
 router.get("/v5/health", async (req, res) => {
   res.json({
     status: "operational",
-    version: "v5.3.0",
+    version: "v6.3.0",
     features: {
       procedural_generation: true,
       deterministic_worlds: true,

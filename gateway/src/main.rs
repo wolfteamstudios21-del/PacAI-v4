@@ -1,4 +1,4 @@
-// PacAI v5 — Rust Axum Gateway (SCIF-Ready)
+// PacAI v6.3 — Rust Axum Gateway (SCIF-Ready)
 // Replaces Express backend with 50-100× throughput + memory safety
 
 use axum::{
@@ -52,7 +52,7 @@ pub struct AuditLog {
 // === HANDLERS ===
 
 async fn health() -> &'static str {
-    "PacAI v5 Gateway — Production Ready • SCIF-Compatible • Hardware-Root Secure"
+    "PacAI v6.3 Gateway — Production Ready • SCIF-Compatible • Hardware-Root Secure"
 }
 
 async fn license_check() -> Json<LicenseStatus> {
@@ -182,7 +182,7 @@ async fn main() {
     let addr = "0.0.0.0:3000".parse().unwrap();
     let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
 
-    println!("🔐 PacAI v5 Gateway running on http://0.0.0.0:3000");
+    println!("🔐 PacAI v6.3 Gateway running on http://0.0.0.0:3000");
     println!("📊 Mode: Production Hardened (Rust/Axum)");
     println!("🛡️  Security: Hardware-root licensing ready (YubiHSM2)");
     println!("⚡ Performance: 50-100× throughput vs Express");

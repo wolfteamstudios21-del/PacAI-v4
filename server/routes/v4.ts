@@ -468,7 +468,7 @@ async function exportMultiEngine(req: Request, res: Response) {
     // v2.0 Universal Schema-compliant manifest
     const manifest = {
       "$schema": "https://pacai.ai/schema/v2.0",
-      "pacai": "v5.0.0",
+      "pacai": "v6.3.0",
       "generated": new Date().toISOString(),
       "seed": `0x${crypto.randomBytes(16).toString("hex")}`,
       "license": `ed25519:${crypto.randomBytes(32).toString("base64")}`,
@@ -543,7 +543,7 @@ router.get("/v5/projects/:id/replay", getReplay);
 router.get("/v5/health", (req: Request, res: Response) => {
   res.json({
     status: "operational",
-    version: "v5.0.0",
+    version: "v6.3.0",
     features: {
       procedural_generation: true,
       deterministic_worlds: true,
