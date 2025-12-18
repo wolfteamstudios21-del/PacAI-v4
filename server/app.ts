@@ -31,7 +31,6 @@ import galleryIngestRoutes from "./routes/gallery-ingest";
 import galleryForkRoutes from "./routes/gallery-fork";
 import chargeStatsRoutes from "./routes/charge-stats";
 import chargeSuccessRoutes from "./routes/charge-success";
-import ragSearchRoutes from "./routes/rag-search";
 import pipelineRoutes from "./routes/pipelines";
 import healthRoutes from "./routes/health";
 import devConsoleRoutes from "./routes/dev-console";
@@ -152,9 +151,6 @@ app.use("/api/v6", chargeSuccessRoutes);
 
 // Apply rate limiting to v6 generation endpoints
 app.use("/v6/generate", freeTierLimiter, generationLimiter);
-
-// v6.2: RAG Search augmentation for enhanced LLM generation
-app.use("/v6", ragSearchRoutes);
 
 // v6.3: Pipeline Engine for modular AI workflows (with rate limiting)
 app.use("/api/pipelines", freeTierLimiter);
