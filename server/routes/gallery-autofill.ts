@@ -75,19 +75,25 @@ router.post("/gallery/autofill/concept", realChargeMiddleware, async (req, res) 
       generatedAt: artResult.generatedAt,
     }, "system", "system");
     
-    // For concept art, the generated image IS the preview
+    // For concept art, the generated image IS the preview - use proper update function
     if (artResult.imageUrl) {
-      item.previewImageUrl = artResult.imageUrl;
-      item.previewThumbnailUrl = artResult.imageUrl;
-      item.previewStatus = "ready";
-      item.previewFallbackTier = 0;
+      const { updateGalleryItemPreview } = await import("../db/gallery");
+      await updateGalleryItemPreview(item.id, {
+        previewImageUrl: artResult.imageUrl,
+        previewThumbnailUrl: artResult.imageUrl,
+        previewStatus: "ready",
+        previewAltText: `Concept art: ${prompt.substring(0, 100)}`,
+        previewFallbackTier: 0,
+      });
     }
     
     if (artResult.imageBase64) {
       item.imageBase64 = artResult.imageBase64;
     }
     
-    res.json({ success: true, item });
+    // Refetch to get updated preview data
+    const freshItem = await getGalleryItem(item.id);
+    res.json({ success: true, item: freshItem || item });
   } catch (error) {
     console.error("[gallery/autofill/concept] Error:", error);
     res.status(500).json({ error: "Concept art generation failed" });
