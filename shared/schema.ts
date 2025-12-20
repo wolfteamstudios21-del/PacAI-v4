@@ -290,3 +290,65 @@ export const NARRATIVE_TEMPLATES: Record<string, NarrativePrompt> = {
     variables: ['instructor', 'student', 'technique', 'environment', 'skill'],
   },
 };
+
+// Gallery assets with preview image support
+export type PreviewStatus = "pending" | "generating" | "ready" | "failed";
+export type AssetKind = "vehicle" | "weapon" | "creature" | "concept" | "model" | "world" | "npc" | "simulation";
+
+export const galleryAssets = pgTable("gallery_assets", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  kind: text("kind").notNull(), // vehicle, weapon, creature, concept, model, world, npc, simulation
+  title: text("title").notNull(),
+  description: text("description"),
+  owner: text("owner").notNull(),
+  tags: text("tags").array(),
+  license: text("license").notNull().default("commercial"), // cc0, cc-by, commercial
+  
+  // Preview system - the critical visual representation
+  preview_image_url: text("preview_image_url"), // Primary preview image
+  preview_thumbnail_url: text("preview_thumbnail_url"), // Smaller thumbnail for cards
+  preview_status: text("preview_status").notNull().default("pending"), // pending, generating, ready, failed
+  preview_alt_text: text("preview_alt_text"), // Accessibility text
+  preview_fallback_tier: integer("preview_fallback_tier").default(0), // 0=generated, 1=concept, 2=icon
+  
+  // Primary asset data
+  asset_url: text("asset_url"), // URL to downloadable asset (GLB, FBX, JSON, etc.)
+  asset_format: text("asset_format"), // glb, fbx, json, etc.
+  image_base64: text("image_base64"), // Legacy: inline base64 image data
+  
+  // Generation metadata
+  generation_prompt: text("generation_prompt"),
+  generation_seed: text("generation_seed"),
+  engine_exports: text("engine_exports").array(), // UE5, Unity, Godot, etc.
+  meta: jsonb("meta").$type<Record<string, any>>(),
+  
+  created_at: timestamp("created_at").defaultNow(),
+});
+
+export const insertGalleryAssetSchema = createInsertSchema(galleryAssets).omit({
+  id: true,
+  preview_status: true,
+  preview_fallback_tier: true,
+  created_at: true,
+});
+
+export type InsertGalleryAsset = z.infer<typeof insertGalleryAssetSchema>;
+export type GalleryAsset = typeof galleryAssets.$inferSelect;
+
+// Preview generation request types
+export interface PreviewGenerationRequest {
+  assetId: string;
+  assetKind: AssetKind;
+  prompt: string;
+  sourcePath?: string;
+  meta?: Record<string, any>;
+}
+
+export interface PreviewGenerationResult {
+  success: boolean;
+  previewUrl?: string;
+  thumbnailUrl?: string;
+  altText?: string;
+  fallbackTier: number; // 0=generated, 1=concept art, 2=type icon
+  error?: string;
+}

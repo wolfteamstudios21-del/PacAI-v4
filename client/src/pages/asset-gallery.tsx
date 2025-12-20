@@ -7,15 +7,17 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Car, Sword, Bug, GitFork, Sparkles, CreditCard, Shield, Loader2, ExternalLink, Paintbrush, Box, Download, X, ZoomIn, Calendar, User, Tag } from "lucide-react";
+import { Car, Sword, Bug, GitFork, Sparkles, CreditCard, Shield, Loader2, ExternalLink, Paintbrush, Box, Download, X, ZoomIn, Calendar, User, Tag, BarChart3, RefreshCw, ImageOff } from "lucide-react";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "";
 
+type PreviewStatus = "pending" | "generating" | "ready" | "failed";
+
 interface GalleryItem {
   id: string;
-  kind: "vehicle" | "weapon" | "creature" | "concept" | "model";
+  kind: "vehicle" | "weapon" | "creature" | "concept" | "model" | "world" | "npc" | "simulation";
   title: string;
   tags: string[];
   license: "cc0" | "cc-by" | "commercial";
@@ -24,6 +26,13 @@ interface GalleryItem {
   modelUrl?: string;
   meta: Record<string, any>;
   createdAt: number;
+  
+  // Preview system
+  previewImageUrl?: string;
+  previewThumbnailUrl?: string;
+  previewStatus: PreviewStatus;
+  previewAltText?: string;
+  previewFallbackTier: number;
 }
 
 interface GalleryResponse {
@@ -38,6 +47,9 @@ const KIND_ICONS: Record<string, typeof Car> = {
   creature: Bug,
   concept: Paintbrush,
   model: Box,
+  world: Sparkles,
+  npc: User,
+  simulation: BarChart3,
 };
 
 const KIND_COLORS: Record<string, string> = {
@@ -46,6 +58,9 @@ const KIND_COLORS: Record<string, string> = {
   creature: "bg-green-600",
   concept: "bg-purple-600",
   model: "bg-orange-600",
+  world: "bg-cyan-600",
+  npc: "bg-yellow-600",
+  simulation: "bg-pink-600",
 };
 
 const LICENSE_BADGES: Record<string, { label: string; color: string }> = {
@@ -330,7 +345,23 @@ export default function AssetGalleryPage() {
                   onClick={() => handlePreview(item)}
                 >
                   <div className="h-48 bg-[#0b0d0f] flex items-center justify-center relative">
-                    {item.kind === "concept" && item.meta?.imageUrl ? (
+                    {/* Preview Status: Pending/Generating - show skeleton */}
+                    {(item.previewStatus === "pending" || item.previewStatus === "generating") ? (
+                      <div className="w-full h-full flex flex-col items-center justify-center">
+                        <Loader2 className="w-12 h-12 text-[#3e73ff] animate-spin mb-2" />
+                        <p className="text-xs text-[#9aa0a6]">
+                          {item.previewStatus === "generating" ? "Generating preview..." : "Preview queued..."}
+                        </p>
+                      </div>
+                    ) : item.previewImageUrl && item.previewStatus === "ready" ? (
+                      /* Preview Ready - show AI-generated preview */
+                      <img
+                        src={item.previewImageUrl}
+                        alt={item.previewAltText || item.title}
+                        className="w-full h-full object-cover"
+                        data-testid={`img-preview-${item.id}`}
+                      />
+                    ) : item.kind === "concept" && item.meta?.imageUrl ? (
                       <img
                         src={item.meta.imageUrl}
                         alt={item.title}
@@ -351,19 +382,39 @@ export default function AssetGalleryPage() {
                         data-testid={`img-asset-${item.id}`}
                       />
                     ) : (
-                      <KindIcon className="w-20 h-20 text-[#3e73ff]/50" />
+                      /* Fallback to type icon */
+                      <div className="flex flex-col items-center justify-center">
+                        <KindIcon className="w-20 h-20 text-[#3e73ff]/50 mb-2" />
+                        {item.previewStatus === "failed" && (
+                          <p className="text-xs text-[#9aa0a6]">Preview unavailable</p>
+                        )}
+                      </div>
                     )}
+                    
+                    {/* Kind badge */}
                     <div className="absolute top-2 left-2">
                       <Badge className={`${KIND_COLORS[item.kind]} text-xs`}>
                         <KindIcon className="w-3 h-3 mr-1" />
                         {item.kind}
                       </Badge>
                     </div>
+                    
+                    {/* License badge */}
                     <div className="absolute top-2 right-2">
                       <Badge className={LICENSE_BADGES[item.license]?.color || "bg-zinc-600"}>
                         {LICENSE_BADGES[item.license]?.label || item.license}
                       </Badge>
                     </div>
+                    
+                    {/* Preview tier indicator */}
+                    {item.previewFallbackTier === 0 && item.previewStatus === "ready" && (
+                      <div className="absolute bottom-2 left-2">
+                        <Badge className="bg-emerald-600/80 text-xs">
+                          <Sparkles className="w-3 h-3 mr-1" />
+                          AI Preview
+                        </Badge>
+                      </div>
+                    )}
                   </div>
 
                   <CardContent className="p-4">
@@ -448,8 +499,22 @@ export default function AssetGalleryPage() {
 
           {selectedItem && (
             <div className="space-y-6">
-              <div className="bg-[#0b0d0f] rounded-xl overflow-hidden flex items-center justify-center min-h-[300px] max-h-[500px]">
-                {selectedItem.kind === "concept" && selectedItem.meta?.imageUrl ? (
+              <div className="bg-[#0b0d0f] rounded-xl overflow-hidden flex items-center justify-center min-h-[300px] max-h-[500px] relative">
+                {/* AI-generated preview (highest priority) */}
+                {selectedItem.previewImageUrl && selectedItem.previewStatus === "ready" ? (
+                  <img
+                    src={selectedItem.previewImageUrl}
+                    alt={selectedItem.previewAltText || selectedItem.title}
+                    className="max-w-full max-h-[500px] object-contain"
+                    data-testid="img-preview-full"
+                  />
+                ) : selectedItem.previewStatus === "generating" || selectedItem.previewStatus === "pending" ? (
+                  <div className="text-center p-8">
+                    <Loader2 className="w-16 h-16 mx-auto text-[#3e73ff] animate-spin mb-4" />
+                    <p className="text-lg font-semibold mb-2">Generating Preview</p>
+                    <p className="text-[#9aa0a6]">AI is creating a visual representation...</p>
+                  </div>
+                ) : selectedItem.kind === "concept" && selectedItem.meta?.imageUrl ? (
                   <img
                     src={selectedItem.meta.imageUrl}
                     alt={selectedItem.title}
@@ -482,7 +547,22 @@ export default function AssetGalleryPage() {
                       const KindIcon = KIND_ICONS[selectedItem.kind] || Car;
                       return <KindIcon className="w-24 h-24 mx-auto text-[#3e73ff]/50 mb-4" />;
                     })()}
-                    <p className="text-[#9aa0a6]">No preview available</p>
+                    <p className="text-[#9aa0a6]">
+                      {selectedItem.previewStatus === "failed" ? "Preview generation failed" : "No preview available"}
+                    </p>
+                  </div>
+                )}
+                
+                {/* Preview quality indicator */}
+                {selectedItem.previewStatus === "ready" && (
+                  <div className="absolute bottom-2 right-2">
+                    <Badge className={
+                      selectedItem.previewFallbackTier === 0 ? "bg-emerald-600" :
+                      selectedItem.previewFallbackTier === 1 ? "bg-amber-600" : "bg-zinc-600"
+                    }>
+                      {selectedItem.previewFallbackTier === 0 ? "AI Generated" :
+                       selectedItem.previewFallbackTier === 1 ? "Concept Art" : "Icon Fallback"}
+                    </Badge>
                   </div>
                 )}
               </div>

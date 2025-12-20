@@ -7,6 +7,7 @@ import { listGalleryItems, getGalleryItem, countGalleryItems } from "../db/galle
 import { realChargeMiddleware, isDevTeam } from "../middleware/real-charge";
 import { generateConceptArt } from "../services/generation-image";
 import { generate3DModel } from "../services/generation-model";
+import { generateAssetPreview } from "../lib/preview";
 
 const router = Router();
 
@@ -15,6 +16,12 @@ router.post("/gallery/autofill/vehicle", realChargeMiddleware, async (req, res) 
     const { prompt = "default armored transport", title = "System Vehicle" } = req.body;
     const meta = await generateVehicle(prompt);
     const item = await addToGallery("vehicle", title, meta, "system", "system");
+    
+    // Generate AI preview asynchronously (don't block response)
+    generateAssetPreview(item.id, "vehicle", prompt, meta).catch(e => 
+      console.error(`[preview] Background preview failed for ${item.id}:`, e.message)
+    );
+    
     res.json({ success: true, item });
   } catch (error) {
     console.error("[gallery/autofill/vehicle] Error:", error);
@@ -27,6 +34,11 @@ router.post("/gallery/autofill/weapon", realChargeMiddleware, async (req, res) =
     const { prompt = "default rifle", title = "System Weapon" } = req.body;
     const meta = await generateWeapon(prompt);
     const item = await addToGallery("weapon", title, meta, "system", "system");
+    
+    generateAssetPreview(item.id, "weapon", prompt, meta).catch(e => 
+      console.error(`[preview] Background preview failed for ${item.id}:`, e.message)
+    );
+    
     res.json({ success: true, item });
   } catch (error) {
     console.error("[gallery/autofill/weapon] Error:", error);
@@ -39,6 +51,11 @@ router.post("/gallery/autofill/creature", realChargeMiddleware, async (req, res)
     const { prompt = "default jungle predator", title = "System Creature" } = req.body;
     const meta = await generateCreature(prompt);
     const item = await addToGallery("creature", title, meta, "system", "system");
+    
+    generateAssetPreview(item.id, "creature", prompt, meta).catch(e => 
+      console.error(`[preview] Background preview failed for ${item.id}:`, e.message)
+    );
+    
     res.json({ success: true, item });
   } catch (error) {
     console.error("[gallery/autofill/creature] Error:", error);
@@ -57,6 +74,14 @@ router.post("/gallery/autofill/concept", realChargeMiddleware, async (req, res) 
       provider: artResult.provider,
       generatedAt: artResult.generatedAt,
     }, "system", "system");
+    
+    // For concept art, the generated image IS the preview
+    if (artResult.imageUrl) {
+      item.previewImageUrl = artResult.imageUrl;
+      item.previewThumbnailUrl = artResult.imageUrl;
+      item.previewStatus = "ready";
+      item.previewFallbackTier = 0;
+    }
     
     if (artResult.imageBase64) {
       item.imageBase64 = artResult.imageBase64;
@@ -81,6 +106,11 @@ router.post("/gallery/autofill/model", realChargeMiddleware, async (req, res) =>
       polyCount: modelResult.polyCount,
       generatedAt: modelResult.generatedAt,
     }, "system", "system");
+    
+    // Generate preview image for 3D model asynchronously
+    generateAssetPreview(item.id, "model", prompt, modelResult).catch(e => 
+      console.error(`[preview] Background preview failed for ${item.id}:`, e.message)
+    );
     
     res.json({ success: true, item, downloadUrl: modelResult.modelUrl });
   } catch (error) {

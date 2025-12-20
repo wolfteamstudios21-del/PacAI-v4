@@ -1,8 +1,10 @@
 import { randomUUID } from "crypto";
 
+export type PreviewStatus = "pending" | "generating" | "ready" | "failed";
+
 export interface GalleryItem {
   id: string;
-  kind: "vehicle" | "weapon" | "creature" | "concept" | "model";
+  kind: "vehicle" | "weapon" | "creature" | "concept" | "model" | "world" | "npc" | "simulation";
   title: string;
   tags: string[];
   license: "cc0" | "cc-by" | "commercial";
@@ -11,14 +13,46 @@ export interface GalleryItem {
   modelUrl?: string;
   meta: Record<string, any>;
   createdAt: number;
+  
+  // Preview system - visual representation
+  previewImageUrl?: string;
+  previewThumbnailUrl?: string;
+  previewStatus: PreviewStatus;
+  previewAltText?: string;
+  previewFallbackTier: number; // 0=AI generated, 1=concept art, 2=icon fallback
+  generationPrompt?: string;
 }
 
 const gallery: GalleryItem[] = [];
 
-export async function insertGalleryItem(item: Omit<GalleryItem, "id" | "createdAt">): Promise<GalleryItem> {
-  const row: GalleryItem = { id: randomUUID(), createdAt: Date.now(), ...item };
+export async function insertGalleryItem(item: Omit<GalleryItem, "id" | "createdAt" | "previewStatus" | "previewFallbackTier">): Promise<GalleryItem> {
+  const row: GalleryItem = { 
+    id: randomUUID(), 
+    createdAt: Date.now(), 
+    previewStatus: "pending",
+    previewFallbackTier: 2,
+    ...item 
+  };
   gallery.push(row);
   return row;
+}
+
+export async function updateGalleryItemPreview(
+  id: string, 
+  previewData: { 
+    previewImageUrl?: string; 
+    previewThumbnailUrl?: string;
+    previewStatus: PreviewStatus;
+    previewAltText?: string;
+    previewFallbackTier: number;
+  }
+): Promise<GalleryItem | null> {
+  const item = gallery.find((g) => g.id === id);
+  if (item) {
+    Object.assign(item, previewData);
+    return item;
+  }
+  return null;
 }
 
 export async function listGalleryItems(kind?: GalleryItem["kind"]) {
