@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import {
   Zap, Shield, Download, LogOut, Menu, X, Crown, Search, UserCheck,
-  Brain, Sparkles, Send, Package, Smartphone, Monitor, BookOpen, BarChart3, Image, Radio, Palette, CreditCard, Terminal
+  Brain, Sparkles, Send, Package, Smartphone, Monitor, BookOpen, BarChart3, Image, Radio, Palette, CreditCard, Terminal,
+  Globe, Users, Truck, FileText, Settings
 } from "lucide-react";
 import RefUploader from "./components/RefUploader";
 import { SessionManager } from "./components/LiveOverrides";
@@ -43,6 +44,29 @@ export default function App() {
   const [selectedEngines, setSelectedEngines] = useState<string[]>([]);
   const [exporting, setExporting] = useState(false);
   const [exportResult, setExportResult] = useState<any>(null);
+  
+  // Project Editor State
+  const [projectConfig, setProjectConfig] = useState({
+    biome: "urban",
+    weather: "clear",
+    timeOfDay: "day",
+    npcCount: 50,
+    aggression: 50,
+    factionBalance: "balanced",
+    vehicleDensity: "moderate",
+    weaponTier: "military",
+    includeMechs: false,
+    missionCount: 5,
+    tension: "medium",
+    includeStory: true,
+    includeWildlife: false,
+    includeHostileCreatures: false,
+    creatureTier: "mundane",
+    aiDirector: true,
+    dynamicEvents: true,
+    permadeath: false,
+    tickRate: "realtime"
+  });
   const [selectedRefs, setSelectedRefs] = useState<string[]>([]);
   
   // PWA install prompt state
@@ -829,6 +853,347 @@ export default function App() {
                 </p>
               </div>
             )}
+            
+            {/* Project Editor - All Features Before Export */}
+            {generationResult && (
+              <div className="mt-8">
+                <h3 className="text-2xl font-bold mb-6">Edit Project Before Export</h3>
+                <p className="text-[#9aa0a6] mb-6">Customize all aspects of your generated world before exporting to game engines.</p>
+                
+                <div className="grid md:grid-cols-2 gap-6">
+                  {/* World Settings */}
+                  <div className="bg-[#141517] p-6 rounded-2xl border border-[#2a2d33]">
+                    <h4 className="text-lg font-bold mb-4 flex items-center gap-2">
+                      <Globe className="w-5 h-5 text-green-400" />
+                      World Settings
+                    </h4>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-[#9aa0a6] text-sm mb-1">Biome</label>
+                        <select 
+                          className="w-full px-4 py-2 bg-[#1f2125] rounded-lg text-white" 
+                          data-testid="select-biome"
+                          value={projectConfig.biome}
+                          onChange={e => setProjectConfig(c => ({...c, biome: e.target.value}))}
+                        >
+                          <option value="urban">Urban</option>
+                          <option value="arctic">Arctic</option>
+                          <option value="desert">Desert</option>
+                          <option value="jungle">Jungle</option>
+                          <option value="forest">Forest</option>
+                          <option value="coastal">Coastal</option>
+                          <option value="volcanic">Volcanic</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-[#9aa0a6] text-sm mb-1">Weather</label>
+                        <select 
+                          className="w-full px-4 py-2 bg-[#1f2125] rounded-lg text-white" 
+                          data-testid="select-weather"
+                          value={projectConfig.weather}
+                          onChange={e => setProjectConfig(c => ({...c, weather: e.target.value}))}
+                        >
+                          <option value="clear">Clear</option>
+                          <option value="rain">Rain</option>
+                          <option value="storm">Storm</option>
+                          <option value="fog">Fog</option>
+                          <option value="snow">Snow</option>
+                          <option value="sandstorm">Sandstorm</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-[#9aa0a6] text-sm mb-1">Time of Day</label>
+                        <select 
+                          className="w-full px-4 py-2 bg-[#1f2125] rounded-lg text-white" 
+                          data-testid="select-time"
+                          value={projectConfig.timeOfDay}
+                          onChange={e => setProjectConfig(c => ({...c, timeOfDay: e.target.value}))}
+                        >
+                          <option value="dawn">Dawn</option>
+                          <option value="day">Day</option>
+                          <option value="dusk">Dusk</option>
+                          <option value="night">Night</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* NPC Configuration */}
+                  <div className="bg-[#141517] p-6 rounded-2xl border border-[#2a2d33]">
+                    <h4 className="text-lg font-bold mb-4 flex items-center gap-2">
+                      <Users className="w-5 h-5 text-blue-400" />
+                      NPC Configuration
+                    </h4>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-[#9aa0a6] text-sm mb-1">NPC Count: <span className="text-white">{projectConfig.npcCount}</span></label>
+                        <input 
+                          type="range" min="10" max="500" 
+                          value={projectConfig.npcCount}
+                          onChange={e => setProjectConfig(c => ({...c, npcCount: parseInt(e.target.value)}))}
+                          className="w-full" data-testid="slider-npc-count" 
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[#9aa0a6] text-sm mb-1">Aggression Level: <span className="text-white">{projectConfig.aggression}%</span></label>
+                        <input 
+                          type="range" min="0" max="100" 
+                          value={projectConfig.aggression}
+                          onChange={e => setProjectConfig(c => ({...c, aggression: parseInt(e.target.value)}))}
+                          className="w-full" data-testid="slider-aggression" 
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[#9aa0a6] text-sm mb-1">Faction Balance</label>
+                        <select 
+                          className="w-full px-4 py-2 bg-[#1f2125] rounded-lg text-white" 
+                          data-testid="select-factions"
+                          value={projectConfig.factionBalance}
+                          onChange={e => setProjectConfig(c => ({...c, factionBalance: e.target.value}))}
+                        >
+                          <option value="balanced">Balanced</option>
+                          <option value="hostile-majority">Hostile Majority</option>
+                          <option value="friendly-majority">Friendly Majority</option>
+                          <option value="neutral">Neutral</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Vehicles & Equipment */}
+                  <div className="bg-[#141517] p-6 rounded-2xl border border-[#2a2d33]">
+                    <h4 className="text-lg font-bold mb-4 flex items-center gap-2">
+                      <Truck className="w-5 h-5 text-orange-400" />
+                      Vehicles & Equipment
+                    </h4>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-[#9aa0a6] text-sm mb-1">Vehicle Density</label>
+                        <select 
+                          className="w-full px-4 py-2 bg-[#1f2125] rounded-lg text-white" 
+                          data-testid="select-vehicles"
+                          value={projectConfig.vehicleDensity}
+                          onChange={e => setProjectConfig(c => ({...c, vehicleDensity: e.target.value}))}
+                        >
+                          <option value="none">None</option>
+                          <option value="sparse">Sparse</option>
+                          <option value="moderate">Moderate</option>
+                          <option value="dense">Dense</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-[#9aa0a6] text-sm mb-1">Weapon Tier</label>
+                        <select 
+                          className="w-full px-4 py-2 bg-[#1f2125] rounded-lg text-white" 
+                          data-testid="select-weapons"
+                          value={projectConfig.weaponTier}
+                          onChange={e => setProjectConfig(c => ({...c, weaponTier: e.target.value}))}
+                        >
+                          <option value="basic">Basic (Pistols, SMGs)</option>
+                          <option value="military">Military (Rifles, LMGs)</option>
+                          <option value="advanced">Advanced (Sniper, Heavy)</option>
+                          <option value="experimental">Experimental (Plasma, Rail)</option>
+                        </select>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <input 
+                          type="checkbox" id="include-mechs" className="rounded" 
+                          data-testid="checkbox-mechs"
+                          checked={projectConfig.includeMechs}
+                          onChange={e => setProjectConfig(c => ({...c, includeMechs: e.target.checked}))}
+                        />
+                        <label htmlFor="include-mechs" className="text-sm">Include Combat Mechs</label>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Narrative & Missions */}
+                  <div className="bg-[#141517] p-6 rounded-2xl border border-[#2a2d33]">
+                    <h4 className="text-lg font-bold mb-4 flex items-center gap-2">
+                      <FileText className="w-5 h-5 text-purple-400" />
+                      Narrative & Missions
+                    </h4>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-[#9aa0a6] text-sm mb-1">Mission Count: <span className="text-white">{projectConfig.missionCount}</span></label>
+                        <input 
+                          type="range" min="1" max="20" 
+                          value={projectConfig.missionCount}
+                          onChange={e => setProjectConfig(c => ({...c, missionCount: parseInt(e.target.value)}))}
+                          className="w-full" data-testid="slider-missions" 
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[#9aa0a6] text-sm mb-1">Global Tension</label>
+                        <select 
+                          className="w-full px-4 py-2 bg-[#1f2125] rounded-lg text-white" 
+                          data-testid="select-tension"
+                          value={projectConfig.tension}
+                          onChange={e => setProjectConfig(c => ({...c, tension: e.target.value}))}
+                        >
+                          <option value="low">Low (Peaceful)</option>
+                          <option value="medium">Medium (Alert)</option>
+                          <option value="high">High (Hostile)</option>
+                          <option value="critical">Critical (War)</option>
+                        </select>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <input 
+                          type="checkbox" id="include-story" className="rounded" 
+                          data-testid="checkbox-story"
+                          checked={projectConfig.includeStory}
+                          onChange={e => setProjectConfig(c => ({...c, includeStory: e.target.checked}))}
+                        />
+                        <label htmlFor="include-story" className="text-sm">Generate Story Arcs</label>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Creatures & Fauna */}
+                  <div className="bg-[#141517] p-6 rounded-2xl border border-[#2a2d33]">
+                    <h4 className="text-lg font-bold mb-4 flex items-center gap-2">
+                      <Sparkles className="w-5 h-5 text-green-400" />
+                      Creatures & Fauna
+                    </h4>
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2">
+                        <input 
+                          type="checkbox" id="include-wildlife" className="rounded" 
+                          data-testid="checkbox-wildlife"
+                          checked={projectConfig.includeWildlife}
+                          onChange={e => setProjectConfig(c => ({...c, includeWildlife: e.target.checked}))}
+                        />
+                        <label htmlFor="include-wildlife" className="text-sm">Include Wildlife</label>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <input 
+                          type="checkbox" id="include-hostile-creatures" className="rounded" 
+                          data-testid="checkbox-hostile-creatures"
+                          checked={projectConfig.includeHostileCreatures}
+                          onChange={e => setProjectConfig(c => ({...c, includeHostileCreatures: e.target.checked}))}
+                        />
+                        <label htmlFor="include-hostile-creatures" className="text-sm">Hostile Creatures</label>
+                      </div>
+                      <div>
+                        <label className="block text-[#9aa0a6] text-sm mb-1">Creature Tier</label>
+                        <select 
+                          className="w-full px-4 py-2 bg-[#1f2125] rounded-lg text-white" 
+                          data-testid="select-creatures"
+                          value={projectConfig.creatureTier}
+                          onChange={e => setProjectConfig(c => ({...c, creatureTier: e.target.value}))}
+                        >
+                          <option value="mundane">Mundane (Dogs, Birds)</option>
+                          <option value="exotic">Exotic (Wolves, Bears)</option>
+                          <option value="fantasy">Fantasy (Dragons, Wyrms)</option>
+                          <option value="scifi">Sci-Fi (Aliens, Mutants)</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Simulation Settings */}
+                  <div className="bg-[#141517] p-6 rounded-2xl border border-[#2a2d33]">
+                    <h4 className="text-lg font-bold mb-4 flex items-center gap-2">
+                      <Settings className="w-5 h-5 text-cyan-400" />
+                      Simulation Settings
+                    </h4>
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2">
+                        <input 
+                          type="checkbox" id="enable-ai-director" className="rounded" 
+                          data-testid="checkbox-ai-director"
+                          checked={projectConfig.aiDirector}
+                          onChange={e => setProjectConfig(c => ({...c, aiDirector: e.target.checked}))}
+                        />
+                        <label htmlFor="enable-ai-director" className="text-sm">AI Director</label>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <input 
+                          type="checkbox" id="enable-dynamic-events" className="rounded" 
+                          data-testid="checkbox-dynamic-events"
+                          checked={projectConfig.dynamicEvents}
+                          onChange={e => setProjectConfig(c => ({...c, dynamicEvents: e.target.checked}))}
+                        />
+                        <label htmlFor="enable-dynamic-events" className="text-sm">Dynamic Events</label>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <input 
+                          type="checkbox" id="enable-permadeath" className="rounded" 
+                          data-testid="checkbox-permadeath"
+                          checked={projectConfig.permadeath}
+                          onChange={e => setProjectConfig(c => ({...c, permadeath: e.target.checked}))}
+                        />
+                        <label htmlFor="enable-permadeath" className="text-sm">Permadeath Mode</label>
+                      </div>
+                      <div>
+                        <label className="block text-[#9aa0a6] text-sm mb-1">Tick Rate</label>
+                        <select 
+                          className="w-full px-4 py-2 bg-[#1f2125] rounded-lg text-white" 
+                          data-testid="select-tickrate"
+                          value={projectConfig.tickRate}
+                          onChange={e => setProjectConfig(c => ({...c, tickRate: e.target.value}))}
+                        >
+                          <option value="realtime">Real-time</option>
+                          <option value="accelerated">Accelerated (2x)</option>
+                          <option value="fast">Fast (4x)</option>
+                          <option value="turbo">Turbo (10x)</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Apply Changes Button */}
+                <div className="mt-8 flex flex-wrap gap-4">
+                  <button 
+                    onClick={async () => {
+                      if (!selectedProject) return;
+                      try {
+                        // Send all configuration to the override endpoint
+                        const commands = [
+                          `biome ${projectConfig.biome}`,
+                          `weather ${projectConfig.weather}`,
+                          `time ${projectConfig.timeOfDay}`,
+                          `spawn ${projectConfig.npcCount} npcs`,
+                          `aggression ${projectConfig.aggression / 100}`,
+                          `tension ${projectConfig.tension}`
+                        ];
+                        
+                        for (const cmd of commands) {
+                          await fetch(`/v5/projects/${selectedProject.id}/override`, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ command: cmd, username: user?.name })
+                          });
+                        }
+                        
+                        alert("Configuration applied successfully! Project updated with new settings.");
+                      } catch (e) {
+                        alert("Failed to apply some changes. Please try again.");
+                      }
+                    }}
+                    className="px-8 py-4 bg-green-600 rounded-xl font-bold text-lg hover:bg-green-700 transition"
+                    data-testid="button-apply-project-changes"
+                  >
+                    Apply Changes
+                  </button>
+                  <button 
+                    onClick={() => setActiveTab("export")}
+                    className="px-8 py-4 bg-[#3e73ff] rounded-xl font-bold text-lg hover:opacity-90"
+                    data-testid="button-proceed-to-export"
+                  >
+                    Proceed to Export
+                  </button>
+                  <button 
+                    onClick={generate}
+                    className="px-8 py-4 bg-[#1f2125] rounded-xl font-bold text-lg hover:bg-[#2a2d33] transition"
+                    data-testid="button-regenerate"
+                  >
+                    Regenerate World
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -1281,21 +1646,160 @@ export default function App() {
         )}
 
         {activeTab === "verify" && (
-          <div className="max-w-2xl">
-            <h2 className="text-4xl font-black mb-8">Verify Account</h2>
-            <div className="bg-[#141517] rounded-2xl p-8 border border-[#2a2d33]">
+          <div className="max-w-4xl">
+            <h2 className="text-4xl font-black mb-8">User Management</h2>
+            
+            {/* User Lookup Section */}
+            <div className="bg-[#141517] rounded-2xl p-8 border border-[#2a2d33] mb-8">
+              <h3 className="text-xl font-bold mb-4">Check User Account</h3>
               <div className="flex gap-4 mb-6">
-                <input placeholder="Username" className="flex-1 px-4 py-3 bg-[#1f2125] rounded-lg text-white placeholder-[#9aa0a6]" value={verifyUser} onChange={e => setVerifyUser(e.target.value)} />
-                <button onClick={verifyAccount} className="px-8 py-3 bg-[#3e73ff] rounded-lg font-bold hover:opacity-90">Check</button>
+                <input 
+                  placeholder="Enter username to check" 
+                  className="flex-1 px-4 py-3 bg-[#1f2125] rounded-lg text-white placeholder-[#9aa0a6]" 
+                  value={verifyUser} 
+                  onChange={e => setVerifyUser(e.target.value)} 
+                  data-testid="input-verify-username"
+                />
+                <button onClick={verifyAccount} className="px-8 py-3 bg-[#3e73ff] rounded-lg font-bold hover:opacity-90" data-testid="button-verify-check">
+                  Check
+                </button>
               </div>
+              
               {verifyResult && (
-                <div className="space-y-4">
-                  <p><strong>User:</strong> {verifyResult.username}</p>
-                  <p><strong>Tier:</strong> <span className="text-[#3e73ff]">{String(verifyResult?.tier || "free").toUpperCase()}</span></p>
-                  <p><strong>Status:</strong> {verifyResult.verified ? "Verified" : "Pending"}</p>
+                <div className="bg-[#1f2125] rounded-xl p-6">
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div>
+                      <p className="text-[#9aa0a6] text-sm">Username</p>
+                      <p className="text-xl font-bold" data-testid="text-verify-username">{verifyResult.username}</p>
+                    </div>
+                    <div>
+                      <p className="text-[#9aa0a6] text-sm">Current Tier</p>
+                      <p className="text-xl font-bold text-[#3e73ff]" data-testid="text-verify-tier">{String(verifyResult?.tier || "free").toUpperCase()}</p>
+                    </div>
+                    <div>
+                      <p className="text-[#9aa0a6] text-sm">Status</p>
+                      <p className={`text-xl font-bold ${verifyResult.verified ? "text-green-400" : "text-yellow-400"}`} data-testid="text-verify-status">
+                        {verifyResult.verified ? "Verified" : "Pending Verification"}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[#9aa0a6] text-sm">Generations This Week</p>
+                      <p className="text-xl font-bold">{verifyResult.generationsThisWeek || 0}</p>
+                    </div>
+                  </div>
+                  
+                  {/* Admin Controls - Only show for lifetime tier admins */}
+                  {user.tier === "lifetime" && (
+                    <div className="mt-8 pt-6 border-t border-[#2a2d33]">
+                      <h4 className="font-bold mb-4 text-lg">Admin Actions</h4>
+                      
+                      {/* Tier Management */}
+                      <div className="mb-6">
+                        <label className="block text-[#9aa0a6] text-sm mb-2">Change User Tier</label>
+                        <div className="flex flex-wrap gap-2">
+                          {["free", "creator", "pro", "lifetime", "enterprise"].map(tier => (
+                            <button
+                              key={tier}
+                              onClick={async () => {
+                                if (confirm(`Are you sure you want to change ${verifyResult.username}'s tier to ${tier.toUpperCase()}?`)) {
+                                  try {
+                                    const res = await fetch("/api/admin/user/tier", {
+                                      method: "POST",
+                                      headers: { 
+                                        "Content-Type": "application/json",
+                                        "x-session-token": user?.sessionToken || ""
+                                      },
+                                      body: JSON.stringify({ username: verifyResult.username, newTier: tier })
+                                    });
+                                    const data = await res.json();
+                                    if (data.success) {
+                                      alert(data.message);
+                                      verifyAccount(); // Refresh the user data
+                                    } else {
+                                      alert("Error: " + data.error);
+                                    }
+                                  } catch (e) {
+                                    alert("Failed to update tier");
+                                  }
+                                }
+                              }}
+                              className={`px-4 py-2 rounded-lg font-semibold transition ${
+                                verifyResult.tier === tier 
+                                  ? "bg-[#3e73ff] text-white" 
+                                  : "bg-[#2a2d33] hover:bg-[#3a3d43]"
+                              }`}
+                              data-testid={`button-tier-${tier}`}
+                            >
+                              {tier.toUpperCase()}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      
+                      {/* Delete User */}
+                      <div className="pt-4 border-t border-[#2a2d33]">
+                        <button
+                          onClick={async () => {
+                            if (verifyResult.username === user.name) {
+                              alert("You cannot delete your own account!");
+                              return;
+                            }
+                            if (confirm(`⚠️ WARNING: This will permanently delete ${verifyResult.username}'s account. This action cannot be undone. Are you sure?`)) {
+                              try {
+                                const res = await fetch("/api/admin/user", {
+                                  method: "DELETE",
+                                  headers: { 
+                                    "Content-Type": "application/json",
+                                    "x-session-token": user?.sessionToken || ""
+                                  },
+                                  body: JSON.stringify({ username: verifyResult.username })
+                                });
+                                const data = await res.json();
+                                if (data.success) {
+                                  alert(data.message);
+                                  setVerifyResult(null);
+                                  setVerifyUser("");
+                                } else {
+                                  alert("Error: " + data.error);
+                                }
+                              } catch (e) {
+                                alert("Failed to delete user");
+                              }
+                            }
+                          }}
+                          className="px-6 py-3 bg-red-600 rounded-lg font-bold hover:bg-red-700 transition"
+                          data-testid="button-delete-user"
+                        >
+                          Delete User Account
+                        </button>
+                        <p className="text-xs text-[#9aa0a6] mt-2">This action is permanent and cannot be undone.</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
+            
+            {/* Admin Use Cases Guide */}
+            {user.tier === "lifetime" && (
+              <div className="bg-[#141517] rounded-2xl p-8 border border-[#2a2d33]">
+                <h3 className="text-xl font-bold mb-4">Admin Guide</h3>
+                <div className="grid md:grid-cols-3 gap-6 text-sm">
+                  <div className="bg-[#1f2125] p-4 rounded-xl">
+                    <p className="font-bold text-green-400 mb-2">Contest Winners</p>
+                    <p className="text-[#9aa0a6]">Upgrade winners to Creator or Pro tier for their prize duration. Track via audit log.</p>
+                  </div>
+                  <div className="bg-[#1f2125] p-4 rounded-xl">
+                    <p className="font-bold text-yellow-400 mb-2">Fraud Detection</p>
+                    <p className="text-[#9aa0a6]">Downgrade or delete accounts attempting to abuse the system or create multiple free accounts.</p>
+                  </div>
+                  <div className="bg-[#1f2125] p-4 rounded-xl">
+                    <p className="font-bold text-blue-400 mb-2">Customer Support</p>
+                    <p className="text-[#9aa0a6]">Verify user status, manually adjust tiers for support issues, or reset problematic accounts.</p>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
 

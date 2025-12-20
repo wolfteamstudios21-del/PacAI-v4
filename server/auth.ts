@@ -294,6 +294,188 @@ export function getUser(username: string) {
   return users[username];
 }
 
+// Helper: Validate admin from session token (lifetime tier required)
+function validateAdminSession(req: Request): { valid: boolean; username?: string; error?: string } {
+  const authHeader = req.headers.authorization;
+  const token = authHeader?.replace("Bearer ", "") || req.headers["x-session-token"] as string;
+  
+  if (!token) {
+    return { valid: false, error: "Authentication required" };
+  }
+  
+  const session = validateSessionToken(token);
+  if (!session) {
+    return { valid: false, error: "Invalid or expired session" };
+  }
+  
+  // Check if session user has lifetime tier (admin)
+  if (session.tier !== "lifetime") {
+    return { valid: false, error: "Admin privileges required (lifetime tier)" };
+  }
+  
+  return { valid: true, username: session.username };
+}
+
+// Admin: Update user tier (upgrade/downgrade)
+router.post("/api/admin/user/tier", async (req, res) => {
+  try {
+    // Validate admin from session token
+    const adminCheck = validateAdminSession(req);
+    if (!adminCheck.valid) {
+      return res.status(403).json({ error: adminCheck.error });
+    }
+    
+    const { username, newTier } = req.body;
+    
+    if (!username || !newTier) {
+      return res.status(400).json({ error: "Username and tier required" });
+    }
+    
+    // Validate tier
+    const validTiers = ["free", "creator", "pro", "lifetime", "enterprise"];
+    if (!validTiers.includes(newTier)) {
+      return res.status(400).json({ error: "Invalid tier. Valid: free, creator, pro, lifetime, enterprise" });
+    }
+
+    // First check database for user
+    let dbUser = null;
+    try {
+      const [foundUser] = await db.select().from(usersTable).where(eq(usersTable.username, username));
+      dbUser = foundUser;
+    } catch (e) {
+      // Database query failed
+    }
+
+    const user = users[username];
+    if (!user && !dbUser) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const previousTier = user?.tier || dbUser?.tier || "free";
+    
+    // Update in-memory store if exists
+    if (user) {
+      user.tier = newTier as any;
+      user.verified = true;
+    }
+
+    // Update database
+    try {
+      await db.update(usersTable)
+        .set({ tier: newTier, is_verified: 1 })
+        .where(eq(usersTable.username, username));
+    } catch (e) {
+      // Database update failed
+    }
+
+    res.json({ 
+      success: true, 
+      message: `User ${username} tier changed from ${previousTier} to ${newTier}`,
+      previousTier,
+      newTier,
+      adminBy: adminCheck.username,
+    });
+  } catch (error) {
+    res.status(500).json({ error: "Tier update failed" });
+  }
+});
+
+// Admin: Delete user account
+router.delete("/api/admin/user", async (req, res) => {
+  try {
+    // Validate admin from session token
+    const adminCheck = validateAdminSession(req);
+    if (!adminCheck.valid) {
+      return res.status(403).json({ error: adminCheck.error });
+    }
+    
+    const { username } = req.body;
+    
+    if (!username) {
+      return res.status(400).json({ error: "Username required" });
+    }
+
+    // Prevent self-deletion
+    if (username === adminCheck.username) {
+      return res.status(400).json({ error: "Cannot delete your own account" });
+    }
+
+    // Check if user exists in database or memory
+    let dbUser = null;
+    try {
+      const [foundUser] = await db.select().from(usersTable).where(eq(usersTable.username, username));
+      dbUser = foundUser;
+    } catch (e) {
+      // Database query failed
+    }
+
+    const user = users[username];
+    if (!user && !dbUser) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Delete from in-memory store
+    delete users[username];
+
+    // Delete from database
+    try {
+      await db.delete(usersTable).where(eq(usersTable.username, username));
+    } catch (e) {
+      // Database delete failed
+    }
+
+    res.json({ 
+      success: true, 
+      message: `User ${username} has been deleted`,
+      deletedBy: adminCheck.username,
+    });
+  } catch (error) {
+    res.status(500).json({ error: "User deletion failed" });
+  }
+});
+
+// Admin: List all users (for admin panel)
+router.get("/api/admin/users", async (req, res) => {
+  try {
+    // Validate admin from session token
+    const adminCheck = validateAdminSession(req);
+    if (!adminCheck.valid) {
+      return res.status(403).json({ error: adminCheck.error });
+    }
+
+    // Get users from database
+    let dbUsers: any[] = [];
+    try {
+      dbUsers = await db.select({
+        username: usersTable.username,
+        tier: usersTable.tier,
+        isVerified: usersTable.is_verified,
+      }).from(usersTable);
+    } catch (e) {
+      // Database query failed, fall back to in-memory
+    }
+
+    // Merge with in-memory data for generation counts
+    const userList = dbUsers.length > 0 
+      ? dbUsers.map(u => ({
+          username: u.username,
+          tier: u.tier || "free",
+          verified: u.isVerified === 1,
+          generationsThisWeek: users[u.username]?.generationsThisWeek || 0,
+        }))
+      : Object.entries(users).map(([username, data]) => ({
+          username,
+          tier: data.tier,
+          verified: data.verified,
+          generationsThisWeek: data.generationsThisWeek,
+        }));
+
+    res.json({ users: userList });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to list users" });
+  }
+});
+
 export { users, getWeekStart };
 export type { User };
 export default router;
