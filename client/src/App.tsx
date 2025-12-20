@@ -249,11 +249,54 @@ export default function App() {
     setLoginPass("");
   };
 
+  // Scroll to section helper
+  const scrollToSection = (id: string) => {
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
+  };
+
   if (!user) {
     return (
       <div className="min-h-screen bg-[#0b0d0f] text-white">
+        {/* Sticky Navigation Bar */}
+        <nav className="sticky top-0 z-50 bg-[#0b0d0f]/95 backdrop-blur-md border-b border-[#2a2d33]">
+          <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-[#3e73ff] rounded-xl flex items-center justify-center">
+                <Brain className="w-5 h-5 text-white" />
+              </div>
+              <span className="font-bold text-xl">PacAI</span>
+            </div>
+            <div className="hidden md:flex items-center gap-8">
+              <button onClick={() => scrollToSection('features')} className="text-[#9aa0a6] hover:text-white transition" data-testid="nav-features">Features</button>
+              <button onClick={() => scrollToSection('gallery-preview')} className="text-[#9aa0a6] hover:text-white transition" data-testid="nav-gallery">Gallery</button>
+              <button onClick={() => scrollToSection('pricing-section')} className="text-[#9aa0a6] hover:text-white transition" data-testid="nav-pricing">Pricing</button>
+              <button onClick={() => scrollToSection('login-section')} className="px-5 py-2 bg-[#3e73ff] rounded-lg font-semibold hover:opacity-90 transition" data-testid="nav-login">Login</button>
+            </div>
+            {/* Mobile Navigation Dropdown */}
+            <div className="md:hidden relative">
+              <button 
+                onClick={() => {
+                  const mobileNav = document.getElementById('mobile-nav');
+                  if (mobileNav) mobileNav.classList.toggle('hidden');
+                }} 
+                data-testid="button-mobile-menu"
+                className="p-2"
+              >
+                <Menu className="w-6 h-6" />
+              </button>
+              <div id="mobile-nav" className="hidden absolute right-0 top-12 bg-[#141517] border border-[#2a2d33] rounded-xl p-4 min-w-48 shadow-xl">
+                <button onClick={() => { scrollToSection('features'); document.getElementById('mobile-nav')?.classList.add('hidden'); }} className="block w-full text-left py-2 px-3 hover:bg-[#1f2125] rounded-lg" data-testid="nav-features-mobile">Features</button>
+                <button onClick={() => { scrollToSection('gallery-preview'); document.getElementById('mobile-nav')?.classList.add('hidden'); }} className="block w-full text-left py-2 px-3 hover:bg-[#1f2125] rounded-lg" data-testid="nav-gallery-mobile">Gallery</button>
+                <button onClick={() => { scrollToSection('pricing-section'); document.getElementById('mobile-nav')?.classList.add('hidden'); }} className="block w-full text-left py-2 px-3 hover:bg-[#1f2125] rounded-lg" data-testid="nav-pricing-mobile">Pricing</button>
+                <button onClick={() => { scrollToSection('login-section'); document.getElementById('mobile-nav')?.classList.add('hidden'); }} className="block w-full text-left py-2 px-3 mt-2 bg-[#3e73ff] rounded-lg font-semibold" data-testid="nav-login-mobile">Login</button>
+              </div>
+            </div>
+          </div>
+        </nav>
+
         {/* Hero Section with Background Image */}
-        <div className="relative min-h-[80vh] flex flex-col items-center justify-center p-8">
+        <div className="relative min-h-[80vh] flex flex-col items-center justify-center p-8" id="login-section">
           {/* Background Image with Dark Gradient Overlay */}
           <div 
             className="absolute inset-0 bg-cover bg-center bg-no-repeat"
@@ -267,7 +310,7 @@ export default function App() {
               <Brain className="w-9 h-9 text-white" />
             </div>
             <h1 className="text-6xl font-black text-white drop-shadow-lg">
-              PacAI <span className="text-[#3e73ff]">v5</span>
+              PacAI <span className="text-[#3e73ff]">v6.3</span>
             </h1>
           </div>
           
@@ -285,8 +328,18 @@ export default function App() {
           </div>
         </div>
         
+        {/* Use Case Vignette */}
+        <div className="bg-gradient-to-r from-[#3e73ff]/10 to-purple-900/10 py-12 px-8">
+          <div className="max-w-4xl mx-auto text-center">
+            <p className="text-lg text-white/90 italic">
+              "PacAI was used to prototype a multiplayer invasion scenario in under an hour — terrain, 200+ NPCs, faction AI, mission logic, and exports for Unity and Unreal included. What used to take a team 3 weeks now takes one person one afternoon."
+            </p>
+            <p className="mt-4 text-[#3e73ff] font-semibold">— Wolf Team Studios, Internal Testing</p>
+          </div>
+        </div>
+
         {/* What PacAI Does Section */}
-        <div className="bg-[#0b0d0f] py-20 px-8">
+        <div className="bg-[#0b0d0f] py-20 px-8" id="features">
           <div className="max-w-6xl mx-auto">
             <h2 className="text-4xl font-black text-center mb-4">What PacAI Does</h2>
             <p className="text-center text-[#9aa0a6] mb-12 max-w-3xl mx-auto">
@@ -412,6 +465,65 @@ export default function App() {
           </div>
         </div>
         
+        {/* Gallery Preview Section */}
+        <div className="bg-[#141517] py-20 px-8" id="gallery-preview">
+          <div className="max-w-6xl mx-auto">
+            <h2 className="text-4xl font-black text-center mb-4">Asset Gallery Preview</h2>
+            <p className="text-center text-[#9aa0a6] mb-12 max-w-3xl mx-auto">
+              Explore procedurally generated vehicles, weapons, creatures, and environments. Fork any asset for $0.50 or free with Creator tier.
+            </p>
+            
+            {/* Sample Asset Grid */}
+            <div className="grid md:grid-cols-4 gap-6 mb-12">
+              <div className="bg-[#1f2125] rounded-xl overflow-hidden border border-[#2a2d33] group hover:border-[#3e73ff] transition">
+                <div className="aspect-square bg-gradient-to-br from-blue-900/50 to-purple-900/50 flex items-center justify-center">
+                  <Package className="w-16 h-16 text-[#3e73ff]/50 group-hover:text-[#3e73ff] transition" />
+                </div>
+                <div className="p-4">
+                  <p className="font-bold">Combat Mech v3</p>
+                  <p className="text-xs text-[#9aa0a6]">Vehicle • Sci-Fi</p>
+                </div>
+              </div>
+              <div className="bg-[#1f2125] rounded-xl overflow-hidden border border-[#2a2d33] group hover:border-[#3e73ff] transition">
+                <div className="aspect-square bg-gradient-to-br from-red-900/50 to-orange-900/50 flex items-center justify-center">
+                  <Zap className="w-16 h-16 text-orange-500/50 group-hover:text-orange-400 transition" />
+                </div>
+                <div className="p-4">
+                  <p className="font-bold">Plasma Rifle XR</p>
+                  <p className="text-xs text-[#9aa0a6]">Weapon • Tactical</p>
+                </div>
+              </div>
+              <div className="bg-[#1f2125] rounded-xl overflow-hidden border border-[#2a2d33] group hover:border-[#3e73ff] transition">
+                <div className="aspect-square bg-gradient-to-br from-green-900/50 to-teal-900/50 flex items-center justify-center">
+                  <Sparkles className="w-16 h-16 text-green-500/50 group-hover:text-green-400 transition" />
+                </div>
+                <div className="p-4">
+                  <p className="font-bold">Forest Wyrm</p>
+                  <p className="text-xs text-[#9aa0a6]">Creature • Fantasy</p>
+                </div>
+              </div>
+              <div className="bg-[#1f2125] rounded-xl overflow-hidden border border-[#2a2d33] group hover:border-[#3e73ff] transition">
+                <div className="aspect-square bg-gradient-to-br from-purple-900/50 to-pink-900/50 flex items-center justify-center">
+                  <Shield className="w-16 h-16 text-purple-500/50 group-hover:text-purple-400 transition" />
+                </div>
+                <div className="p-4">
+                  <p className="font-bold">Titan Armor Set</p>
+                  <p className="text-xs text-[#9aa0a6]">Equipment • Medieval</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="text-center">
+              <button onClick={() => scrollToSection('login-section')} className="px-8 py-4 bg-[#3e73ff] rounded-xl font-bold text-lg hover:opacity-90 mr-4" data-testid="button-explore-gallery">
+                Explore Full Gallery
+              </button>
+              <button onClick={() => scrollToSection('login-section')} className="px-8 py-4 bg-transparent border border-[#3e73ff] rounded-xl font-bold text-lg hover:bg-[#3e73ff]/10 transition" data-testid="button-try-demo">
+                Try Demo
+              </button>
+            </div>
+          </div>
+        </div>
+        
         {/* Artist Showcase */}
         <div className="bg-[#0b0d0f] py-12 px-8">
           <div className="max-w-4xl mx-auto">
@@ -423,11 +535,60 @@ export default function App() {
           </div>
         </div>
         
+        {/* Pricing Section */}
+        <div className="bg-[#141517] py-20 px-8" id="pricing-section">
+          <div className="max-w-5xl mx-auto">
+            <h2 className="text-4xl font-black text-center mb-4">Simple Pricing</h2>
+            <p className="text-center text-[#9aa0a6] mb-12">Start free. Upgrade when you need more power.</p>
+            
+            <div className="grid md:grid-cols-3 gap-6">
+              <div className="bg-[#1f2125] p-8 rounded-2xl border border-[#2a2d33]">
+                <h3 className="text-xl font-bold mb-2">Free</h3>
+                <p className="text-4xl font-black mb-4">$0<span className="text-sm font-normal text-[#9aa0a6]">/mo</span></p>
+                <ul className="space-y-2 text-sm text-[#9aa0a6] mb-6">
+                  <li>2 generations per week</li>
+                  <li>Basic export formats</li>
+                  <li>Community support</li>
+                </ul>
+                <button onClick={() => scrollToSection('login-section')} className="w-full py-3 bg-[#2a2d33] rounded-xl font-semibold hover:bg-[#3a3d43] transition" data-testid="button-pricing-free">
+                  Get Started
+                </button>
+              </div>
+              <div className="bg-gradient-to-br from-[#3e73ff]/20 to-purple-900/20 p-8 rounded-2xl border border-[#3e73ff]">
+                <h3 className="text-xl font-bold mb-2">Creator</h3>
+                <p className="text-4xl font-black mb-4">$29<span className="text-sm font-normal text-[#9aa0a6]">/mo</span></p>
+                <ul className="space-y-2 text-sm text-[#9aa0a6] mb-6">
+                  <li>100 generations per week</li>
+                  <li>All 9 export engines</li>
+                  <li>Priority support</li>
+                  <li>Free asset forks</li>
+                </ul>
+                <button onClick={() => scrollToSection('login-section')} className="w-full py-3 bg-[#3e73ff] rounded-xl font-semibold hover:opacity-90 transition" data-testid="button-pricing-creator">
+                  Upgrade
+                </button>
+              </div>
+              <div className="bg-[#1f2125] p-8 rounded-2xl border border-[#2a2d33]">
+                <h3 className="text-xl font-bold mb-2">Enterprise</h3>
+                <p className="text-4xl font-black mb-4">Custom</p>
+                <ul className="space-y-2 text-sm text-[#9aa0a6] mb-6">
+                  <li>Unlimited generations</li>
+                  <li>Air-gapped deployment</li>
+                  <li>Hardware licensing</li>
+                  <li>Dedicated support</li>
+                </ul>
+                <button onClick={() => window.open('https://discord.gg/TtfHgfCQMY', '_blank')} className="w-full py-3 bg-[#2a2d33] rounded-xl font-semibold hover:bg-[#3a3d43] transition" data-testid="button-pricing-enterprise">
+                  Contact Sales
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        
         {/* Footer CTA */}
         <div className="bg-gradient-to-r from-[#3e73ff]/20 to-purple-900/20 py-16 px-8 text-center">
           <h2 className="text-3xl font-bold mb-4">Ready to Build Worlds?</h2>
           <p className="text-[#9aa0a6] mb-8">Join 300+ creators using PacAI to generate game-ready content.</p>
-          <button onClick={() => document.getElementById('input-login-username')?.focus()} className="px-8 py-4 bg-[#3e73ff] rounded-xl font-bold text-lg hover:opacity-90" data-testid="button-get-started">
+          <button onClick={() => scrollToSection('login-section')} className="px-8 py-4 bg-[#3e73ff] rounded-xl font-bold text-lg hover:opacity-90" data-testid="button-get-started">
             Get Started Free
           </button>
         </div>
