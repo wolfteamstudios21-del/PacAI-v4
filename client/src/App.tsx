@@ -69,18 +69,24 @@ export default function App() {
   });
   const [selectedRefs, setSelectedRefs] = useState<string[]>([]);
   
-  // War Simulation State (v6.4 with PAI², Propaganda, Continuity)
+  // War Simulation State (v6.4.1 with expanded resources, timeline, story hooks)
   const [warSimConfig, setWarSimConfig] = useState({
     planetType: "temperate",
     planetName: "",
     loreTags: "",
     threatLevel: 5,
+    // v6.4.1 New parameters
+    conflictType: "military" as "military" | "horror" | "political" | "economic" | "social" | "survival",
+    durationDays: 30,
     runCounteroffensive: false,
     resolveWar: false,
     // v6.4 War Cognition Modules
     gatherIntel: false,
     generatePropaganda: false,
     calculateContinuity: false,
+    // v6.4.1 Expanded simulation
+    generateStoryHooks: false,
+    generateFullTimeline: false,
   });
   const [warSimRunning, setWarSimRunning] = useState(false);
   const [warSimResult, setWarSimResult] = useState<any>(null);
@@ -1265,6 +1271,41 @@ export default function App() {
                           data-testid="input-warsim-lore-tags"
                         />
                       </div>
+                      <div>
+                        <label className="block text-[#9aa0a6] text-sm mb-1">Conflict Type</label>
+                        <select 
+                          value={warSimConfig.conflictType}
+                          onChange={(e) => setWarSimConfig(prev => ({ ...prev, conflictType: e.target.value as any }))}
+                          className="w-full px-4 py-2 bg-[#1f2125] rounded-lg text-white"
+                          data-testid="select-warsim-conflict-type"
+                        >
+                          <option value="military">Military</option>
+                          <option value="horror">Horror</option>
+                          <option value="political">Political</option>
+                          <option value="economic">Economic</option>
+                          <option value="social">Social</option>
+                          <option value="survival">Survival</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-[#9aa0a6] text-sm mb-1">
+                          Campaign Duration: {warSimConfig.durationDays} days
+                        </label>
+                        <input 
+                          type="range"
+                          min="7"
+                          max="90"
+                          step="7"
+                          value={warSimConfig.durationDays}
+                          onChange={(e) => setWarSimConfig(prev => ({ ...prev, durationDays: parseInt(e.target.value) }))}
+                          className="w-full"
+                          data-testid="range-warsim-duration"
+                        />
+                        <div className="flex justify-between text-xs text-[#9aa0a6]">
+                          <span>1 Week</span>
+                          <span>3 Months</span>
+                        </div>
+                      </div>
                     </div>
                     
                     <div className="space-y-4">
@@ -1344,6 +1385,33 @@ export default function App() {
                               data-testid="checkbox-warsim-continuity"
                             />
                             <span className="text-sm">Strategic Continuity</span>
+                          </label>
+                        </div>
+                      </div>
+                      
+                      {/* v6.4.1 Expanded Simulation */}
+                      <div className="pt-3 border-t border-[#2a2d33]">
+                        <p className="text-xs text-[#9aa0a6] mb-2 uppercase tracking-wide">v6.4.1 Expanded</p>
+                        <div className="space-y-2">
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input 
+                              type="checkbox"
+                              checked={warSimConfig.generateFullTimeline}
+                              onChange={(e) => setWarSimConfig(prev => ({ ...prev, generateFullTimeline: e.target.checked }))}
+                              className="w-4 h-4 rounded"
+                              data-testid="checkbox-warsim-timeline"
+                            />
+                            <span className="text-sm">Full Campaign Timeline</span>
+                          </label>
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input 
+                              type="checkbox"
+                              checked={warSimConfig.generateStoryHooks}
+                              onChange={(e) => setWarSimConfig(prev => ({ ...prev, generateStoryHooks: e.target.checked }))}
+                              className="w-4 h-4 rounded"
+                              data-testid="checkbox-warsim-hooks"
+                            />
+                            <span className="text-sm">Story Hooks</span>
                           </label>
                         </div>
                       </div>
@@ -1486,6 +1554,107 @@ export default function App() {
                                 <p className="text-[#9aa0a6] text-xs">Future Conflict Seeds:</p>
                                 {warSimResult.strategicContinuity.future_conflict_seeds.slice(0, 2).map((s: any, i: number) => (
                                   <p key={i} className="text-xs text-orange-400">• {s.seed} ({s.probability}%)</p>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* v6.4.1: 8-Axis Resource Display */}
+                      {warSimResult.resources && (
+                        <div className="mt-4 bg-[#1f2125] rounded-xl p-4 border border-cyan-600/30">
+                          <p className="text-sm text-cyan-400 mb-3 font-bold">8-Axis Resource State</p>
+                          <div className="grid grid-cols-4 gap-2 text-xs">
+                            {Object.entries(warSimResult.resources).map(([key, val]: [string, any]) => (
+                              <div key={key} className="text-center bg-[#0b0d0f] rounded p-2">
+                                <p className="text-[#9aa0a6] capitalize">{key}</p>
+                                <div className="flex justify-between mt-1">
+                                  <span className="text-green-400">{val.player}</span>
+                                  <span className="text-[#9aa0a6]">/</span>
+                                  <span className="text-red-400">{val.enemy}</span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* v6.4.1: Major Events Timeline */}
+                      {warSimResult.major_events?.length > 0 && (
+                        <div className="mt-4 bg-[#1f2125] rounded-xl p-4 border border-amber-600/30">
+                          <p className="text-sm text-amber-400 mb-3 font-bold">Campaign Timeline</p>
+                          <div className="space-y-2 max-h-40 overflow-y-auto">
+                            {warSimResult.major_events.map((e: any, i: number) => (
+                              <div key={i} className="flex items-start gap-3 text-sm">
+                                <span className="text-amber-400 font-mono w-12">Day {e.day}</span>
+                                <div>
+                                  <span className="text-xs uppercase text-[#9aa0a6] bg-[#0b0d0f] px-2 py-0.5 rounded">{e.type}</span>
+                                  <p className="text-white/90 mt-1">{e.description}</p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* v6.4.1: Psyops Timeline */}
+                      {warSimResult.psychological_operations?.length > 0 && (
+                        <div className="mt-4 bg-[#1f2125] rounded-xl p-4 border border-pink-600/30">
+                          <p className="text-sm text-pink-400 mb-3 font-bold">Psychological Operations</p>
+                          <div className="space-y-2 max-h-32 overflow-y-auto">
+                            {warSimResult.psychological_operations.map((p: any, i: number) => (
+                              <div key={i} className="text-sm bg-[#0b0d0f] p-2 rounded">
+                                <div className="flex justify-between text-xs text-[#9aa0a6]">
+                                  <span>Day {p.day} • {p.type}</span>
+                                  <span className="capitalize">Target: {p.target}</span>
+                                </div>
+                                <p className="text-white/80 italic mt-1">"{p.content}"</p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* v6.4.1: Story Hooks */}
+                      {warSimResult.story_hooks?.length > 0 && (
+                        <div className="mt-4 bg-[#1f2125] rounded-xl p-4 border border-emerald-600/30">
+                          <p className="text-sm text-emerald-400 mb-2 font-bold">Story Hooks</p>
+                          <ul className="space-y-1 text-sm">
+                            {warSimResult.story_hooks.map((hook: string, i: number) => (
+                              <li key={i} className="text-white/80 flex items-start gap-2">
+                                <span className="text-emerald-400">•</span>
+                                {hook}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      
+                      {/* v6.4.1: Final Outcome */}
+                      {warSimResult.final_outcome && (
+                        <div className="mt-4 bg-[#1f2125] rounded-xl p-4 border border-yellow-600/30">
+                          <p className="text-sm text-yellow-400 mb-2 font-bold">Final Outcome</p>
+                          <div className="text-sm space-y-2">
+                            <div className="flex justify-between">
+                              <span className="text-[#9aa0a6]">Status:</span>
+                              <span className={warSimResult.final_outcome.status.includes("victory") ? "text-green-400" : "text-red-400"}>
+                                {warSimResult.final_outcome.status.replace(/_/g, " ").toUpperCase()}
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-[#9aa0a6]">Control:</span>
+                              <span>
+                                <span className="text-green-400">{warSimResult.final_outcome.control_percentage?.player}%</span>
+                                {" vs "}
+                                <span className="text-red-400">{warSimResult.final_outcome.control_percentage?.enemy}%</span>
+                              </span>
+                            </div>
+                            {warSimResult.final_outcome.galactic_effects?.length > 0 && (
+                              <div className="pt-2">
+                                <p className="text-[#9aa0a6] text-xs">Galactic Effects:</p>
+                                {warSimResult.final_outcome.galactic_effects.slice(0, 3).map((e: string, i: number) => (
+                                  <p key={i} className="text-xs text-yellow-400">• {e}</p>
                                 ))}
                               </div>
                             )}

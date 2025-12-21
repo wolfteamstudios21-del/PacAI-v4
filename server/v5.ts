@@ -409,12 +409,19 @@ router.post("/v5/projects/:id/war-simulation", async (req, res) => {
       planetName: config?.planetName || "",
       loreTags: config?.loreTags || [],
       threatLevel: config?.threatLevel || 5,
+      // v6.4.1 New parameters
+      conflictType: config?.conflictType || "military",
+      durationDays: config?.durationDays || 30,
       runCounteroffensive: config?.runCounteroffensive || false,
       resolveWar: config?.resolveWar || false,
       // v6.4 War Cognition modules
       gatherIntel: config?.gatherIntel || false,
       generatePropaganda: config?.generatePropaganda || false,
       calculateContinuity: config?.calculateContinuity || false,
+      // v6.4.1 Expanded simulation
+      generateStoryHooks: config?.generateStoryHooks || false,
+      generateFullTimeline: config?.generateFullTimeline || false,
+      customFactions: config?.customFactions || undefined,
       playerActions: config?.playerActions || undefined,
       previousCampaigns: previousCampaigns.length > 0 ? previousCampaigns : undefined
     };

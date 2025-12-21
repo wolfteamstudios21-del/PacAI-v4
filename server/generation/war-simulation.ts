@@ -55,6 +55,84 @@ Simulate intelligently. Remember everything. Let victories feel earned—and def
 // SCHEMAS
 // ═══════════════════════════════════════════════════════════════════════════════
 
+// Conflict types for different simulation genres
+export const ConflictTypeEnum = z.enum(["military", "horror", "political", "economic", "social", "survival"]);
+export type ConflictType = z.infer<typeof ConflictTypeEnum>;
+
+// Faction archetype enum
+const FactionArchetypeEnum = z.enum(["militarist", "diplomat", "corporation", "zealot", "survivalist", "void"]);
+
+// Faction behavior profile - defines AI faction personality
+const BehaviorProfileSchema = z.object({
+  aggression: z.number().min(0).max(100),
+  diplomacy: z.number().min(0).max(100),
+  deception: z.number().min(0).max(100),
+  resilience: z.number().min(0).max(100),
+  resource_focus: z.enum(["power", "wealth", "support", "knowledge", "fear", "stability"]),
+});
+
+// Enhanced faction schema with behavior profiles
+const EnhancedFactionSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  allegiance: z.enum(["allied", "enemy", "neutral", "insurgent"]),
+  archetype: FactionArchetypeEnum,
+  behavior_profile: BehaviorProfileSchema,
+  strength: z.number().min(0).max(100),
+  morale: z.number().min(0).max(100),
+  doctrine: z.string().optional(),
+  starting_control: z.number().min(0).max(100).optional(),
+});
+
+// Expanded 8-axis resource system
+const ExpandedResourcesSchema = z.object({
+  power: z.object({ player: z.number(), enemy: z.number() }),
+  wealth: z.object({ player: z.number(), enemy: z.number() }),
+  support: z.object({ player: z.number(), enemy: z.number() }),
+  knowledge: z.object({ player: z.number(), enemy: z.number() }),
+  morale: z.object({ player: z.number(), enemy: z.number() }),
+  stability: z.object({ player: z.number(), enemy: z.number() }),
+  hope: z.object({ player: z.number(), enemy: z.number() }),
+  fear: z.object({ player: z.number(), enemy: z.number() }),
+});
+
+// Major event schema - timed events during campaign
+const MajorEventSchema = z.object({
+  day: z.number(),
+  type: z.enum(["counteroffensive", "reinforcement", "sabotage", "diplomatic", "disaster", "breakthrough", "retreat", "siege"]),
+  description: z.string(),
+  impact: z.record(z.string(), z.union([z.number(), z.record(z.string(), z.number())])),
+  justification: z.string(),
+});
+
+// Psyops event schema
+const PsyopsEventSchema = z.object({
+  day: z.number(),
+  type: z.enum(["propaganda_broadcast", "false_flag", "terror", "leaflet_drop", "comm_hack", "defector_message"]),
+  target: z.enum(["player", "enemy", "civilian", "neutral"]),
+  content: z.string(),
+  effect: z.object({
+    morale: z.number().optional(),
+    hope: z.number().optional(),
+    fear: z.number().optional(),
+    support: z.number().optional(),
+  }),
+});
+
+// Story hooks for narrative generation
+const StoryHookSchema = z.array(z.string());
+
+// Final outcome schema
+const FinalOutcomeSchema = z.object({
+  status: z.enum(["decisive_victory", "pyrrhic_victory", "stalemate", "tactical_withdrawal", "defeat", "annihilation"]),
+  control_percentage: z.object({
+    player: z.number(),
+    enemy: z.number(),
+  }),
+  galactic_effects: z.array(z.string()),
+  universe_tone_shift: z.enum(["hopeful", "grim", "grim_optimism", "desperate", "triumphant", "uncertain", "apocalyptic"]),
+});
+
 const PlanetStateSchema = z.object({
   planetName: z.string(),
   planetType: z.enum(["temperate", "desert", "ice", "jungle", "volcanic", "urban", "ocean"]),
@@ -218,6 +296,12 @@ export type Resolution = z.infer<typeof ResolutionSchema>;
 export type AfterActionIntel = z.infer<typeof AfterActionIntelSchema>;
 export type PropagandaMessage = z.infer<typeof PropagandaMessageSchema>;
 export type StrategicContinuity = z.infer<typeof StrategicContinuitySchema>;
+export type BehaviorProfile = z.infer<typeof BehaviorProfileSchema>;
+export type EnhancedFaction = z.infer<typeof EnhancedFactionSchema>;
+export type ExpandedResources = z.infer<typeof ExpandedResourcesSchema>;
+export type MajorEvent = z.infer<typeof MajorEventSchema>;
+export type PsyopsEvent = z.infer<typeof PsyopsEventSchema>;
+export type FinalOutcome = z.infer<typeof FinalOutcomeSchema>;
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // LLM UTILITIES
@@ -532,13 +616,200 @@ Rules:
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// STORY HOOKS GENERATOR
+// ═══════════════════════════════════════════════════════════════════════════════
+
+export async function generateStoryHooks(
+  state: PlanetState,
+  evaluation: WarEvaluation,
+  conflictType: ConflictType = "military"
+): Promise<string[]> {
+  console.log(`[war-simulation] Generating story hooks for ${state.planetName}`);
+  
+  const prompt = `Generate narrative hooks for the ongoing ${conflictType} conflict on ${state.planetName}.
+These are emergent story opportunities that arise from the current war state.
+
+Planet State:
+${JSON.stringify(state, null, 2)}
+
+War Evaluation:
+${JSON.stringify(evaluation, null, 2)}
+
+Conflict Type: ${conflictType}
+
+Generate 3-5 story hooks as JSON array:
+["hook 1", "hook 2", "hook 3"]
+
+Rules:
+- Each hook should be 1-2 sentences
+- Hooks should feel organic to the conflict
+- Mix tactical, personal, and mysterious elements
+- Include at least one environmental or supernatural element if horror/survival
+- Never break immersion with game mechanics references`;
+
+  const response = await callLLM(prompt, PACAI_V64_SYSTEM_PROMPT);
+  return safeJSON(response, StoryHookSchema);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// EXPANDED RESOURCES & FACTIONS GENERATOR
+// ═══════════════════════════════════════════════════════════════════════════════
+
+export async function generateExpandedResources(
+  state: PlanetState,
+  evaluation: WarEvaluation
+): Promise<ExpandedResources> {
+  console.log(`[war-simulation] Calculating expanded 8-axis resources for ${state.planetName}`);
+  
+  const prompt = `Calculate the 8-axis resource state for both player and enemy factions.
+
+Planet State:
+${JSON.stringify(state, null, 2)}
+
+War Evaluation:
+${JSON.stringify(evaluation, null, 2)}
+
+Generate resource state as JSON:
+{
+  "power": { "player": 0-100, "enemy": 0-100 },
+  "wealth": { "player": 0-100, "enemy": 0-100 },
+  "support": { "player": 0-100, "enemy": 0-100 },
+  "knowledge": { "player": 0-100, "enemy": 0-100 },
+  "morale": { "player": 0-100, "enemy": 0-100 },
+  "stability": { "player": 0-100, "enemy": 0-100 },
+  "hope": { "player": 0-100, "enemy": 0-100 },
+  "fear": { "player": 0-100, "enemy": 0-100 }
+}
+
+Resource meanings:
+- power: Military strength, political influence
+- wealth: Economic control, supply lines
+- support: Public/civilian backing
+- knowledge: Intel, tech, secrets
+- morale: Troop/cohesion spirit
+- stability: Infrastructure/order
+- hope: Long-term belief in victory
+- fear: Psychological pressure exerted`;
+
+  const response = await callLLM(prompt, PACAI_V64_SYSTEM_PROMPT);
+  return safeJSON(response, ExpandedResourcesSchema);
+}
+
+export async function generateEnhancedFactions(
+  state: PlanetState,
+  customFactions?: WarSimulationInput["customFactions"]
+): Promise<EnhancedFaction[]> {
+  console.log(`[war-simulation] Generating enhanced faction profiles for ${state.planetName}`);
+  
+  const baseFactionsContext = customFactions?.length 
+    ? `Use these custom factions as base:\n${JSON.stringify(customFactions, null, 2)}`
+    : `Generate factions based on existing state:\n${JSON.stringify(state.factions, null, 2)}`;
+  
+  const prompt = `Generate enhanced faction profiles with AI behavior parameters.
+
+Planet State:
+${JSON.stringify(state, null, 2)}
+
+${baseFactionsContext}
+
+Generate 2-4 factions as JSON array:
+[
+  {
+    "id": "faction_id",
+    "name": "Faction Name",
+    "allegiance": "allied"|"enemy"|"neutral"|"insurgent",
+    "archetype": "militarist"|"diplomat"|"corporation"|"zealot"|"survivalist"|"void",
+    "behavior_profile": {
+      "aggression": 0-100,
+      "diplomacy": 0-100,
+      "deception": 0-100,
+      "resilience": 0-100,
+      "resource_focus": "power"|"wealth"|"support"|"knowledge"|"fear"|"stability"
+    },
+    "strength": 0-100,
+    "morale": 0-100,
+    "doctrine": "brief description",
+    "starting_control": 0-100
+  }
+]
+
+Rules:
+- Enemy factions should feel threatening but rational
+- Behavior profiles drive AI decision-making
+- Zealots favor fear, corporations favor wealth, etc.`;
+
+  const response = await callLLM(prompt, PACAI_V64_SYSTEM_PROMPT);
+  return safeJSON(response, z.array(EnhancedFactionSchema));
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// CAMPAIGN TIMELINE GENERATOR
+// ═══════════════════════════════════════════════════════════════════════════════
+
+export async function generateCampaignTimeline(
+  state: PlanetState,
+  evaluation: WarEvaluation,
+  durationDays: number = 30
+): Promise<{ major_events: MajorEvent[]; psychological_operations: PsyopsEvent[] }> {
+  console.log(`[war-simulation] Generating ${durationDays}-day campaign timeline for ${state.planetName}`);
+  
+  const prompt = `Generate a campaign timeline with major events and psychological operations.
+
+Planet State:
+${JSON.stringify(state, null, 2)}
+
+War Evaluation:
+${JSON.stringify(evaluation, null, 2)}
+
+Campaign Duration: ${durationDays} days
+
+Generate timeline as JSON:
+{
+  "major_events": [
+    {
+      "day": 1-${durationDays},
+      "type": "counteroffensive"|"reinforcement"|"sabotage"|"diplomatic"|"disaster"|"breakthrough"|"retreat"|"siege",
+      "description": "what happens",
+      "impact": { "power": { "player": -10, "enemy": +5 }, "morale": { "player": -15 } },
+      "justification": "why this event occurs based on prior state"
+    }
+  ],
+  "psychological_operations": [
+    {
+      "day": 1-${durationDays},
+      "type": "propaganda_broadcast"|"false_flag"|"terror"|"leaflet_drop"|"comm_hack"|"defector_message",
+      "target": "player"|"enemy"|"civilian"|"neutral",
+      "content": "the message or action content",
+      "effect": { "morale": -15, "hope": -10, "fear": +20 }
+    }
+  ]
+}
+
+Rules:
+- Generate 3-6 major events spread across the campaign
+- Generate 2-4 psyops events
+- Events should escalate over time
+- Each event must have justified causality`;
+
+  const response = await callLLM(prompt, PACAI_V64_SYSTEM_PROMPT);
+  return safeJSON(response, z.object({
+    major_events: z.array(MajorEventSchema),
+    psychological_operations: z.array(PsyopsEventSchema),
+  }));
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // MAIN SIMULATION ORCHESTRATOR
 // ═══════════════════════════════════════════════════════════════════════════════
 
 export interface WarSimulationResult {
   id: string;
+  simulation_id: string;
   type: "war.simulation";
   version: "6.4";
+  conflict_type: ConflictType;
+  timestamp: string;
+  duration_days: number;
   planetState: PlanetState;
   evaluation: WarEvaluation;
   counteroffensive?: Counteroffensive;
@@ -546,7 +817,21 @@ export interface WarSimulationResult {
   afterActionIntel?: AfterActionIntel;
   propaganda?: PropagandaMessage;
   strategicContinuity?: StrategicContinuity;
-  phase: "initialized" | "evaluated" | "counteroffensive" | "resolved" | "intel_gathered" | "psyops_active" | "continuity_calculated";
+  // v6.4.1 Expanded fields
+  enhanced_factions?: EnhancedFaction[];
+  resources?: ExpandedResources;
+  major_events?: MajorEvent[];
+  psychological_operations?: PsyopsEvent[];
+  player_intelligence?: {
+    predictability_score: number;
+    competence_trend: string;
+    identified_patterns: string[];
+    emergent_leadership: string[];
+    enemy_adaptations: string[];
+  };
+  story_hooks?: string[];
+  final_outcome?: FinalOutcome;
+  phase: "initialized" | "evaluated" | "counteroffensive" | "resolved" | "intel_gathered" | "psyops_active" | "continuity_calculated" | "complete";
   generatedAt: number;
 }
 
@@ -555,11 +840,15 @@ export interface WarSimulationInput {
   loreTags: string[];
   planetName?: string;
   threatLevel?: number;
+  conflictType?: ConflictType;
+  durationDays?: number;
   runCounteroffensive?: boolean;
   resolveWar?: boolean;
   gatherIntel?: boolean;
   generatePropaganda?: boolean;
   calculateContinuity?: boolean;
+  generateStoryHooks?: boolean;
+  generateFullTimeline?: boolean;
   playerActions?: {
     missionsCompleted?: number;
     averageSquadSize?: number;
@@ -568,12 +857,27 @@ export interface WarSimulationInput {
     objectiveCompletionRate?: number;
   };
   previousCampaigns?: Array<{ planetName: string; outcome: string; daysAgo: number }>;
+  customFactions?: Array<{
+    id: string;
+    name: string;
+    archetype: string;
+    behavior_profile?: {
+      aggression: number;
+      diplomacy: number;
+      deception: number;
+      resilience: number;
+      resource_focus: string;
+    };
+    starting_control?: number;
+  }>;
 }
 
 export async function runFullWarSimulation(input: WarSimulationInput): Promise<WarSimulationResult> {
   const id = `war_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  const conflictType = input.conflictType || "military";
+  const durationDays = input.durationDays || 30;
   
-  console.log(`[war-simulation] Starting full war simulation v6.4: ${id}`);
+  console.log(`[war-simulation] Starting full war simulation v6.4.1: ${id} (${conflictType}, ${durationDays} days)`);
   
   // Phase 1: Planet Initialization
   const planetState = await planetInitialization(input);
@@ -582,6 +886,26 @@ export async function runFullWarSimulation(input: WarSimulationInput): Promise<W
   // Phase 2: War Evaluation
   const evaluation = await liveWarEvaluation(planetState);
   phase = "evaluated";
+  
+  // Phase 2.5: Generate expanded resources and factions
+  let enhanced_factions: EnhancedFaction[] | undefined;
+  let resources: ExpandedResources | undefined;
+  let major_events: MajorEvent[] | undefined;
+  let psychological_operations: PsyopsEvent[] | undefined;
+  let story_hooks: string[] | undefined;
+  
+  // Generate enhanced factions and resources in parallel when full timeline requested
+  if (input.generateFullTimeline) {
+    const [factions, resourcesResult, timeline] = await Promise.all([
+      generateEnhancedFactions(planetState, input.customFactions),
+      generateExpandedResources(planetState, evaluation),
+      generateCampaignTimeline(planetState, evaluation, durationDays),
+    ]);
+    enhanced_factions = factions;
+    resources = resourcesResult;
+    major_events = timeline.major_events;
+    psychological_operations = timeline.psychological_operations;
+  }
   
   // Phase 3: Counteroffensive (optional)
   let counteroffensive: Counteroffensive | undefined;
@@ -599,9 +923,19 @@ export async function runFullWarSimulation(input: WarSimulationInput): Promise<W
   
   // Phase 5: After-Action Intelligence (optional)
   let afterActionIntel: AfterActionIntel | undefined;
+  let player_intelligence: WarSimulationResult["player_intelligence"] | undefined;
   if (input.gatherIntel) {
     afterActionIntel = await analyzeAfterActionIntel(planetState, evaluation, input.playerActions);
     phase = "intel_gathered";
+    
+    // Convert to simplified player_intelligence format
+    player_intelligence = {
+      predictability_score: afterActionIntel.predictability_score,
+      competence_trend: afterActionIntel.tactical_competence_trend,
+      identified_patterns: afterActionIntel.identified_player_patterns.map(p => p.pattern),
+      emergent_leadership: afterActionIntel.emergent_leadership_units.map(u => `${u.unitId}: ${u.specialization}`),
+      enemy_adaptations: afterActionIntel.recommended_enemy_adaptations.map(a => a.adaptation),
+    };
   }
   
   // Phase 6: Psychological Warfare (optional)
@@ -613,17 +947,46 @@ export async function runFullWarSimulation(input: WarSimulationInput): Promise<W
   
   // Phase 7: Strategic Continuity (requires resolution)
   let strategicContinuity: StrategicContinuity | undefined;
+  let final_outcome: FinalOutcome | undefined;
   if (input.calculateContinuity && resolution) {
     strategicContinuity = await calculateStrategicContinuity(planetState, resolution, input.previousCampaigns);
     phase = "continuity_calculated";
+    
+    // Build final outcome from resolution and continuity
+    final_outcome = {
+      status: resolution.outcome,
+      control_percentage: {
+        player: resolution.territoryControl,
+        enemy: 100 - resolution.territoryControl,
+      },
+      galactic_effects: strategicContinuity.galactic_effects.map(e => e.effect),
+      universe_tone_shift: strategicContinuity.universe_tone_adjustment === "hopeful" ? "hopeful" :
+                           strategicContinuity.universe_tone_adjustment === "grim" ? "grim" :
+                           strategicContinuity.universe_tone_adjustment === "triumphant" ? "triumphant" :
+                           "grim_optimism",
+    };
+  }
+  
+  // Phase 8: Story Hooks (optional)
+  if (input.generateStoryHooks) {
+    story_hooks = await generateStoryHooks(planetState, evaluation, conflictType);
+  }
+  
+  // Mark as complete if all optional phases executed
+  if (input.generateFullTimeline && input.resolveWar && input.calculateContinuity) {
+    phase = "complete";
   }
   
   console.log(`[war-simulation] Completed simulation ${id} at phase: ${phase}`);
   
   return {
     id,
+    simulation_id: id,
     type: "war.simulation",
     version: "6.4",
+    conflict_type: conflictType,
+    timestamp: new Date().toISOString(),
+    duration_days: durationDays,
     planetState,
     evaluation,
     counteroffensive,
@@ -631,6 +994,13 @@ export async function runFullWarSimulation(input: WarSimulationInput): Promise<W
     afterActionIntel,
     propaganda,
     strategicContinuity,
+    enhanced_factions,
+    resources,
+    major_events,
+    psychological_operations,
+    player_intelligence,
+    story_hooks,
+    final_outcome,
     phase,
     generatedAt: Date.now(),
   };
