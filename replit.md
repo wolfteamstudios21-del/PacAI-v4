@@ -61,6 +61,17 @@ PacAI v6 employs a robust, security-focused, and offline-first architecture. The
     - **Health Check Endpoints** (`server/routes/health.ts`): `/api/health`, `/api/health/ready`, `/api/health/live` for Kubernetes/Vercel probes
     - **Prompt Cache** (`server/lib/prompt-cache.ts`): In-memory cache with 1-hour TTL, 500 entry limit, LRU eviction
     - **Heap Monitoring**: Memory usage logging at pipeline start/end, warnings when RSS exceeds 500MB
+- **War Simulation v6.4** (`server/generation/war-simulation.ts`): Persistent planetary war simulation for Vanguard: Infinite Echoes with:
+    - **Master System Prompt**: Constraint-driven, consequence-aware war orchestration AI
+    - **Planet Initialization**: Generate war-torn planets with factions, key locations, and major bases
+    - **Live War Evaluation**: Tactical assessment with resource status and recommended actions
+    - **Counteroffensive Planning**: Major operation planning with success probability
+    - **Resolution Phase**: War conclusion with outcomes and aftermath
+    - **PAI² (Player After-Action Intelligence)**: Analyze player behavior as battlefield intelligence
+    - **Psychological Warfare Engine**: Generate enemy propaganda and psyops messages
+    - **Cross-Planet Strategic Continuity**: Translate outcomes into galactic-level consequences
+    - **Project-scoped**: War simulations stored per-project with config and results history
+    - **Tier-gated**: Requires Creator ($9.99/mo) or Lifetime tier
 
 **System Design Choices:**
 - **Frontend**: React with Next.js for SSR.

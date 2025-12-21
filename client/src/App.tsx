@@ -69,7 +69,7 @@ export default function App() {
   });
   const [selectedRefs, setSelectedRefs] = useState<string[]>([]);
   
-  // War Simulation State
+  // War Simulation State (v6.4 with PAI², Propaganda, Continuity)
   const [warSimConfig, setWarSimConfig] = useState({
     planetType: "temperate",
     planetName: "",
@@ -77,6 +77,10 @@ export default function App() {
     threatLevel: 5,
     runCounteroffensive: false,
     resolveWar: false,
+    // v6.4 War Cognition Modules
+    gatherIntel: false,
+    generatePropaganda: false,
+    calculateContinuity: false,
   });
   const [warSimRunning, setWarSimRunning] = useState(false);
   const [warSimResult, setWarSimResult] = useState<any>(null);
@@ -1306,6 +1310,44 @@ export default function App() {
                           <span className="text-sm">Resolve War</span>
                         </label>
                       </div>
+                      
+                      {/* v6.4 War Cognition Modules */}
+                      <div className="pt-3 border-t border-[#2a2d33]">
+                        <p className="text-xs text-[#9aa0a6] mb-2 uppercase tracking-wide">v6.4 War Cognition</p>
+                        <div className="space-y-2">
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input 
+                              type="checkbox"
+                              checked={warSimConfig.gatherIntel}
+                              onChange={(e) => setWarSimConfig(prev => ({ ...prev, gatherIntel: e.target.checked }))}
+                              className="w-4 h-4 rounded"
+                              data-testid="checkbox-warsim-intel"
+                            />
+                            <span className="text-sm">PAI² Intel Analysis</span>
+                          </label>
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input 
+                              type="checkbox"
+                              checked={warSimConfig.generatePropaganda}
+                              onChange={(e) => setWarSimConfig(prev => ({ ...prev, generatePropaganda: e.target.checked }))}
+                              className="w-4 h-4 rounded"
+                              data-testid="checkbox-warsim-propaganda"
+                            />
+                            <span className="text-sm">Psyops / Propaganda</span>
+                          </label>
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input 
+                              type="checkbox"
+                              checked={warSimConfig.calculateContinuity}
+                              onChange={(e) => setWarSimConfig(prev => ({ ...prev, calculateContinuity: e.target.checked }))}
+                              className="w-4 h-4 rounded"
+                              data-testid="checkbox-warsim-continuity"
+                            />
+                            <span className="text-sm">Strategic Continuity</span>
+                          </label>
+                        </div>
+                      </div>
+                      
                       <button 
                         onClick={runWarSimulation}
                         disabled={warSimRunning}
@@ -1360,6 +1402,97 @@ export default function App() {
                           </div>
                         </div>
                       )}
+                      
+                      {/* PAI² Intelligence */}
+                      {warSimResult.afterActionIntel && (
+                        <div className="mt-4 bg-[#1f2125] rounded-xl p-4 border border-purple-600/30">
+                          <p className="text-sm text-purple-400 mb-2 font-bold">PAI² Intelligence Report</p>
+                          <div className="space-y-2 text-sm">
+                            <div className="flex justify-between">
+                              <span className="text-[#9aa0a6]">Predictability Score:</span>
+                              <span className={warSimResult.afterActionIntel.predictability_score > 70 ? "text-red-400" : "text-green-400"}>
+                                {warSimResult.afterActionIntel.predictability_score}%
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-[#9aa0a6]">Enemy Intel Confidence:</span>
+                              <span>{warSimResult.afterActionIntel.enemy_intel_confidence}%</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-[#9aa0a6]">Competence Trend:</span>
+                              <span className="capitalize">{warSimResult.afterActionIntel.tactical_competence_trend}</span>
+                            </div>
+                            {warSimResult.afterActionIntel.identified_player_patterns?.length > 0 && (
+                              <div className="pt-2">
+                                <p className="text-[#9aa0a6] text-xs">Identified Patterns:</p>
+                                {warSimResult.afterActionIntel.identified_player_patterns.slice(0, 3).map((p: any, i: number) => (
+                                  <p key={i} className="text-xs text-yellow-400">• {p.pattern}</p>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Propaganda Message */}
+                      {warSimResult.propaganda && (
+                        <div className="mt-4 bg-[#1f2125] rounded-xl p-4 border border-red-600/30">
+                          <p className="text-sm text-red-400 mb-2 font-bold">Enemy Psychological Warfare</p>
+                          <div className="text-sm space-y-2">
+                            <div className="flex gap-2">
+                              <span className="text-[#9aa0a6] text-xs uppercase">{warSimResult.propaganda.message_type}</span>
+                              <span className="text-[#9aa0a6]">via</span>
+                              <span className="text-[#9aa0a6] text-xs uppercase">{warSimResult.propaganda.delivery_method}</span>
+                            </div>
+                            <p className="italic text-white/90 bg-[#0b0d0f] p-3 rounded-lg">
+                              "{warSimResult.propaganda.full_message}"
+                            </p>
+                            <p className="text-xs text-[#9aa0a6]">
+                              Intent: <span className="text-orange-400 capitalize">{warSimResult.propaganda.intended_psychological_effect}</span>
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Strategic Continuity */}
+                      {warSimResult.strategicContinuity && (
+                        <div className="mt-4 bg-[#1f2125] rounded-xl p-4 border border-[#3e73ff]/30">
+                          <p className="text-sm text-[#3e73ff] mb-2 font-bold">Strategic Continuity Effects</p>
+                          <div className="text-sm space-y-2">
+                            <div className="flex justify-between">
+                              <span className="text-[#9aa0a6]">Universe Tone:</span>
+                              <span className="capitalize">{warSimResult.strategicContinuity.universe_tone_adjustment}</span>
+                            </div>
+                            <div className="grid grid-cols-3 gap-2 text-xs">
+                              <div className="text-center">
+                                <p className="text-[#9aa0a6]">Allied</p>
+                                <p className={warSimResult.strategicContinuity.faction_resource_shift?.allied_change > 0 ? "text-green-400" : "text-red-400"}>
+                                  {warSimResult.strategicContinuity.faction_resource_shift?.allied_change > 0 ? "+" : ""}{warSimResult.strategicContinuity.faction_resource_shift?.allied_change}
+                                </p>
+                              </div>
+                              <div className="text-center">
+                                <p className="text-[#9aa0a6]">Enemy</p>
+                                <p className={warSimResult.strategicContinuity.faction_resource_shift?.enemy_change > 0 ? "text-red-400" : "text-green-400"}>
+                                  {warSimResult.strategicContinuity.faction_resource_shift?.enemy_change > 0 ? "+" : ""}{warSimResult.strategicContinuity.faction_resource_shift?.enemy_change}
+                                </p>
+                              </div>
+                              <div className="text-center">
+                                <p className="text-[#9aa0a6]">Neutral</p>
+                                <p>{warSimResult.strategicContinuity.faction_resource_shift?.neutral_change > 0 ? "+" : ""}{warSimResult.strategicContinuity.faction_resource_shift?.neutral_change}</p>
+                              </div>
+                            </div>
+                            {warSimResult.strategicContinuity.future_conflict_seeds?.length > 0 && (
+                              <div className="pt-2">
+                                <p className="text-[#9aa0a6] text-xs">Future Conflict Seeds:</p>
+                                {warSimResult.strategicContinuity.future_conflict_seeds.slice(0, 2).map((s: any, i: number) => (
+                                  <p key={i} className="text-xs text-orange-400">• {s.seed} ({s.probability}%)</p>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                      
                       <button 
                         onClick={() => {
                           const blob = new Blob([JSON.stringify(warSimResult, null, 2)], { type: "application/json" });
