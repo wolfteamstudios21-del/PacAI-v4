@@ -61,7 +61,7 @@ PacAI v6 employs a robust, security-focused, and offline-first architecture. The
     - **Health Check Endpoints** (`server/routes/health.ts`): `/api/health`, `/api/health/ready`, `/api/health/live` for Kubernetes/Vercel probes
     - **Prompt Cache** (`server/lib/prompt-cache.ts`): In-memory cache with 1-hour TTL, 500 entry limit, LRU eviction
     - **Heap Monitoring**: Memory usage logging at pipeline start/end, warnings when RSS exceeds 500MB
-- **War Simulation v6.4** (`server/generation/war-simulation.ts`): Persistent planetary war simulation for Vanguard: Infinite Echoes with:
+- **War Simulation v6.4.1** (`server/generation/war-simulation.ts`): Persistent planetary war simulation for Vanguard: Infinite Echoes with:
     - **Master System Prompt**: Constraint-driven, consequence-aware war orchestration AI
     - **Planet Initialization**: Generate war-torn planets with factions, key locations, and major bases
     - **Live War Evaluation**: Tactical assessment with resource status and recommended actions
@@ -72,6 +72,14 @@ PacAI v6 employs a robust, security-focused, and offline-first architecture. The
     - **Cross-Planet Strategic Continuity**: Translate outcomes into galactic-level consequences
     - **Project-scoped**: War simulations stored per-project with config and results history
     - **Tier-gated**: Requires Creator ($9.99/mo) or Lifetime tier
+    - **v6.4.1 Enhancements**:
+        - **Conflict Type Selection**: 6 conflict archetypes (military, horror, political, economic, social, survival)
+        - **Campaign Duration**: Configurable 7-90 day campaigns
+        - **8-Axis Resource System**: Tracks power, wealth, support, knowledge, morale, stability, hope, and fear for both player and enemy
+        - **Enhanced Faction Profiles**: Behavior profiles (aggression, diplomacy, deception, resilience, resource_focus) with faction archetypes
+        - **Full Campaign Timeline**: Day-by-day major events and psychological operations tracking
+        - **Story Hooks Generator**: Emergent narrative opportunities from war state
+        - **Final Outcome Analysis**: Victory/defeat status with control percentages, galactic effects, and universe tone shifts
 
 **System Design Choices:**
 - **Frontend**: React with Next.js for SSR.
