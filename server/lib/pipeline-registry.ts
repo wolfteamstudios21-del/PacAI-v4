@@ -145,4 +145,42 @@ registerPipeline("fauna.generate", async (input: PipelineInput, ctx: PipelineCon
   };
 });
 
+import { runFullWarSimulation, type WarSimulationResult } from "../generation/war-simulation";
+
+registerPipeline("war.simulate", async (input: PipelineInput, ctx: PipelineContext) => {
+  const { 
+    planetType = "temperate", 
+    loreTags = [], 
+    planetName,
+    threatLevel = 5,
+    runCounteroffensive = false,
+    resolveWar = false,
+  } = input as { 
+    planetType: string; 
+    loreTags: string[]; 
+    planetName?: string;
+    threatLevel?: number;
+    runCounteroffensive?: boolean;
+    resolveWar?: boolean;
+  };
+  
+  ctx.log(`Initializing war simulation on ${planetType} planet`);
+  ctx.log(`Lore tags: ${loreTags.join(", ") || "none"}`);
+  ctx.log(`Threat level: ${threatLevel}, Counteroffensive: ${runCounteroffensive}, Resolve: ${resolveWar}`);
+  
+  const result: WarSimulationResult = await runFullWarSimulation({
+    planetType,
+    loreTags,
+    planetName,
+    threatLevel,
+    runCounteroffensive,
+    resolveWar,
+  });
+  
+  ctx.log(`War simulation complete: ${result.planetState.planetName} (${result.phase})`);
+  ctx.log(`Control status: ${result.planetState.controlStatus}, Escalation: ${result.planetState.escalationLevel}`);
+  
+  return result;
+});
+
 console.log("[pipeline-registry] All pipelines registered");

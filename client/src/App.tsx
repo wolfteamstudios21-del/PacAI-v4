@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import {
   Zap, Shield, Download, LogOut, Menu, X, Crown, Search, UserCheck,
   Brain, Sparkles, Send, Package, Smartphone, Monitor, BookOpen, BarChart3, Image, Radio, Palette, CreditCard, Terminal,
-  Globe, Users, Truck, FileText, Settings
+  Globe, Users, Truck, FileText, Settings, Crosshair, Loader2, AlertTriangle
 } from "lucide-react";
 import RefUploader from "./components/RefUploader";
 import { SessionManager } from "./components/LiveOverrides";
@@ -68,6 +68,19 @@ export default function App() {
     tickRate: "realtime"
   });
   const [selectedRefs, setSelectedRefs] = useState<string[]>([]);
+  
+  // War Simulation State
+  const [warSimConfig, setWarSimConfig] = useState({
+    planetType: "temperate",
+    planetName: "",
+    loreTags: "",
+    threatLevel: 5,
+    runCounteroffensive: false,
+    resolveWar: false,
+  });
+  const [warSimRunning, setWarSimRunning] = useState(false);
+  const [warSimResult, setWarSimResult] = useState<any>(null);
+  const [warSimHistory, setWarSimHistory] = useState<any[]>([]);
   
   // PWA install prompt state
   const [installPrompt, setInstallPrompt] = useState<any>(null);
@@ -271,6 +284,49 @@ export default function App() {
     setUser(null);
     setLoginUser("");
     setLoginPass("");
+  };
+
+  // War Simulation
+  const runWarSimulation = async () => {
+    if (user?.tier !== "creator" && user?.tier !== "lifetime") {
+      alert("War Simulation requires Creator or Lifetime tier. Please upgrade your plan.");
+      return;
+    }
+    
+    setWarSimRunning(true);
+    try {
+      const loreTags = warSimConfig.loreTags.split(",").map(t => t.trim()).filter(Boolean);
+      
+      const res = await fetch(`${API_BASE_URL}/api/pipelines/war.simulate/run`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          input: {
+            planetType: warSimConfig.planetType,
+            planetName: warSimConfig.planetName || undefined,
+            loreTags,
+            threatLevel: warSimConfig.threatLevel,
+            runCounteroffensive: warSimConfig.runCounteroffensive,
+            resolveWar: warSimConfig.resolveWar,
+          }
+        }),
+        credentials: "include"
+      });
+      
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || `Request failed: ${res.status}`);
+      }
+      
+      const data = await res.json();
+      setWarSimResult(data.output || data);
+      setWarSimHistory(prev => [data.output || data, ...prev].slice(0, 10));
+    } catch (error: any) {
+      console.error("[war-sim] Error:", error);
+      alert(`War simulation failed: ${error.message}`);
+    } finally {
+      setWarSimRunning(false);
+    }
   };
 
   // Scroll to section helper
@@ -623,6 +679,7 @@ export default function App() {
   const menu = [
     { id: "home", icon: Brain, label: "Home" },
     { id: "generate", icon: Sparkles, label: "Generation Lab" },
+    { id: "warsim", icon: Crosshair, label: "War Simulation" },
     { id: "assets", icon: Package, label: "Asset Gallery" },
     { id: "gallery", icon: Image, label: "3dRender Gallery" },
     { id: "artist", icon: Palette, label: "Artist Portal" },
@@ -1191,6 +1248,254 @@ export default function App() {
                   >
                     Regenerate World
                   </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === "warsim" && (
+          <div className="max-w-6xl">
+            <h2 className="text-4xl font-black mb-2">War Simulation Agent</h2>
+            <p className="text-[#9aa0a6] mb-8">Persistent planetary war simulation for Vanguard: Infinite Echoes</p>
+            
+            {/* Tier Gate */}
+            {user?.tier !== "creator" && user?.tier !== "lifetime" && (
+              <div className="bg-yellow-900/30 border border-yellow-600 rounded-2xl p-6 mb-8">
+                <div className="flex items-center gap-3 mb-3">
+                  <AlertTriangle className="w-6 h-6 text-yellow-500" />
+                  <h3 className="text-xl font-bold text-yellow-500">Premium Feature</h3>
+                </div>
+                <p className="text-[#9aa0a6] mb-4">War Simulation requires Creator ($9.99/mo) or Lifetime tier. Free tier: 1 sim/day.</p>
+                <button 
+                  onClick={() => setActiveTab("pricing")}
+                  className="px-6 py-3 bg-yellow-600 rounded-xl font-bold hover:bg-yellow-700"
+                  data-testid="button-upgrade-for-warsim"
+                >
+                  Upgrade Plan
+                </button>
+              </div>
+            )}
+            
+            <div className="grid md:grid-cols-2 gap-8">
+              {/* Configuration Panel */}
+              <div className="bg-[#141517] rounded-2xl p-6 border border-[#2a2d33]">
+                <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
+                  <Crosshair className="w-5 h-5 text-[#3e73ff]" />
+                  Simulation Configuration
+                </h3>
+                
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm text-[#9aa0a6] mb-2">Planet Type</label>
+                    <select 
+                      value={warSimConfig.planetType}
+                      onChange={(e) => setWarSimConfig(prev => ({ ...prev, planetType: e.target.value }))}
+                      className="w-full px-4 py-3 bg-[#1f2125] rounded-xl text-white"
+                      data-testid="select-planet-type"
+                    >
+                      <option value="temperate">Temperate</option>
+                      <option value="desert">Desert</option>
+                      <option value="ice">Ice World</option>
+                      <option value="jungle">Jungle</option>
+                      <option value="volcanic">Volcanic</option>
+                      <option value="urban">Urban Megacity</option>
+                      <option value="ocean">Ocean World</option>
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm text-[#9aa0a6] mb-2">Planet Name (optional)</label>
+                    <input 
+                      type="text"
+                      value={warSimConfig.planetName}
+                      onChange={(e) => setWarSimConfig(prev => ({ ...prev, planetName: e.target.value }))}
+                      placeholder="Auto-generated if empty"
+                      className="w-full px-4 py-3 bg-[#1f2125] rounded-xl text-white placeholder-[#9aa0a6]"
+                      data-testid="input-planet-name"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm text-[#9aa0a6] mb-2">Lore Tags (comma-separated)</label>
+                    <input 
+                      type="text"
+                      value={warSimConfig.loreTags}
+                      onChange={(e) => setWarSimConfig(prev => ({ ...prev, loreTags: e.target.value }))}
+                      placeholder="alien invasion, resource conflict, civil war"
+                      className="w-full px-4 py-3 bg-[#1f2125] rounded-xl text-white placeholder-[#9aa0a6]"
+                      data-testid="input-lore-tags"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm text-[#9aa0a6] mb-2">
+                      Threat Level: {warSimConfig.threatLevel}
+                    </label>
+                    <input 
+                      type="range"
+                      min="1"
+                      max="10"
+                      value={warSimConfig.threatLevel}
+                      onChange={(e) => setWarSimConfig(prev => ({ ...prev, threatLevel: parseInt(e.target.value) }))}
+                      className="w-full"
+                      data-testid="range-threat-level"
+                    />
+                    <div className="flex justify-between text-xs text-[#9aa0a6]">
+                      <span>Skirmish</span>
+                      <span>Total War</span>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-4 pt-2">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input 
+                        type="checkbox"
+                        checked={warSimConfig.runCounteroffensive}
+                        onChange={(e) => setWarSimConfig(prev => ({ ...prev, runCounteroffensive: e.target.checked }))}
+                        className="w-4 h-4 rounded"
+                        data-testid="checkbox-counteroffensive"
+                      />
+                      <span className="text-sm">Run Counteroffensive (+$1.99)</span>
+                    </label>
+                  </div>
+                  
+                  <div className="flex items-center gap-4">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input 
+                        type="checkbox"
+                        checked={warSimConfig.resolveWar}
+                        onChange={(e) => setWarSimConfig(prev => ({ ...prev, resolveWar: e.target.checked }))}
+                        className="w-4 h-4 rounded"
+                        data-testid="checkbox-resolve-war"
+                      />
+                      <span className="text-sm">Resolve War (Final Judgment)</span>
+                    </label>
+                  </div>
+                </div>
+                
+                <button 
+                  onClick={runWarSimulation}
+                  disabled={warSimRunning}
+                  className="w-full mt-6 px-6 py-4 bg-gradient-to-r from-red-600 to-orange-600 rounded-xl font-bold text-lg hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2"
+                  data-testid="button-run-warsim"
+                >
+                  {warSimRunning ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Simulating War...
+                    </>
+                  ) : (
+                    <>
+                      <Crosshair className="w-5 h-5" />
+                      Initialize War
+                    </>
+                  )}
+                </button>
+              </div>
+              
+              {/* Results Panel */}
+              <div className="bg-[#141517] rounded-2xl p-6 border border-[#2a2d33]">
+                <h3 className="text-xl font-bold mb-6">Simulation Output</h3>
+                
+                {!warSimResult ? (
+                  <div className="text-center py-12 text-[#9aa0a6]">
+                    <Crosshair className="w-16 h-16 mx-auto mb-4 opacity-30" />
+                    <p>Configure parameters and run simulation to see results</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4 max-h-[600px] overflow-y-auto">
+                    {/* Planet Info */}
+                    <div className="bg-[#1f2125] rounded-xl p-4">
+                      <h4 className="font-bold text-[#3e73ff] mb-2">{warSimResult.planetState?.planetName || "Unknown Planet"}</h4>
+                      <div className="grid grid-cols-2 gap-2 text-sm">
+                        <div><span className="text-[#9aa0a6]">Type:</span> {warSimResult.planetState?.planetType}</div>
+                        <div><span className="text-[#9aa0a6]">Status:</span> {warSimResult.planetState?.controlStatus}</div>
+                        <div><span className="text-[#9aa0a6]">Threat:</span> {warSimResult.planetState?.threatLevel}/10</div>
+                        <div><span className="text-[#9aa0a6]">Escalation:</span> {warSimResult.planetState?.escalationLevel}/5</div>
+                      </div>
+                    </div>
+                    
+                    {/* Factions */}
+                    {warSimResult.planetState?.factions && (
+                      <div className="bg-[#1f2125] rounded-xl p-4">
+                        <h4 className="font-bold mb-2">Factions</h4>
+                        <div className="space-y-2">
+                          {warSimResult.planetState.factions.map((f: any, i: number) => (
+                            <div key={i} className="flex justify-between items-center text-sm">
+                              <span className={f.allegiance === "allied" ? "text-green-400" : f.allegiance === "enemy" ? "text-red-400" : "text-[#9aa0a6]"}>
+                                {f.name}
+                              </span>
+                              <span>Strength: {f.strength}% | Morale: {f.morale}%</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Evaluation */}
+                    {warSimResult.evaluation && (
+                      <div className="bg-[#1f2125] rounded-xl p-4">
+                        <h4 className="font-bold mb-2">War Evaluation</h4>
+                        <p className="text-sm text-[#9aa0a6] mb-2">Phase: <span className="text-white">{warSimResult.evaluation.currentPhase}</span></p>
+                        <p className="text-sm">{warSimResult.evaluation.tacticalAssessment}</p>
+                      </div>
+                    )}
+                    
+                    {/* Counteroffensive */}
+                    {warSimResult.counteroffensive && (
+                      <div className="bg-[#1f2125] rounded-xl p-4 border border-orange-600/30">
+                        <h4 className="font-bold text-orange-400 mb-2">Operation: {warSimResult.counteroffensive.operationName}</h4>
+                        <p className="text-sm">Success Probability: <span className="text-green-400">{warSimResult.counteroffensive.successProbability}%</span></p>
+                      </div>
+                    )}
+                    
+                    {/* Resolution */}
+                    {warSimResult.resolution && (
+                      <div className="bg-[#1f2125] rounded-xl p-4 border border-[#3e73ff]/30">
+                        <h4 className="font-bold text-[#3e73ff] mb-2">Resolution: {warSimResult.resolution.outcome}</h4>
+                        <p className="text-sm text-[#9aa0a6]">{warSimResult.resolution.narrativeSummary?.slice(0, 300)}...</p>
+                      </div>
+                    )}
+                    
+                    {/* Export JSON */}
+                    <button 
+                      onClick={() => {
+                        const blob = new Blob([JSON.stringify(warSimResult, null, 2)], { type: "application/json" });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement("a");
+                        a.href = url;
+                        a.download = `war-sim-${warSimResult.planetState?.planetName || "unknown"}.json`;
+                        a.click();
+                      }}
+                      className="w-full px-4 py-3 bg-[#3e73ff] rounded-xl font-bold hover:opacity-90 flex items-center justify-center gap-2"
+                      data-testid="button-export-warsim"
+                    >
+                      <Download className="w-4 h-4" />
+                      Export Simulation JSON
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            {/* History */}
+            {warSimHistory.length > 0 && (
+              <div className="mt-8 bg-[#141517] rounded-2xl p-6 border border-[#2a2d33]">
+                <h3 className="text-xl font-bold mb-4">Recent Simulations</h3>
+                <div className="grid md:grid-cols-5 gap-4">
+                  {warSimHistory.map((sim, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setWarSimResult(sim)}
+                      className="bg-[#1f2125] rounded-xl p-4 text-left hover:bg-[#2a2d33] transition"
+                      data-testid={`button-history-${i}`}
+                    >
+                      <p className="font-bold truncate">{sim.planetState?.planetName}</p>
+                      <p className="text-xs text-[#9aa0a6]">{sim.planetState?.planetType}</p>
+                      <p className="text-xs text-[#9aa0a6]">Phase: {sim.phase}</p>
+                    </button>
+                  ))}
                 </div>
               </div>
             )}

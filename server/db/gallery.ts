@@ -4,7 +4,7 @@ export type PreviewStatus = "pending" | "generating" | "ready" | "failed";
 
 export interface GalleryItem {
   id: string;
-  kind: "vehicle" | "weapon" | "creature" | "concept" | "model" | "world" | "npc" | "simulation";
+  kind: "vehicle" | "weapon" | "creature" | "concept" | "model" | "world" | "npc" | "simulation" | "war.simulation";
   title: string;
   tags: string[];
   license: "cc0" | "cc-by" | "commercial";
@@ -21,6 +21,11 @@ export interface GalleryItem {
   previewAltText?: string;
   previewFallbackTier: number; // 0=AI generated, 1=concept art, 2=icon fallback
   generationPrompt?: string;
+  
+  // War simulation specific
+  planetName?: string;
+  escalationLevel?: number;
+  simulationPhase?: string;
 }
 
 const gallery: GalleryItem[] = [];
