@@ -22,6 +22,7 @@ import type { GenerationResult, Entity, World, Narrative, ExportResult } from ".
 import { enqueueExportJob, getExportJobStatus, handleWorkerCallback, verifyCallbackSignature } from "./queue";
 import { getRefsByIds, buildRefPromptEnhancement, getRefsPerGenLimit } from "./refs";
 import { broadcastOverrideToProject, broadcastStateToProject, broadcastGenerationToProject, getProjectSubscriberCount } from "./websocket";
+import { runWarSimulation } from "./generation/war-simulation";
 
 const router = Router();
 
@@ -43,7 +44,8 @@ router.get("/v5/projects", async (req, res) => {
 });
 
 router.post("/v5/projects", async (req, res) => {
-  const p = await createProject();
+  const { warSimConfig } = req.body || {};
+  const p = await createProject("game", warSimConfig);
   res.json(p);
 });
 
@@ -379,6 +381,73 @@ router.post("/v5/projects/:id/override", async (req, res) => {
   const updated = await applyOverride(req.params.id, command, user);
   if (!updated) return res.status(404).json({ error: "Project not found" });
   res.json(updated);
+});
+
+// War Simulation endpoint for projects
+router.post("/v5/projects/:id/war-simulation", async (req, res) => {
+  const { username, config } = req.body;
+  let p = await getProject(req.params.id);
+  if (!p) return res.status(404).json({ error: "Project not found" });
+
+  const user = username ? getUser(username) : null;
+  const userTier = (user?.tier || "free").toLowerCase();
+  
+  if (userTier !== "creator" && userTier !== "lifetime") {
+    return res.status(403).json({ error: "War Simulation requires Creator or Lifetime tier" });
+  }
+
+  try {
+    const warConfig = config || (p as any).warSimConfig || {
+      planetType: "temperate",
+      planetName: "",
+      loreTags: [],
+      threatLevel: 5,
+      runCounteroffensive: false,
+      resolveWar: false
+    };
+
+    const result = await runWarSimulation(warConfig);
+    
+    // Store config and result in project
+    (p as any).warSimConfig = warConfig;
+    if (!(p as any).warSimResults) {
+      (p as any).warSimResults = [];
+    }
+    (p as any).warSimResults.unshift({
+      ...result,
+      timestamp: Date.now()
+    });
+    // Keep last 10 results
+    (p as any).warSimResults = (p as any).warSimResults.slice(0, 10);
+    
+    await saveProject(p);
+    await addAudit({
+      type: "war_simulation",
+      projectId: p.id,
+      user: username || "anonymous",
+      phase: result.phase
+    });
+
+    res.json({
+      project: p,
+      warSimResult: result
+    });
+  } catch (error: any) {
+    console.error("[war-sim] Error:", error);
+    res.status(500).json({ error: error.message || "War simulation failed" });
+  }
+});
+
+// Update project war simulation config
+router.patch("/v5/projects/:id/war-simulation/config", async (req, res) => {
+  const { config } = req.body;
+  let p = await getProject(req.params.id);
+  if (!p) return res.status(404).json({ error: "Project not found" });
+
+  (p as any).warSimConfig = config;
+  await saveProject(p);
+  
+  res.json({ project: p });
 });
 
 router.get("/v5/audit/stream", async (req, res) => {

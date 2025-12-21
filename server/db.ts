@@ -1,4 +1,22 @@
 // In-memory project and audit store
+interface WarSimConfig {
+  planetType: string;
+  planetName: string;
+  loreTags: string[];
+  threatLevel: number;
+  runCounteroffensive: boolean;
+  resolveWar: boolean;
+}
+
+interface WarSimResult {
+  phase: string;
+  planetState?: any;
+  evaluation?: any;
+  counteroffensive?: any;
+  resolution?: any;
+  timestamp: number;
+}
+
 interface Project {
   id: string;
   created_at: number;
@@ -7,6 +25,8 @@ interface Project {
   state: any;
   history: any[];
   checksum: string;
+  warSimConfig?: WarSimConfig;
+  warSimResults?: WarSimResult[];
 }
 
 interface AuditEntry {

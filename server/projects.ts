@@ -4,16 +4,18 @@ import crypto from "crypto";
 
 let seedCounter = 0;
 
-export async function createProject(type = "game") {
+export async function createProject(type = "game", warSimConfig?: any) {
   const id = randomUUID();
-  const project = {
+  const project: any = {
     id,
     created_at: Date.now(),
     type,
     seed: Date.now() + seedCounter++,
     state: { biome: "urban", npcs: 0, aggression: 0.5, weather: "clear" },
     history: [],
-    checksum: "initial"
+    checksum: "initial",
+    warSimConfig: warSimConfig || null,
+    warSimResults: []
   };
   await saveProject(project);
   await addAudit({ type: "project_created", projectId: id, user: "system" });
