@@ -383,7 +383,7 @@ router.post("/v5/projects/:id/override", async (req, res) => {
   res.json(updated);
 });
 
-// War Simulation endpoint for projects
+// War Simulation endpoint for projects (v6.4 with PAI², Propaganda, Continuity)
 router.post("/v5/projects/:id/war-simulation", async (req, res) => {
   const { username, config } = req.body;
   let p = await getProject(req.params.id);
@@ -397,13 +397,26 @@ router.post("/v5/projects/:id/war-simulation", async (req, res) => {
   }
 
   try {
-    const warConfig = config || (p as any).warSimConfig || {
-      planetType: "temperate",
-      planetName: "",
-      loreTags: [],
-      threatLevel: 5,
-      runCounteroffensive: false,
-      resolveWar: false
+    // Build previous campaigns from project history for continuity
+    const previousCampaigns = ((p as any).warSimResults || []).slice(0, 5).map((r: any) => ({
+      planetName: r.planetState?.planetName || "Unknown",
+      outcome: r.resolution?.outcome || r.phase,
+      daysAgo: Math.floor((Date.now() - (r.timestamp || r.generatedAt)) / (1000 * 60 * 60 * 24))
+    }));
+
+    const warConfig = {
+      planetType: config?.planetType || "temperate",
+      planetName: config?.planetName || "",
+      loreTags: config?.loreTags || [],
+      threatLevel: config?.threatLevel || 5,
+      runCounteroffensive: config?.runCounteroffensive || false,
+      resolveWar: config?.resolveWar || false,
+      // v6.4 War Cognition modules
+      gatherIntel: config?.gatherIntel || false,
+      generatePropaganda: config?.generatePropaganda || false,
+      calculateContinuity: config?.calculateContinuity || false,
+      playerActions: config?.playerActions || undefined,
+      previousCampaigns: previousCampaigns.length > 0 ? previousCampaigns : undefined
     };
 
     const result = await runFullWarSimulation(warConfig);
@@ -425,7 +438,12 @@ router.post("/v5/projects/:id/war-simulation", async (req, res) => {
       type: "war_simulation",
       projectId: p.id,
       user: username || "anonymous",
-      phase: result.phase
+      phase: result.phase,
+      modules: {
+        intel: !!result.afterActionIntel,
+        propaganda: !!result.propaganda,
+        continuity: !!result.strategicContinuity
+      }
     });
 
     res.json({
@@ -471,7 +489,7 @@ router.get("/v5/audit", async (req, res) => {
 router.get("/v5/health", async (req, res) => {
   res.json({
     status: "operational",
-    version: "v6.3.0",
+    version: "v6.4.0",
     features: {
       procedural_generation: true,
       deterministic_worlds: true,
@@ -481,7 +499,11 @@ router.get("/v5/health", async (req, res) => {
       multi_engine_export: true,
       mobile_exports: true,
       direct_links: true,
-      constant_draw: true
+      constant_draw: true,
+      war_simulation: true,
+      pai2_intel: true,
+      psychological_warfare: true,
+      strategic_continuity: true
     },
     engines: ["UE5", "Unity", "Godot", "Roblox", "Blender", "CryEngine", "Source2", "WebGPU", "visionOS"]
   });

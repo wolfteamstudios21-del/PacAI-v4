@@ -61,7 +61,7 @@ const PlanetStateSchema = z.object({
   controlStatus: z.enum(["contested", "enemy_held", "liberated", "evacuated"]),
   threatLevel: z.number().min(1).max(10),
   strategicValue: z.number().min(1).max(10),
-  campaignDay: z.number().default(1),
+  campaignDay: z.number().optional(),
   factions: z.array(z.object({
     name: z.string(),
     allegiance: z.enum(["allied", "enemy", "neutral", "insurgent"]),
