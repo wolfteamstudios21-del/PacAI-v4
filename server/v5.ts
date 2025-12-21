@@ -22,7 +22,7 @@ import type { GenerationResult, Entity, World, Narrative, ExportResult } from ".
 import { enqueueExportJob, getExportJobStatus, handleWorkerCallback, verifyCallbackSignature } from "./queue";
 import { getRefsByIds, buildRefPromptEnhancement, getRefsPerGenLimit } from "./refs";
 import { broadcastOverrideToProject, broadcastStateToProject, broadcastGenerationToProject, getProjectSubscriberCount } from "./websocket";
-import { runWarSimulation } from "./generation/war-simulation";
+import { runFullWarSimulation } from "./generation/war-simulation";
 
 const router = Router();
 
@@ -406,7 +406,7 @@ router.post("/v5/projects/:id/war-simulation", async (req, res) => {
       resolveWar: false
     };
 
-    const result = await runWarSimulation(warConfig);
+    const result = await runFullWarSimulation(warConfig);
     
     // Store config and result in project
     (p as any).warSimConfig = warConfig;
