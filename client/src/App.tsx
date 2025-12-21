@@ -288,7 +288,8 @@ export default function App() {
 
   // War Simulation
   const runWarSimulation = async () => {
-    if (user?.tier !== "creator" && user?.tier !== "lifetime") {
+    const userTier = user?.tier?.toLowerCase();
+    if (userTier !== "creator" && userTier !== "lifetime") {
       alert("War Simulation requires Creator or Lifetime tier. Please upgrade your plan.");
       return;
     }
@@ -297,7 +298,7 @@ export default function App() {
     try {
       const loreTags = warSimConfig.loreTags.split(",").map(t => t.trim()).filter(Boolean);
       
-      const res = await fetch(`${API_BASE_URL}/api/pipelines/war.simulate/run`, {
+      const res = await fetch(`${API_BASE_URL}/v5/pipelines/war.simulate/run`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -1260,7 +1261,7 @@ export default function App() {
             <p className="text-[#9aa0a6] mb-8">Persistent planetary war simulation for Vanguard: Infinite Echoes</p>
             
             {/* Tier Gate */}
-            {user?.tier !== "creator" && user?.tier !== "lifetime" && (
+            {user?.tier?.toLowerCase() !== "creator" && user?.tier?.toLowerCase() !== "lifetime" && (
               <div className="bg-yellow-900/30 border border-yellow-600 rounded-2xl p-6 mb-8">
                 <div className="flex items-center gap-3 mb-3">
                   <AlertTriangle className="w-6 h-6 text-yellow-500" />
